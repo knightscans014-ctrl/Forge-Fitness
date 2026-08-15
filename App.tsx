@@ -1,14 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { Text } from 'react-native';
+import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { View } from 'react-native';
 import { useGame } from './src/context/GameContext';
 import { Loader } from './src/components/ui';
 import { ToastHost } from './src/components/Toast';
 import { AuraOverlay } from './src/components/effects';
+import { Icon, TAB_ICONS } from './src/theme/icons';
+import { colors } from './src/theme/colors';
+
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import MissionsScreen from './src/screens/MissionsScreen';
@@ -19,49 +22,63 @@ import GuildScreen from './src/screens/GuildScreen';
 import SocialScreen from './src/screens/SocialScreen';
 import ShopScreen from './src/screens/ShopScreen';
 import ProgressScreen from './src/screens/ProgressScreen';
-import { colors } from './src/theme/colors';
 
-const Tab = createBottomTabNavigator();
-
-const ICONS: Record<string, string> = {
-  Home: '🏠',
-  Missions: '📜',
-  Battle: '⚔️',
-  Character: '🛡️',
-  Log: '⚡',
-  Guild: '👥',
-  Progress: '📈',
-  Social: '🏆',
-  Shop: '🛍️',
+export type RootStackParamList = {
+  Main: undefined;
+  LogDetail: undefined;
+  GuildDetail: undefined;
+  ProgressDetail: undefined;
+  SocialDetail: undefined;
 };
 
-function TabBarIcon({ name }: { name: string }) {
-  return <Text style={{ fontSize: 20 }}>{ICONS[name]}</Text>;
-}
+const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
-function Tabs({ onNavigateToHome }: { onNavigateToHome: (tab: string) => void }) {
+// Consolidated professional tab set (5 tabs, everything else is a detail screen).
+const TABS = [
+  { name: 'Home', component: HomeScreen, title: 'Home' },
+  { name: 'Quests', component: MissionsScreen, title: 'Quests' },
+  { name: 'Battle', component: BattleScreen, title: 'Battle' },
+  { name: 'Character', component: CharacterScreen, title: 'Character' },
+  { name: 'Shop', component: ShopScreen, title: 'Shop' },
+] as const;
+
+function MainTabs({ navigation }: { navigation: any }) {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: colors.accent2,
-        tabBarInactiveTintColor: colors.mut,
-        tabBarStyle: { backgroundColor: '#0d0f1b', borderTopColor: colors.line },
-        tabBarIcon: () => <TabBarIcon name={route.name} />,
+        tabBarInactiveTintColor: colors.mut2,
+        tabBarStyle: { backgroundColor: '#0d0f1b', borderTopColor: colors.line, height: 64, paddingBottom: 8 },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
+        tabBarIcon: ({ focused, color }) => {
+          const cfg = TAB_ICONS[route.name] || { active: 'help', inactive: 'help' };
+          return <Icon name={focused ? cfg.active : (cfg.inactive || cfg.active)} size={22} color={color} family={cfg.family} />;
+        },
       })}
     >
-      <Tab.Screen name="Home">
-        {() => <HomeScreen onNavigate={onNavigateToHome} />}
-      </Tab.Screen>
-      <Tab.Screen name="Missions" component={MissionsScreen} />
-      <Tab.Screen name="Battle" component={BattleScreen} />
-      <Tab.Screen name="Character" component={CharacterScreen} />
-      <Tab.Screen name="Log" component={LogScreen} />
-      <Tab.Screen name="Guild" component={GuildScreen} />
-      <Tab.Screen name="Progress" component={ProgressScreen} />
-      <Tab.Screen name="Social" component={SocialScreen} />
-      <Tab.Screen name="Shop" component={ShopScreen} />
+      {TABS.map(t => (
+        <Tab.Screen key={t.name} name={t.name} component={t.component} />
+      ))}
     </Tab.Navigator>
+  );
+}
+
+function RootNavigator() {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.bg },
+      }}
+    >
+      <Stack.Screen name="Main" component={MainTabs} />
+      <Stack.Screen name="LogDetail" component={LogScreen} />
+      <Stack.Screen name="GuildDetail" component={GuildScreen} />
+      <Stack.Screen name="ProgressDetail" component={ProgressScreen} />
+      <Stack.Screen name="SocialDetail" component={SocialScreen} />
+    </Stack.Navigator>
   );
 }
 
@@ -69,7 +86,6 @@ export default function App() {
   const hydrated = useGame(s => s.hydrated);
   const state = useGame(s => s.state);
   const hydrate = useGame(s => s.hydrate);
-  const [tab, setTab] = useState('Home');
 
   useEffect(() => { hydrate(); }, []);
 
@@ -79,7 +95,13 @@ export default function App() {
     <SafeAreaProvider>
       <StatusBar style="light" />
       <View style={{ flex: 1 }}>
-        {state ? <Tabs onNavigateToHome={t => setTab(t)} /> : <OnboardingScreen />}
+        {state ? (
+          <NavigationContainer>
+            <RootNavigator />
+          </NavigationContainer>
+        ) : (
+          <OnboardingScreen />
+        )}
         <ToastHost />
         <CelebrationHost />
       </View>

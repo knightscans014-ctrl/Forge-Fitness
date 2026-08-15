@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useGame } from '../context/GameContext';
-import { Card, Screen, Pill, StatRow } from '../components/ui';
+import { Card, Pill, StatRow } from '../components/ui';
+import { DetailScreen } from '../components/DetailScreen';
+import { ScreenHeader } from '../components/Header';
 import { colors } from '../theme/colors';
 import { CLASSES, computePower } from '../engine';
 
@@ -21,9 +23,8 @@ export default function SocialScreen() {
   const myRank = rows.findIndex(r => r.xp === me.xp) + 1;
 
   return (
-    <Screen>
-      <Text style={s.title}>🏆 Guild Leaderboard</Text>
-      <Text style={s.sub}>Compete with your guild. You rank #{myRank}.</Text>
+    <DetailScreen title="Leaderboard">
+      <ScreenHeader icon="trophy" title="Guild Leaderboard" subtitle={`Compete with your guild. You rank #${myRank}`} accent="#ffd166" />
 
       <Card>
         <View style={s.rowBetween}><Text style={s.cardTitle}>Season 1</Text><Pill>⚔️ {computePower(state)} power</Pill></View>
@@ -49,7 +50,7 @@ export default function SocialScreen() {
         </View>
         <Text style={[s.desc, { textAlign: 'center', marginTop: 8 }]}>Guild chat unlocks with Premium 👑</Text>
       </Card>
-    </Screen>
+    </DetailScreen>
   );
 }
 

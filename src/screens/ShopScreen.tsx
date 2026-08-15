@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, Modal, TextInput, Pressable } from 'react-native';
 import { useGame } from '../context/GameContext';
 import { Card, Screen, Pill, Btn, StatRow } from '../components/ui';
+import { ScreenHeader } from '../components/Header';
 import { colors } from '../theme/colors';
 import { ENGINE, BOOSTERS, PREMIUM_TIERS, isPremium } from '../engine';
 
@@ -22,8 +23,7 @@ export default function ShopScreen() {
 
   return (
     <Screen>
-      <Text style={s.title}>🛍️ Forge Shop</Text>
-      <Text style={s.sub}>Spend gold on upgrades & boost your dopamine.</Text>
+      <ScreenHeader icon="store" title="Forge Shop" subtitle="Spend gold on upgrades & boosters" accent="#ffd166" />
 
       <Card>
         <Text style={s.cardTitle}>🚀 Boosters</Text>

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { useGame } from '../context/GameContext';
 import { Card, Screen, Pill, Bar, Btn, StatRow } from '../components/ui';
+import { ScreenHeader } from '../components/Header';
+import { Icon } from '../theme/icons';
 import { SkillTreeModal, InventoryModal } from '../components/modals';
 import { colors } from '../theme/colors';
 import { ENGINE, STATS, RANKS, rankForLevel, nextRank, rankProgressPct, statLevels, gearById, equippedCount } from '../engine';
@@ -17,8 +19,7 @@ export default function CharacterScreen() {
 
   return (
     <Screen>
-      <Text style={s.title}>🛡️ Hunter Status</Text>
-      <Text style={s.sub}>Your rank reflects your real-world progress.</Text>
+      <ScreenHeader icon="shield-checkmark" title="Hunter Status" subtitle="Your rank reflects your real-world progress" accent="#ff8a5c" />
 
       <Card border={`${rk.color}66`}>
         <View style={s.statusTop}>
@@ -35,7 +36,7 @@ export default function CharacterScreen() {
       </Card>
 
       <Card>
-        <View style={s.rowBetween}><Text style={s.cardTitle}>🗺️ Rank Ladder</Text></View>
+        <View style={s.rowBetween}><Text style={s.cardTitle}><Icon name="trophy" size={16} color={colors.gold} /> Rank Ladder</Text></View>
         {RANKS.map(r => {
           const reached = state.level >= r.lvl;
           const cur = rk.id === r.id;
@@ -53,7 +54,7 @@ export default function CharacterScreen() {
       </Card>
 
       <Card>
-        <View style={s.rowBetween}><Text style={s.cardTitle}>Core Stats</Text><Pill>+{state.skillPoints} pts</Pill></View>
+        <View style={s.rowBetween}><Text style={s.cardTitle}><Icon name="speedometer" size={16} color={colors.en} /> Core Stats</Text><Pill>+{state.skillPoints} pts</Pill></View>
         {STATS.map(st => {
           const lv = lvl[st.id];
           return (
@@ -66,7 +67,7 @@ export default function CharacterScreen() {
       </Card>
 
       <Card>
-        <View style={s.rowBetween}><Text style={s.cardTitle}>⚔️ Equipment</Text><Pill><Text onPress={() => setInvOpen(true)}>Bag {state.inventory.length}</Text></Pill></View>
+        <View style={s.rowBetween}><Text style={s.cardTitle}><Icon name="shield-half-full" size={16} color={colors.str} family="mci" /> Equipment</Text><Pill><Text onPress={() => setInvOpen(true)}>Bag {state.inventory.length}</Text></Pill></View>
         {(['weapon', 'armor', 'accessory'] as const).map(slot => {
           const g = gearById(state, state.equipped[slot]);
           return (
@@ -78,7 +79,7 @@ export default function CharacterScreen() {
       </Card>
 
       <Card>
-        <Text style={s.cardTitle}>🔥 Streaks & Progress</Text>
+        <Text style={s.cardTitle}><Icon name="flame" size={16} color={colors.accent2} /> Streaks & Progress</Text>
         <View style={s.statsRow}>
           <View style={s.statBox}><Text style={s.statV}>{state.streak}d</Text><Text style={s.desc}>CURRENT</Text></View>
           <View style={s.statBox}><Text style={s.statV}>{state.bestStreak}d</Text><Text style={s.desc}>BEST</Text></View>

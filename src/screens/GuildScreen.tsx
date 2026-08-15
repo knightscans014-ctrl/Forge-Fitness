@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useGame } from '../context/GameContext';
 import { Card, Screen, Pill, Bar, Btn } from '../components/ui';
+import { ScreenHeader } from '../components/Header';
+import { DetailScreen } from '../components/DetailScreen';
 import { colors } from '../theme/colors';
 import { ENGINE, raidStatus, raidRank, nextRival, seasonTier } from '../engine';
 
@@ -15,9 +17,8 @@ export default function GuildScreen() {
   const rival = nextRival(state);
 
   return (
-    <Screen>
-      <Text style={s.title}>👥 Guild & Arena</Text>
-      <Text style={s.sub}>Compete together and duel rivals.</Text>
+    <DetailScreen title="Guild & Arena">
+      <ScreenHeader icon="account-group" title="Guild & Arena" subtitle="Compete together and duel rivals" accent="#4dc3ff" />
 
       <Card border={colors.en}>
         <View style={s.rowBetween}>
@@ -72,7 +73,7 @@ export default function GuildScreen() {
             <View key={i} style={s.rowItem}><Text style={s.name}>{d.rival}</Text><Text style={s.desc}>{d.wins} win(s)</Text></View>
           ))}
       </Card>
-    </Screen>
+    </DetailScreen>
   );
 }
 

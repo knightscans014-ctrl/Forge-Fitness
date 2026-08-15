@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useGame } from '../context/GameContext';
 import { Card, Screen, Pill, Bar, StatRow } from '../components/ui';
+import { ScreenHeader } from '../components/Header';
+import { Icon } from '../theme/icons';
 import { colors } from '../theme/colors';
 import {
   ENGINE, WEEKLY_QUESTS, STORY_MISSIONS, TIERED_MISSIONS, MILESTONE_MISSIONS,
@@ -15,11 +17,10 @@ export default function MissionsScreen() {
 
   return (
     <Screen>
-      <Text style={s.title}>📜 Missions</Text>
-      <Text style={s.sub}>Daily, weekly, story arcs & challenges.</Text>
+      <ScreenHeader icon="list-circle" title="Missions" subtitle="Daily, weekly, story arcs & challenges" accent="#b18cff" />
 
       <Card>
-        <View style={s.rowBetween}><Text style={s.cardTitle}>🎯 Daily Quests</Text><Pill color={colors.xpa}>{done}/{quests.length}</Pill></View>
+        <View style={s.rowBetween}><Text style={s.cardTitle}><Icon name="list-circle" size={16} color={colors.xpa} family="mci" /> Daily Quests</Text><Pill color={colors.xpa}>{done}/{quests.length}</Pill></View>
         {quests.map(q => {
           const isDone = state.questsDone.includes(q.id);
           return (
@@ -37,7 +38,7 @@ export default function MissionsScreen() {
       </Card>
 
       <Card border={colors.gold}>
-        <View style={s.rowBetween}><Text style={s.cardTitle}>🎁 Weekly Quests</Text></View>
+        <View style={s.rowBetween}><Text style={s.cardTitle}><Icon name="calendar" size={16} color={colors.gold} /> Weekly Quests</Text></View>
         {WEEKLY_QUESTS.map(w => {
           const cur = Math.min(w.target, ENGINE.weeklyVal(state, w.stat));
           const claimed = state.weekly.claimed.includes(w.id);
@@ -57,7 +58,7 @@ export default function MissionsScreen() {
       </Card>
 
       <Card border={colors.mana}>
-        <Text style={s.cardTitle}>📖 Story Arcs</Text>
+        <Text style={s.cardTitle}><Icon name="book-open" size={16} color={colors.mana} /> Story Arcs</Text>
         {STORY_MISSIONS.map(arc => {
           const doneSteps = state.story[arc.id]?.length || 0;
           return (
@@ -81,7 +82,7 @@ export default function MissionsScreen() {
       </Card>
 
       <Card>
-        <Text style={s.cardTitle}>🏅 Tiered Missions</Text>
+        <Text style={s.cardTitle}><Icon name="medal" size={16} color={colors.xpa} family="mci" /> Tiered Missions</Text>
         {TIERED_MISSIONS.map(tm => {
           const val = ENGINE.tieredVal(state, tm.id);
           const cur = state.tiered[tm.id] ?? -1;
@@ -105,7 +106,7 @@ export default function MissionsScreen() {
       </Card>
 
       <Card>
-        <Text style={s.cardTitle}>🏆 Milestones</Text>
+        <Text style={s.cardTitle}><Icon name="trophy" size={16} color={colors.gold} /> Milestones</Text>
         {MILESTONE_MISSIONS.map(m => {
           const ms: any = { workouts: state.workouts, streak: state.bestStreak, level: state.level, bossCount: state.bosses.length };
           const cur = Math.min(m.target, ms[m.stat]);
@@ -125,7 +126,7 @@ export default function MissionsScreen() {
       </Card>
 
       <Card>
-        <Text style={s.cardTitle}>🔥 Combo</Text>
+        <Text style={s.cardTitle}><Icon name="flame" size={16} color={colors.accent2} /> Combo</Text>
         <Text style={s.desc}>Log activities to build combo (max +50% XP)</Text>
         <Bar pct={Math.min(100, state.combo.n * 5)} color={colors.accent2} />
       </Card>

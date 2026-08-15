@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Modal } from 'react-native';
 import { useGame } from '../context/GameContext';
 import { Card, Screen, Pill, Bar, Btn } from '../components/ui';
+import { ScreenHeader } from '../components/Header';
 import { colors } from '../theme/colors';
 import {
   ENGINE, BOSSES, currentBoss, bossUnlocked, startBossBattle, computePower,
@@ -17,8 +18,7 @@ export default function BattleScreen() {
 
   return (
     <Screen>
-      <Text style={s.title}>⚔️ Battle</Text>
-      <Text style={s.sub}>Slay personal milestone bosses for big rewards + loot.</Text>
+      <ScreenHeader icon="sword" title="Battle" subtitle="Slay personal milestone bosses for big rewards + loot" accent="#ff5d73" />
 
       {boss ? (
         <Card border={colors.mana}>

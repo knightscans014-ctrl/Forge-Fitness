@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Modal, Pressable } from 'react-native';
 import { useGame } from '../context/GameContext';
 import { Card, Screen, Pill, Btn, StatRow } from '../components/ui';
+import { ScreenHeader } from '../components/Header';
+import { DetailScreen } from '../components/DetailScreen';
 import { colors } from '../theme/colors';
 import { ENGINE, ACTIVITIES, energyCost, xpMultNow, goldMultNow } from '../engine';
 
@@ -19,9 +21,8 @@ export default function LogScreen() {
   }
 
   return (
-    <Screen>
-      <Text style={s.title}>⚡ Log Activity</Text>
-      <Text style={s.sub}>Earn XP, gold, stat growth & loot from real training.</Text>
+    <DetailScreen title="Log Activity">
+      <ScreenHeader icon="flash" title="Log Activity" subtitle="Earn XP, gold & stat growth from real training" accent="#4dc3ff" />
 
       <Card>
         <View style={s.rowBetween}><Text style={s.cardTitle}>Choose activity</Text><Pill color={colors.en}>⚡ {state.energy}</Pill></View>
@@ -82,7 +83,7 @@ export default function LogScreen() {
           </View>
         )}
       </Modal>
-    </Screen>
+    </DetailScreen>
   );
 }
 

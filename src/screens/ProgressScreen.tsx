@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useGame } from '../context/GameContext';
 import { Card, Screen, Pill, Bar } from '../components/ui';
+import { ScreenHeader } from '../components/Header';
+import { DetailScreen } from '../components/DetailScreen';
 import { colors } from '../theme/colors';
 import { ENGINE, last7Days, trend, STACKS, stackProgress, ACHIEVEMENTS } from '../engine';
 
@@ -13,9 +15,8 @@ export default function ProgressScreen() {
   const maxAch = ACHIEVEMENTS.length;
 
   return (
-    <Screen>
-      <Text style={s.title}>📈 Progress</Text>
-      <Text style={s.sub}>Your growth, streaks & stacks.</Text>
+    <DetailScreen title="Progress">
+      <ScreenHeader icon="chart-box" title="Progress" subtitle="Your growth, streaks & stacks" accent="#7cffb2" />
 
       <Card>
         <View style={s.rowBetween}><Text style={s.cardTitle}>📊 Workout Trend</Text>
@@ -61,7 +62,7 @@ export default function ProgressScreen() {
           );
         })}
       </Card>
-    </Screen>
+    </DetailScreen>
   );
 }
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { useGame } from '../context/GameContext';
 import { Card, Screen, Pill, Bar, Btn } from '../components/ui';
-import { DAILY_REWARDS } from '../engine';
+import { DAILY_REWARDS, generateSuggestion } from '../engine';
 import { colors } from '../theme/colors';
 import {
   ENGINE, rankForLevel, nextRank, rankProgressPct, xpForLevel, effectiveMaxHP,
@@ -31,6 +31,8 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: string) =
 
   const activeBoosters = ['b_xp', 'b_gold', 'b_combo'].filter(id => boosterActive(state, id));
   const canClaim = ENGINE.dailyClaimAvailable(state);
+  const suggestion = state.suggestion;
+  if (!suggestion && !state.suggestionDone) generateSuggestion(state);
 
   return (
     <Screen>
@@ -81,8 +83,25 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: string) =
         </View>
       </Card>
 
-      {/* dopamine strip */}
-      <Card style={s.compact}>
+      {/* The System suggestion */}
+      {suggestion && !state.suggestionDone ? (
+        <Card border={colors.mana}>
+          <View style={s.rowBetween}>
+            <Pill color={colors.mana}>✦ THE SYSTEM</Pill>
+            <Btn small kind="ghost" title="🎲" onPress={() => mutate(s => { generateSuggestion(s); })} />
+          </View>
+          <Text style={[s.statName, { marginTop: 8 }]}>{suggestion.icon} Suggested Quest</Text>
+          <Text style={s.statDesc}>{suggestion.text}</Text>
+          <View style={s.tagRow2}>
+            <Pill color={colors.xpa}>+{suggestion.xp} XP</Pill>
+            <Pill color={colors.gold}>+{suggestion.gold}🪙</Pill>
+          </View>
+          <Btn title="Do it" onPress={() => mutate(s => { ENGINE.completeSuggestion(s); useGame.getState().notify(`✦ System quest complete! +${suggestion.xp} XP`); generateSuggestion(s); })} />
+        </Card>
+      ) : null}
+
+      {/* daily reward */}
+      <Card border={colors.gold} style={s.compact}>
         <View style={s.row}>
           <Pill color={colors.gold}>
             <Text onPress={() => onNavigate('missions')}>🎁 Challenge: {state.dailyChallengeDone ? 'done ✓' : dc.name}</Text>
@@ -149,6 +168,7 @@ const s = StyleSheet.create({
   dailyRow: { flexDirection: 'row', gap: 6, marginTop: 10 },
   dailyBox: { flex: 1, backgroundColor: colors.card2, borderWidth: 1, borderColor: colors.line, borderRadius: 11, paddingVertical: 8, alignItems: 'center' },
   dailyLabel: { fontSize: 10, color: colors.mut, fontWeight: '700', marginTop: 2 },
+  tagRow2: { flexDirection: 'row', gap: 8, marginVertical: 8 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardTitle: { color: colors.ink, fontWeight: '800', fontSize: 15 },
   quest: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.line },

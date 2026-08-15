@@ -76,6 +76,21 @@ The engine is framework-free — same logic powers web, iOS, and Android. **Test
 
 ---
 
+## 🤖 CI + Backend
+- **`.github/workflows/build.yml`** — auto type-checks + runs all engine tests on every push to `main`.
+- **`supabase/schema.sql`** — Postgres schema for multi-user: profiles, save_state, leaderboard, guilds + raids, subscriptions, creator-video review queue (with RLS).
+- **`src/services/sync.ts`** — Supabase sync stub (wire real calls with `EXPO_PUBLIC_SUPABASE_*` env vars).
+
+## 🚀 Recent additions
+- Daily reward claim streak (7-day calendar) with a Home card
+- Aura GIF celebrations (level-up / rank-up / boss) wired into the overlay with haptics
+- Skill Tree + Inventory modals (were dead buttons, now functional)
+- 3 new bosses (7 total), 6 new achievements (21 total), Lucky Charm loot booster
+- Toast notification system for all rewards/events
+- Duel-win & boss-victory celebration feedback
+
+---
+
 ## 💳 Subscriptions (RevenueCat)
 `src/services/revenuecat.ts` isolates all billing. **Current state:** working prototype (simulated purchase). To go live:
 1. Create a [RevenueCat](https://www.revenuecat.com) project.

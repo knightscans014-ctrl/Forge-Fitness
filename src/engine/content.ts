@@ -142,6 +142,7 @@ export const BOOSTERS: BoosterDef[] = [
   { id: 'b_gold', icon: '💰', name: 'Gold Fever', desc: '2× gold for 30 min', cost: 140, durMin: 30, type: 'gold' },
   { id: 'b_elixir', icon: '⚗️', name: 'Energy Elixir', desc: 'Instantly refill all energy', cost: 120, type: 'energy' },
   { id: 'b_combo', icon: '🔗', name: 'Combo Master', desc: '2× combo points for 30 min', cost: 180, durMin: 30, type: 'combo' },
+  { id: 'b_luck', icon: '🍀', name: 'Lucky Charm', desc: 'Higher legendary loot chance for 30 min', cost: 200, durMin: 30, type: 'luck' },
 ];
 
 export const DAILY_REWARDS = [

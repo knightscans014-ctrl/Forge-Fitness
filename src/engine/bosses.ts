@@ -10,6 +10,8 @@ export const BOSSES: BossDef[] = [
   { id: 'b3', icon: '🔥', name: 'Phx, the Reinvented', lvl: 8, hp: 230, atk: 13, xp: 320, gold: 130, unlock: 'Reach level 8' },
   { id: 'b4', icon: '🌋', name: 'Mount Habit', lvl: 12, hp: 340, atk: 18, xp: 480, gold: 200, unlock: 'Log 30 total workouts' },
   { id: 'b5', icon: '👑', name: 'Overlord Procrast', lvl: 16, hp: 520, atk: 24, xp: 700, gold: 300, unlock: 'Reach a 30-day streak' },
+  { id: 'b6', icon: '🌪️', name: 'The Slump Elemental', lvl: 22, hp: 800, atk: 32, xp: 1000, gold: 420, unlock: 'Reach level 22' },
+  { id: 'b7', icon: '💀', name: 'Couch Reaper', lvl: 30, hp: 1300, atk: 45, xp: 1600, gold: 650, unlock: 'Reach S-Rank (level 30)' },
 ];
 
 export function currentBoss(s: GameState): BossDef | null {
@@ -25,6 +27,8 @@ export function bossUnlocked(s: GameState, b: BossDef): boolean {
     b3: () => s.level >= 8,
     b4: () => s.workouts >= 30,
     b5: () => s.streak >= 30,
+    b6: () => s.level >= 22,
+    b7: () => s.level >= 30,
   } as Record<string, () => boolean>;
   return (n[b.id] || (() => false))();
 }

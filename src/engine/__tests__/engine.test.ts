@@ -1,7 +1,7 @@
 import {
   ENGINE, levelFromXP, rankForLevel, energyCost, addXP,
   defaultState, xpMultNow, goldMultNow, xpForLevel, computePower,
-  startBossBattle, bossStrike, checkAchievements, buySkill, equipGear,
+  startBossBattle, bossStrike, bossUnlocked, checkAchievements, buySkill, equipGear,
   generateSuggestion, completeSuggestion, duel, nextRival, startRaid, raidStrike,
   recordStackActivity, dropLoot,
 } from '../index';
@@ -139,5 +139,20 @@ describe('FORGE engine', () => {
     const p1 = computePower(s);
     addXP(s, 500);
     expect(computePower(s)).toBeGreaterThanOrEqual(p1);
+  });
+  test('daily reward can be claimed once per day', () => {
+    const s = defaultState('Hero', 'warrior');
+    const first = ENGINE.claimDaily(s);
+    expect(first?.ok).toBe(true);
+    expect(first?.day).toBe(1);
+    expect(first?.gold).toBeGreaterThan(0);
+    const second = ENGINE.claimDaily(s);
+    expect(second).toBeNull(); // already claimed today
+  });
+  test('boss unlock conditions for later bosses', () => {
+    const s = defaultState('Hero', 'warrior');
+    s.level = 30; // S-rank
+    const unlocked7 = bossUnlocked(s, { id: 'b7' } as any);
+    expect(unlocked7).toBe(true);
   });
 });

@@ -2,7 +2,7 @@
 
 import { GameState, GearItem } from './types';
 import { xpForLevel, levelFromXP, rankForLevel } from './levels';
-import { xpMultNow, goldMultNow, comboMult, critXP } from './state';
+import { xpMultNow, goldMultNow, comboMult, critXP, boosterActive } from './state';
 
 export interface RewardEvent {
   xp: number;
@@ -76,6 +76,13 @@ export function makeGear(slot: GearItem['slot'], rarity: GearItem['rarity']): Ge
 export function dropLoot(s: GameState, guaranteed: boolean): GearItem | null {
   let rarity: GearItem['rarity'] = guaranteed ? 'legendary' : rollRarity();
   if (!guaranteed && Math.random() < 0.03) rarity = 'epic';
+  // Lucky Charm booster: dramatically boost drop quality
+  if (boosterActive(s, 'b_luck')) {
+    if (!guaranteed) {
+      if (Math.random() < 0.4) rarity = 'epic';
+      if (Math.random() < 0.15) rarity = 'legendary';
+    }
+  }
   const slots: GearItem['slot'][] = ['weapon', 'armor', 'accessory'];
   const slot = slots[Math.floor(Math.random() * slots.length)];
   const g = makeGear(slot, rarity);

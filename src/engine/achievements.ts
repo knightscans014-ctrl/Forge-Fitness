@@ -19,6 +19,11 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'a13', icon: '💎', name: 'Millionaire', cond: s => s.gold >= 1000 },
   { id: 'a14', icon: '🎯', name: 'Perfectionist', cond: s => s.combo.n >= 20 },
   { id: 'a15', icon: '👑', name: 'S-Rank Hunter', cond: s => s.level >= 30 },
+  { id: 'a16', icon: '🐲', name: 'Wyrm Slayer', cond: s => s.bosses.length >= 5 },
+  { id: 'a17', icon: '⚔️', name: 'Arena Champion', cond: s => (s.duelStreak || 0) >= 5 },
+  { id: 'a18', icon: '🌅', name: 'Ritual Master', cond: s => Object.keys(s.statsTrainedToday || {}).length >= 5 },
+  { id: 'a19', icon: '🚀', name: 'XP Addict', cond: s => s.totalXP >= 5000 },
+  { id: 'a20', icon: '💪', name: 'Century Club', cond: s => s.workouts >= 100 },
 ];
 
 export interface AchievementResult { id: string; name: string; xp: number; gold: number; }

@@ -221,5 +221,5 @@ export interface BoosterDef {
   desc: string;
   cost: number;
   durMin?: number;
-  type: 'xp' | 'gold' | 'energy' | 'combo';
+  type: 'xp' | 'gold' | 'energy' | 'combo' | 'luck';
 }

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image, Pressable } from 'react-native';
 import { useGame } from '../context/GameContext';
 import { Card, Screen, Pill, Bar, Btn, StatRow } from '../components/ui';
 import { ScreenHeader } from '../components/Header';
 import { Icon } from '../theme/icons';
 import { SkillTreeModal, InventoryModal } from '../components/modals';
+import { ProfileMenu } from '../components/ProfileMenu';
 import { colors } from '../theme/colors';
 import { ENGINE, STATS, RANKS, rankForLevel, nextRank, rankProgressPct, statLevels, gearById, equippedCount } from '../engine';
 
@@ -13,13 +14,21 @@ export default function CharacterScreen() {
   const { mutate } = useGame();
   const [skillOpen, setSkillOpen] = useState(false);
   const [invOpen, setInvOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const lvl = statLevels(state);
   const rk = rankForLevel(state.level);
   const nr = nextRank(state.level);
 
   return (
     <Screen>
-      <ScreenHeader icon="shield-checkmark" title="Hunter Status" subtitle="Your rank reflects your real-world progress" accent="#ff8a5c" />
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={{ flex: 1 }}>
+          <ScreenHeader icon="shield-checkmark" title="Hunter Status" subtitle="Your rank reflects your real-world progress" accent="#ff8a5c" />
+        </View>
+        <Pressable onPress={() => setProfileOpen(true)} style={s.settingsBtn}>
+          <Icon name="person-circle" size={30} color={colors.mut} />
+        </Pressable>
+      </View>
 
       <Card border={`${rk.color}66`}>
         <View style={s.statusTop}>
@@ -89,6 +98,7 @@ export default function CharacterScreen() {
 
       <SkillTreeModal visible={skillOpen} onClose={() => setSkillOpen(false)} />
       <InventoryModal visible={invOpen} onClose={() => setInvOpen(false)} />
+      <ProfileMenu visible={profileOpen} onClose={() => setProfileOpen(false)} />
     </Screen>
   );
 }
@@ -107,6 +117,7 @@ const s = StyleSheet.create({
   rowItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.line },
   curRow: { backgroundColor: 'rgba(255,209,102,0.08)', borderRadius: 12, paddingHorizontal: 8 },
   name: { color: colors.ink, fontWeight: '800', fontSize: 13 },
+  settingsBtn: { padding: 8, marginRight: 8 },
   statsRow: { flexDirection: 'row', gap: 8, marginTop: 10 },
   statBox: { flex: 1, backgroundColor: colors.card2, borderRadius: 14, padding: 10, alignItems: 'center' },
   statV: { color: colors.ink, fontSize: 18, fontWeight: '900' },

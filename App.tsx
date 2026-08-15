@@ -6,6 +6,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { View } from 'react-native';
 import { useGame } from './src/context/GameContext';
+import { useAuth } from './src/context/AuthContext';
 import { Loader } from './src/components/ui';
 import { ToastHost } from './src/components/Toast';
 import { AuraOverlay } from './src/components/effects';
@@ -13,6 +14,7 @@ import { Icon, TAB_ICONS } from './src/theme/icons';
 import { colors } from './src/theme/colors';
 
 import OnboardingScreen from './src/screens/OnboardingScreen';
+import AuthScreen from './src/screens/AuthScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import MissionsScreen from './src/screens/MissionsScreen';
 import BattleScreen from './src/screens/BattleScreen';
@@ -86,16 +88,26 @@ export default function App() {
   const hydrated = useGame(s => s.hydrated);
   const state = useGame(s => s.state);
   const hydrate = useGame(s => s.hydrate);
+  const auth = useAuth(s => s.auth);
+  const authReady = useAuth(s => s.ready);
+  const bootstrap = useAuth(s => s.bootstrap);
 
-  useEffect(() => { hydrate(); }, []);
+  useEffect(() => {
+    hydrate();
+    bootstrap();
+  }, []);
 
-  if (!hydrated) return <Loader />;
+  if (!hydrated || !authReady) return <Loader />;
+
+  const signedIn = auth.status === 'signedIn';
 
   return (
     <SafeAreaProvider>
       <StatusBar style="light" />
       <View style={{ flex: 1 }}>
-        {state ? (
+        {!signedIn ? (
+          <AuthScreen />
+        ) : state ? (
           <NavigationContainer>
             <RootNavigator />
           </NavigationContainer>

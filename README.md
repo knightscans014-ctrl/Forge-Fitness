@@ -91,16 +91,22 @@ The engine is framework-free — same logic powers web, iOS, and Android. **Test
 
 ---
 
-## 💳 Subscriptions (RevenueCat)
-`src/services/revenuecat.ts` isolates all billing. **Current state:** working prototype (simulated purchase). To go live:
-1. Create a [RevenueCat](https://www.revenuecat.com) project.
-2. Add products: `forge_ranger_yearly`, `forge_elite_yearly`, `forge_monarch_yearly` in App Store Connect + Google Play (prices ₹99 / ₹199 / ₹299).
-3. Replace `purchaseTier` with `Purchases.purchasePackage(...)`.
-4. Add a webhook → your backend grants entitlement + sets `premium=true`.
+## 🔐 Authentication (Supabase Auth)
+Email/password + Google OAuth. `src/services/auth.ts` + `AuthContext.ts`.
+- **Login/Signup screen** gating the whole app.
+- **Google Sign-In** via Supabase OAuth (needs callback URL configured).
+- Sessions persist via AsyncStorage.
+- To go live: create a Supabase project, enable Email + Google providers, set `EXPO_PUBLIC_SUPABASE_URL` + `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
+
+## 💳 Payments — strictly UPI (Razorpay)
+`src/services/upi.ts` handles **UPI-only** payments (GPay, PhonePe, Paytm) in INR. No cards.
+- Prices: **Ranger ₹99 / Elite ₹199 / Monarch ₹299** (yearly).
+- Flow: app creates a Razorpay order (server-side with your secret) → opens UPI checkout → backend webhook verifies payment → grants entitlement.
+- To go live: Razorpay account + `RAZORPAY_KEY_ID/SECRET` (server) + `EXPO_PUBLIC_RAZORPAY_KEY_ID` (app), add the RN Razorpay SDK natively.
 
 ### Pricing (your model)
 - **Free tier:** 100% playable, no paywalls.
-- **Ranger ₹99** / **Elite ₹199** / **Monarch ₹299** — yearly, tier-scaled XP/gold boosts.
+- **Ranger ₹99** / **Elite ₹199** / **Monarch ₹299** — yearly, tier-scaled XP/gold boosts, paid via UPI.
 - **Content-Creator unlock:** submit a video link + email → you review → unlock Ranger free (`submitCreatorUnlock`).
 
 ---

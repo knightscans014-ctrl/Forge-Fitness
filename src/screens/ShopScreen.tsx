@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, Modal, TextInput, Pressable } from 'react-native';
 import { useGame } from '../context/GameContext';
+import { useAuth } from '../context/AuthContext';
 import { Card, Screen, Pill, Btn, StatRow } from '../components/ui';
 import { ScreenHeader } from '../components/Header';
+import { Icon } from '../theme/icons';
 import { colors } from '../theme/colors';
 import { ENGINE, BOOSTERS, PREMIUM_TIERS, isPremium } from '../engine';
+import { UPI_PLANS, payWithUPI, createOrder } from '../services/upi';
 
 const UPGRADES = [
   { id: 'g1', icon: '🛡️', name: 'Iron Aegis', desc: '+5 max HP', cost: 120 },
@@ -16,10 +19,34 @@ const UPGRADES = [
 export default function ShopScreen() {
   const state = useGame(s => s.state)!;
   const { mutate } = useGame();
+  const authUser = useAuth(s => s.auth.status === 'signedIn' ? (s.auth as any).user : null);
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [selectedTier, setSelectedTier] = useState('t2');
   const [email, setEmail] = useState('');
   const [videoLink, setVideoLink] = useState('');
+  const [paying, setPaying] = useState(false);
+
+  async function handleUPIPayment() {
+    const plan = UPI_PLANS[selectedTier];
+    if (!plan || paying) return;
+    setPaying(true);
+    // 1. create order on backend
+    const order = await createOrder(plan);
+    if ('error' in order) { setPaying(false); useGame.getState().notify(order.error); return; }
+    // 2. open UPI checkout
+    const result = await payWithUPI(plan, order.orderId, authUser?.email || email || '', state.name);
+    if (result.status === 'success') {
+      // In prod: backend webhook confirms payment, then we grant entitlement.
+      mutate(s => ENGINE.activateTier(s, selectedTier));
+      useGame.getState().notify(`🎉 ${plan.name} Premium unlocked!`);
+      setPaywallOpen(false);
+    } else if (result.status === 'cancelled') {
+      useGame.getState().notify('Payment cancelled.');
+    } else {
+      useGame.getState().notify(`Payment failed: ${result.message}`);
+    }
+    setPaying(false);
+  }
 
   return (
     <Screen>
@@ -93,10 +120,14 @@ export default function ShopScreen() {
               setPaywallOpen(false);
             }} />
 
+            <View style={s.upiNote}>
+              <Icon name="wifi" size={14} color={colors.xpa} family="mci" />
+              <Text style={{ color: colors.xpa, fontSize: 12, fontWeight: '700' }}>Pay with UPI — GPay, PhonePe, Paytm & more</Text>
+            </View>
             <View style={{ height: 10 }} />
-            <Btn title="Activate Premium" onPress={() => { mutate(s => ENGINE.activateTier(s, selectedTier)); setPaywallOpen(false); }} />
+            <Btn title={paying ? 'Processing...' : `Pay ₹${(UPI_PLANS[selectedTier]?.amountPaise || 0) / 100} via UPI`} onPress={handleUPIPayment} disabled={paying} />
             <View style={{ height: 8 }} />
-            <Btn kind="ghost" title="Restore Purchase" onPress={() => useGame.getState().notify('No prior purchases found on this device.')} />
+            <Btn kind="ghost" title="Restore Purchase" onPress={() => useGame.getState().notify('No prior purchase found on this device.')} />
             <View style={{ height: 8 }} />
             <Btn kind="ghost" title="Close" onPress={() => setPaywallOpen(false)} />
           </View>
@@ -120,4 +151,5 @@ const s = StyleSheet.create({
   tierName: { color: colors.ink, fontWeight: '900', fontSize: 15 },
   divider: { height: 1, backgroundColor: colors.line, marginVertical: 16 },
   input: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line, borderRadius: 13, padding: 13, color: colors.ink, marginTop: 8 },
+  upiNote: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(124,255,178,0.08)', borderRadius: 10, padding: 10, marginTop: 8 },
 });

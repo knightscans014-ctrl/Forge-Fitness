@@ -7,7 +7,8 @@ import { ScreenHeader } from '../components/Header';
 import { Icon } from '../theme/icons';
 import { colors } from '../theme/colors';
 import { ENGINE, BOOSTERS, PREMIUM_TIERS, isPremium } from '../engine';
-import { UPI_TIERS, openUpiPayment, rs, FAMPAY_CONFIG, makePayment } from '../services/fampay';
+import { UPI_TIERS, openUpiPayment, rs, FAMPAY_CONFIG } from '../services/fampay';
+import { submitPayment } from '../services/payments';
 
 const UPGRADES = [
   { id: 'g1', icon: '🛡️', name: 'Iron Aegis', desc: '+5 max HP', cost: 120 },
@@ -42,12 +43,15 @@ export default function ShopScreen() {
     setPaying(false);
   }
 
-  function submitVerification() {
+  async function submitVerification() {
     if (!refNumber.trim()) { useGame.getState().notify('Please enter the UPI transaction reference.'); return; }
-    const p = makePayment(selectedTier, refNumber.trim());
-    // In prod: POST p to backend → admin reviews → approves → premium granted.
-    mutate(s => { s.premium = true; s.tier = selectedTier; });
-    useGame.getState().notify('Payment submitted for verification. Your premium will activate shortly!');
+    // Record the payment (pending). The owner approves it in the admin panel.
+    const res = await submitPayment({ tierId: selectedTier, utr: refNumber.trim(), buyerName: state.name });
+    if (res.flags.length > 0) {
+      useGame.getState().notify('Submitted — please double-check the UTR (⚠ amount should match tier).');
+    } else {
+      useGame.getState().notify('Payment submitted for verification. Your premium will activate once approved!');
+    }
     setPaywallOpen(false);
     setPaidStage(false);
     setRefNumber('');

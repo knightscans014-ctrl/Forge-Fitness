@@ -1,6 +1,7 @@
 // Profile menu: shows signed-in user, sign out.
 import React from 'react';
 import { View, Text, StyleSheet, Modal, Pressable } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
 import { Icon } from '../theme/icons';
@@ -11,6 +12,7 @@ export function ProfileMenu({ visible, onClose }: { visible: boolean; onClose: (
   const auth = useAuth();
   const user = auth.auth.status === 'signedIn' ? auth.auth.user : null;
   const resetGame = useGame(s => s.newGame);
+  const navigation = useNavigation<any>();
 
   async function handleSignOut() {
     await auth.signOut();
@@ -19,6 +21,10 @@ export function ProfileMenu({ visible, onClose }: { visible: boolean; onClose: (
   function handleReset() {
     resetGame('Adventurer', 'warrior');
     onClose();
+  }
+  function openAdmin() {
+    onClose();
+    navigation.navigate('Admin');
   }
 
   return (
@@ -43,7 +49,8 @@ export function ProfileMenu({ visible, onClose }: { visible: boolean; onClose: (
           <Text style={styles.label}>Account</Text>
           <Text style={styles.meta}>Sign-in: {user?.provider === 'google' ? 'Google' : 'Email'}</Text>
 
-          <View style={{ height: 16 }} />
+          <Btn kind="gold" title="Payment Admin" onPress={openAdmin} />
+          <View style={{ height: 8 }} />
           <Btn kind="danger" title="Sign Out" onPress={handleSignOut} />
           <View style={{ height: 8 }} />
           <Btn kind="ghost" title="Reset Character" onPress={handleReset} />

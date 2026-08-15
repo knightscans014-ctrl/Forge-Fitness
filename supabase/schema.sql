@@ -76,6 +76,33 @@ create table public.creator_reviews (
   created_at timestamptz not null default now()
 );
 
+-- Fampay UPI payments (manual verification)
+-- Buyer submits UTR; owner approves/rejects in the admin panel.
+create table public.payments (
+  id text primary key,
+  tier_id text not null,
+  tier_name text not null,
+  amount_paise int not null,
+  buyer_email text,
+  buyer_name text,
+  utr text not null,
+  status text not null default 'pending', -- pending / approved / rejected
+  flags text[] not null default '{}',
+  created_at timestamptz not null default now(),
+  reviewed_at timestamptz
+);
+
+-- Admin allowlist (your email)
+create table public.admins (
+  email text primary key
+);
+insert into public.admins (email) values ('replace-with-your-email@example.com');
+
+-- Owner-only read access to payments (in prod: restrict by email allowlist)
+alter table public.payments enable row level security;
+create policy "admin can manage payments" on public.payments for all
+  using (auth.jwt() ->> 'email' in (select email from public.admins));
+
 -- Row Level Security (RLS): users only access their own data
 alter table public.profiles enable row level security;
 alter table public.save_state enable row level security;

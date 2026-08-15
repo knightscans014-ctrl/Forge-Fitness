@@ -24,6 +24,7 @@ import GuildScreen from './src/screens/GuildScreen';
 import SocialScreen from './src/screens/SocialScreen';
 import ShopScreen from './src/screens/ShopScreen';
 import ProgressScreen from './src/screens/ProgressScreen';
+import AdminScreen from './src/screens/AdminScreen';
 
 export type RootStackParamList = {
   Main: undefined;
@@ -31,6 +32,7 @@ export type RootStackParamList = {
   GuildDetail: undefined;
   ProgressDetail: undefined;
   SocialDetail: undefined;
+  Admin: undefined;
 };
 
 const Tab = createBottomTabNavigator();
@@ -80,6 +82,7 @@ function RootNavigator() {
       <Stack.Screen name="GuildDetail" component={GuildScreen} />
       <Stack.Screen name="ProgressDetail" component={ProgressScreen} />
       <Stack.Screen name="SocialDetail" component={SocialScreen} />
+      <Stack.Screen name="Admin" component={AdminScreen} />
     </Stack.Navigator>
   );
 }

@@ -101,10 +101,13 @@ Email/password + Google OAuth. `src/services/auth.ts` + `AuthContext.ts`.
 ## 💳 Payments — Fampay UPI (for an 18yo, no merchant KYC)
 `src/services/fampay.ts` lets you **receive money via your Fampay UPI ID / QR** using the universal `upi://pay` deep link — no payment gateway, no business registration, no GST. The payer's UPI app (GPay/PhonePe/Paytm) opens and sends money straight to your Fampay ID.
 - Prices: **Ranger ₹99 / Elite ₹199 / Monarch ₹299** (yearly).
-- **Verification:** since there's no gateway to auto-confirm, it's a manual flow:
+- **Verification:** since there's no gateway to auto-confirm, it's a **semi-automated** flow:
   1. User pays → opens their UPI app to your Fampay ID.
-  2. User enters the **UPI transaction reference (UTR)** from their payment.
-  3. You check your Fampay history, match the UTR, and approve → premium granted.
+  2. User **types the UPI transaction reference (UTR)** + their details.
+  3. The app **auto-checks** the UTR format and amount-vs-tier and flags problems.
+  4. You review all pending payments in the **Payment Admin panel** (Profile → Payment Admin), one-tap **Approve/Reject**.
+  5. On approve, premium is granted automatically + the user is notified.
+  - Admin is gated behind an email allowlist in Supabase (`supabase/schema.sql`).
 - To go live: set `EXPO_PUBLIC_FAMPAY_UPI_ID` to your real Fampay ID.
 
 ### Pricing (your model)

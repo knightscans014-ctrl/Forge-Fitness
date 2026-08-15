@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { useGame } from '../context/GameContext';
 import { Card, Screen, Pill, Bar, Btn, StatRow } from '../components/ui';
+import { SkillTreeModal, InventoryModal } from '../components/modals';
 import { colors } from '../theme/colors';
 import { ENGINE, STATS, RANKS, rankForLevel, nextRank, rankProgressPct, statLevels, gearById, equippedCount } from '../engine';
 
 export default function CharacterScreen() {
   const state = useGame(s => s.state)!;
   const { mutate } = useGame();
+  const [skillOpen, setSkillOpen] = useState(false);
+  const [invOpen, setInvOpen] = useState(false);
   const lvl = statLevels(state);
   const rk = rankForLevel(state.level);
   const nr = nextRank(state.level);
@@ -59,11 +62,11 @@ export default function CharacterScreen() {
           );
         })}
         <View style={{ height: 8 }} />
-        <Btn kind="ghost" title="🎯 Skill Tree" onPress={() => {}} />
+        <Btn kind="ghost" title="🎯 Skill Tree" onPress={() => setSkillOpen(true)} />
       </Card>
 
       <Card>
-        <View style={s.rowBetween}><Text style={s.cardTitle}>⚔️ Equipment</Text><Pill>Bag {state.inventory.length}</Pill></View>
+        <View style={s.rowBetween}><Text style={s.cardTitle}>⚔️ Equipment</Text><Pill><Text onPress={() => setInvOpen(true)}>Bag {state.inventory.length}</Text></Pill></View>
         {(['weapon', 'armor', 'accessory'] as const).map(slot => {
           const g = gearById(state, state.equipped[slot]);
           return (
@@ -82,6 +85,9 @@ export default function CharacterScreen() {
           <View style={s.statBox}><Text style={s.statV}>{state.workouts}</Text><Text style={s.desc}>WORKOUTS</Text></View>
         </View>
       </Card>
+
+      <SkillTreeModal visible={skillOpen} onClose={() => setSkillOpen(false)} />
+      <InventoryModal visible={invOpen} onClose={() => setInvOpen(false)} />
     </Screen>
   );
 }

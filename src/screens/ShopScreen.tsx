@@ -96,7 +96,7 @@ export default function ShopScreen() {
             <View style={{ height: 10 }} />
             <Btn title="Activate Premium" onPress={() => { mutate(s => ENGINE.activateTier(s, selectedTier)); setPaywallOpen(false); }} />
             <View style={{ height: 8 }} />
-            <Btn kind="ghost" title="Restore Purchase" onPress={() => {}} />
+            <Btn kind="ghost" title="Restore Purchase" onPress={() => useGame.getState().notify('No prior purchases found on this device.')} />
             <View style={{ height: 8 }} />
             <Btn kind="ghost" title="Close" onPress={() => setPaywallOpen(false)} />
           </View>

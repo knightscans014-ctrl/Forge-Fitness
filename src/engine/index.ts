@@ -19,7 +19,7 @@ import { startRaid, raidStrike, raidStatus, raidRank } from './guilds';
 import { currentSeason, addSeasonXP, seasonTier } from './seasons';
 import { duel, nextRival } from './pvp';
 import { recordDay } from './analytics';
-import { computePower } from './levels';
+import { computePower, rankForLevel } from './levels';
 import { CLASSES, ACTIVITIES, BOOSTERS, PREMIUM_TIERS, DAILY_REWARDS, DAILY_POOL } from './content';
 
 // Re-export everything for convenience
@@ -77,6 +77,7 @@ export const ENGINE = {
   tieredVal,
   checkAchievements,
   recordDay,
+  rankForLevel,
 
   // ---- actions ----
   completeQuest(s: GameState, qid: string): boolean {

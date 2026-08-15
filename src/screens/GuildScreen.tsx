@@ -50,7 +50,19 @@ export default function GuildScreen() {
         <Text style={s.name}>{rival.icon} {rival.name}</Text>
         <Text style={s.desc}>Lv {rival.lvl} · Power {rival.power} · {rival.desc}</Text>
         <Text style={s.desc}>Duel streak: {state.duelStreak || 0} 🔥</Text>
-        <Btn title={`⚔️ Duel ${rival.name}`} onPress={() => mutate(s => { ENGINE.duel(s, rival); })} />
+        <Btn title={`⚔️ Duel ${rival.name}`} onPress={() => {
+          const notify = useGame.getState().notify;
+          const celebrate = useGame.getState().celebrate;
+          mutate(s => {
+            const r = ENGINE.duel(s, rival);
+            if (r.win) {
+              notify(`⚔️ You defeated ${rival.name}! +${r.xp} XP +${r.gold}🪙`);
+              celebrate({ title: 'DUEL VICTORY', big: 'YOU WIN', subtitle: `${rival.name} defeated · streak ${s.duelStreak || 1}`, accent: colors.xpa });
+            } else {
+              notify(`💀 ${rival.name} defeated you. Train & retry!`);
+            }
+          });
+        }} />
       </Card>
 
       <Card>

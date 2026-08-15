@@ -4,8 +4,11 @@ import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { View } from 'react-native';
 import { useGame } from './src/context/GameContext';
 import { Loader } from './src/components/ui';
+import { ToastHost } from './src/components/Toast';
+import { AuraOverlay } from './src/components/effects';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import MissionsScreen from './src/screens/MissionsScreen';
@@ -75,7 +78,27 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <StatusBar style="light" />
-      {state ? <Tabs onNavigateToHome={t => setTab(t)} /> : <OnboardingScreen />}
+      <View style={{ flex: 1 }}>
+        {state ? <Tabs onNavigateToHome={t => setTab(t)} /> : <OnboardingScreen />}
+        <ToastHost />
+        <CelebrationHost />
+      </View>
     </SafeAreaProvider>
+  );
+}
+
+// Renders the aura overlay when a celebration is triggered.
+function CelebrationHost() {
+  const celebration = useGame(s => s.celebration);
+  const clear = useGame(s => s.clearCelebration);
+  return (
+    <AuraOverlay
+      visible={!!celebration}
+      title={celebration?.title || ''}
+      big={celebration?.big || ''}
+      subtitle={celebration?.subtitle}
+      accent={celebration?.accent}
+      onClose={clear}
+    />
   );
 }

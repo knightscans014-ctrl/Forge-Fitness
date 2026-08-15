@@ -105,10 +105,34 @@ describe('FORGE engine', () => {
   });
   test('stacking awards bonus when chain completes', () => {
     const s = defaultState('Hero', 'warrior');
-    // mark all chain activities for 'Morning Rising'
     ['steps', 'water', 'meditation'].forEach(a => s.statsTrainedToday[a] = 1);
     const res = recordStackActivity(s, 'steps');
-    expect(res.length).toBeGreaterThanOrEqual(0); // should be 1 (stack completed)
+    expect(res.length).toBe(1); // Morning Rising completed -> 1 reward
+    expect(res[0].xp).toBeGreaterThan(0);
+  });
+  test('duel win increments record and awards XP', () => {
+    const s = defaultState('Hero', 'warrior');
+    const rival = nextRival(s);
+    // force a win by giving huge power
+    s.totalXP = 100000; s.level = 30;
+    const r = duel(s, rival);
+    expect(r.win).toBe(true);
+    expect(s.duelStreak).toBe(1);
+    expect(s.duels.length).toBe(1);
+  });
+  test('skill tree cannot exceed max rank', () => {
+    const s = defaultState('Hero', 'warrior');
+    s.skillPoints = 99;
+    for (let i = 0; i < 10; i++) buySkill(s, 's_sage');
+    expect(s.skills.s_sage).toBe(5); // capped at max
+  });
+  test('achievements award XP once', () => {
+    const s = defaultState('Hero', 'warrior');
+    s.totalXP = 300; s.level = 2;
+    const first = checkAchievements(s);
+    const second = checkAchievements(s);
+    expect(first.some(a => a.id === 'a1')).toBe(true);
+    expect(second.some(a => a.id === 'a1')).toBe(false); // not double-counted
   });
   test('computePower is numeric and grows with XP', () => {
     const s = defaultState('Hero', 'warrior');

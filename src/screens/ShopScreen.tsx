@@ -1,0 +1,123 @@
+import React, { useState } from "react";
+import { View, Text, StyleSheet, Modal, TextInput, Pressable } from 'react-native';
+import { useGame } from '../context/GameContext';
+import { Card, Screen, Pill, Btn, StatRow } from '../components/ui';
+import { colors } from '../theme/colors';
+import { ENGINE, BOOSTERS, PREMIUM_TIERS, isPremium } from '../engine';
+
+const UPGRADES = [
+  { id: 'g1', icon: '🛡️', name: 'Iron Aegis', desc: '+5 max HP', cost: 120 },
+  { id: 'g2', icon: '👟', name: 'Swift Boots', desc: '+2 max energy', cost: 150 },
+  { id: 'g3', icon: '⚗️', name: 'Philosopher Ring', desc: '+5% XP forever', cost: 400 },
+  { id: 'g4', icon: '🎩', name: "Coach's Crest", desc: '+10% gold forever', cost: 450 },
+];
+
+export default function ShopScreen() {
+  const state = useGame(s => s.state)!;
+  const { mutate } = useGame();
+  const [paywallOpen, setPaywallOpen] = useState(false);
+  const [selectedTier, setSelectedTier] = useState('t2');
+  const [email, setEmail] = useState('');
+  const [videoLink, setVideoLink] = useState('');
+
+  return (
+    <Screen>
+      <Text style={s.title}>🛍️ Forge Shop</Text>
+      <Text style={s.sub}>Spend gold on upgrades & boost your dopamine.</Text>
+
+      <Card>
+        <Text style={s.cardTitle}>🚀 Boosters</Text>
+        {BOOSTERS.map(b => {
+          const active = ENGINE.boosterActive(state, b.id);
+          return (
+            <StatRow key={b.id} icon={b.icon} name={b.name} desc={active ? `⏱ ${Math.max(0, Math.ceil((active.expires - Date.now()) / 60000))}m` : b.desc}
+              right={active ? <Pill color={colors.gold}>ACTIVE</Pill> :
+                <Btn small kind="gold" title={`${b.cost}🪙`} onPress={() => mutate(s => ENGINE.buyBooster(s, b.id))} />} />
+          );
+        })}
+      </Card>
+
+      <Card>
+        <Text style={s.cardTitle}>⚙️ Upgrades</Text>
+        {UPGRADES.map(g => {
+          const owned = state.owned[g.id];
+          return (
+            <StatRow key={g.id} icon={g.icon} name={g.name} desc={g.desc}
+              right={owned ? <Pill color={colors.gold}>✓ Owned</Pill> :
+                <Btn small kind="gold" title={`${g.cost}🪙`} onPress={() => {
+                  mutate(s => {
+                    if (s.gold >= g.cost && !s.owned[g.id]) {
+                      s.gold -= g.cost;
+                      s.owned[g.id] = true;
+                      if (g.id === 'g1') { s.maxHP += 5; s.hp = Math.min(s.maxHP, s.hp + 5); }
+                      if (g.id === 'g2') s.maxEnergy += 2;
+                      if (g.id === 'g3') s.xpMult += 0.05;
+                      if (g.id === 'g4') s.goldMult += 0.1;
+                    }
+                  });
+                }} />} />
+          );
+        })}
+      </Card>
+
+      <Card>
+        <Text style={s.cardTitle}>👑 Premium</Text>
+        <Text style={s.desc}>{isPremium(state) ? 'You have Forge Premium. Thanks for supporting!' : 'Free mode is fully playable. Premium adds speed, depth & style.'}</Text>
+        <View style={{ height: 8 }} />
+        <Btn title={isPremium(state) ? 'Manage Subscription' : 'Go Premium ✦'} onPress={() => setPaywallOpen(true)} />
+      </Card>
+
+      <Modal transparent visible={paywallOpen} animationType="slide">
+        <View style={s.modalBg}>
+          <View style={s.sheet}>
+            <Text style={s.sheetTitle}>👑 Forge Premium</Text>
+            <View style={s.freeNote}><Text style={{ color: '#b6ffd4', fontSize: 12 }}>💚 Free mode is 100% playable — no pay-to-win walls.</Text></View>
+            {PREMIUM_TIERS.map(t => (
+              <Pressable key={t.id} onPress={() => setSelectedTier(t.id)} style={[s.tier, selectedTier === t.id && s.tierSel]}>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.tierName}>{t.name} {t.tag ? <Text style={{ color: colors.mana, fontSize: 10 }}>{t.tag}</Text> : null}</Text>
+                  <Text style={s.desc}>{t.perks.join(' · ')}</Text>
+                  <Text style={{ color: colors.gold, fontWeight: '900' }}>{t.price}<Text style={s.desc}> {t.per}</Text></Text>
+                </View>
+              </Pressable>
+            ))}
+
+            <View style={s.divider} />
+            <Text style={[s.cardTitle, { textAlign: 'center' }]}>🎬 Content Creator Unlock</Text>
+            <Text style={[s.desc, { textAlign: 'center', marginTop: 6 }]}>Make a video about FORGE, post it, send us the link — unlock Ranger (₹99) free for a year!</Text>
+            <TextInput style={s.input} placeholder="Your email" placeholderTextColor={colors.mut2} value={email} onChangeText={setEmail} />
+            <TextInput style={s.input} placeholder="Paste your video link" placeholderTextColor={colors.mut2} value={videoLink} onChangeText={setVideoLink} />
+            <Btn kind="ghost" small title="Submit video → unlock Ranger" onPress={() => {
+              if (!email || !videoLink) return;
+              mutate(s => ENGINE.unlockCreator(s));
+              setPaywallOpen(false);
+            }} />
+
+            <View style={{ height: 10 }} />
+            <Btn title="Activate Premium" onPress={() => { mutate(s => ENGINE.activateTier(s, selectedTier)); setPaywallOpen(false); }} />
+            <View style={{ height: 8 }} />
+            <Btn kind="ghost" title="Restore Purchase" onPress={() => {}} />
+            <View style={{ height: 8 }} />
+            <Btn kind="ghost" title="Close" onPress={() => setPaywallOpen(false)} />
+          </View>
+        </View>
+      </Modal>
+    </Screen>
+  );
+}
+
+const s = StyleSheet.create({
+  title: { fontSize: 22, fontWeight: '900', color: colors.ink, marginTop: 10 },
+  sub: { color: colors.mut, fontSize: 13, marginBottom: 8 },
+  cardTitle: { color: colors.ink, fontWeight: '800', fontSize: 15 },
+  desc: { color: colors.mut, fontSize: 12 },
+  modalBg: { flex: 1, backgroundColor: 'rgba(4,5,10,0.7)', justifyContent: 'flex-end' },
+  sheet: { backgroundColor: colors.bg2, borderTopLeftRadius: 26, borderTopRightRadius: 26, padding: 22, paddingBottom: 32 },
+  sheetTitle: { color: colors.ink, fontWeight: '900', fontSize: 20, textAlign: 'center' },
+  freeNote: { backgroundColor: 'rgba(124,255,178,0.08)', borderRadius: 12, padding: 10, marginTop: 10 },
+  tier: { borderWidth: 1, borderColor: colors.line, borderRadius: 16, padding: 14, marginTop: 10 },
+  tierSel: { borderColor: colors.gold, backgroundColor: 'rgba(255,209,102,0.06)' },
+  tierName: { color: colors.ink, fontWeight: '900', fontSize: 15 },
+  divider: { height: 1, backgroundColor: colors.line, marginVertical: 16 },
+  input: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line, borderRadius: 13, padding: 13, color: colors.ink, marginTop: 8 },
+});

@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "Forge",
+    "slug": "forge",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#0b0d17"
+    },
+    "android": {
+      "package": "com.forge.fitness",
+      "adaptiveIcon": {
+        "backgroundColor": "#0b0d17"
+      },
+      "versionCode": 1
+    },
+    "ios": {
+      "bundleIdentifier": "com.forge.fitness",
+      "supportsTablet": false
+    },
+    "plugins": [
+      "expo-haptics"
+    ]
+  }
+}

@@ -1,0 +1,106 @@
+import React from 'react';
+import { View, Text, StyleSheet, Image } from 'react-native';
+import { useGame } from '../context/GameContext';
+import { Card, Screen, Pill, Bar, Btn, StatRow } from '../components/ui';
+import { colors } from '../theme/colors';
+import { ENGINE, STATS, RANKS, rankForLevel, nextRank, rankProgressPct, statLevels, gearById, equippedCount } from '../engine';
+
+export default function CharacterScreen() {
+  const state = useGame(s => s.state)!;
+  const { mutate } = useGame();
+  const lvl = statLevels(state);
+  const rk = rankForLevel(state.level);
+  const nr = nextRank(state.level);
+
+  return (
+    <Screen>
+      <Text style={s.title}>🛡️ Hunter Status</Text>
+      <Text style={s.sub}>Your rank reflects your real-world progress.</Text>
+
+      <Card border={`${rk.color}66`}>
+        <View style={s.statusTop}>
+          <Pill color={colors.mana}>HUNTER ID</Pill>
+        </View>
+        <View style={[s.portraitWrap, { borderColor: rk.color }]}>
+          <Image source={require('../../assets/mc/mc_tall1.png')} style={s.portrait} />
+        </View>
+        <Text style={[s.rankBig, { color: rk.color }]}>{rk.id}-RANK</Text>
+        <Text style={s.rankTitle}>{rk.title}</Text>
+        <Text style={s.desc}>Level {state.level} · ⚔️ {ENGINE.computePower(state)}</Text>
+        <Bar pct={rankProgressPct(state.level)} color={rk.color} />
+        <Text style={s.desc}>{rankProgressPct(state.level)}% to {nr ? `${nr.id}-rank` : 'MAX'}</Text>
+      </Card>
+
+      <Card>
+        <View style={s.rowBetween}><Text style={s.cardTitle}>🗺️ Rank Ladder</Text></View>
+        {RANKS.map(r => {
+          const reached = state.level >= r.lvl;
+          const cur = rk.id === r.id;
+          return (
+            <View key={r.id} style={[s.rowItem, cur && s.curRow]}>
+              <Text style={{ fontSize: 16, color: r.color }}>{r.icon}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[s.name, { color: reached ? r.color : colors.mut }]}>{r.id}-Rank · {r.title}</Text>
+                <Text style={s.desc}>Reach level {r.lvl}{reached ? ' · Unlocked' : ''}</Text>
+              </View>
+              <Text style={{ color: reached ? (cur ? colors.gold : r.color) : colors.mut2, fontWeight: '800' }}>{reached ? (cur ? 'CURRENT' : '✓') : '🔒'}</Text>
+            </View>
+          );
+        })}
+      </Card>
+
+      <Card>
+        <View style={s.rowBetween}><Text style={s.cardTitle}>Core Stats</Text><Pill>+{state.skillPoints} pts</Pill></View>
+        {STATS.map(st => {
+          const lv = lvl[st.id];
+          return (
+            <StatRow key={st.id} icon={st.icon} iconBg={`${st.color}22`} name={`${st.name}  Lv ${lv}`} desc={st.desc}
+              right={<Text style={{ color: st.color, fontWeight: '900' }}>{state.stats[st.id].toFixed(1)}</Text>} />
+          );
+        })}
+        <View style={{ height: 8 }} />
+        <Btn kind="ghost" title="🎯 Skill Tree" onPress={() => {}} />
+      </Card>
+
+      <Card>
+        <View style={s.rowBetween}><Text style={s.cardTitle}>⚔️ Equipment</Text><Pill>Bag {state.inventory.length}</Pill></View>
+        {(['weapon', 'armor', 'accessory'] as const).map(slot => {
+          const g = gearById(state, state.equipped[slot]);
+          return (
+            <StatRow key={slot} icon={g ? g.icon : '·'} name={g ? g.name : `${slot} — empty`}
+              desc={g ? `${g.rarity} · +${g.power} power` : 'No item equipped'}
+              right={g ? <Pill color={colors.gold}>+{g.power}</Pill> : null} />
+          );
+        })}
+      </Card>
+
+      <Card>
+        <Text style={s.cardTitle}>🔥 Streaks & Progress</Text>
+        <View style={s.statsRow}>
+          <View style={s.statBox}><Text style={s.statV}>{state.streak}d</Text><Text style={s.desc}>CURRENT</Text></View>
+          <View style={s.statBox}><Text style={s.statV}>{state.bestStreak}d</Text><Text style={s.desc}>BEST</Text></View>
+          <View style={s.statBox}><Text style={s.statV}>{state.workouts}</Text><Text style={s.desc}>WORKOUTS</Text></View>
+        </View>
+      </Card>
+    </Screen>
+  );
+}
+
+const s = StyleSheet.create({
+  title: { fontSize: 22, fontWeight: '900', color: colors.ink, marginTop: 10 },
+  sub: { color: colors.mut, fontSize: 13, marginBottom: 8 },
+  cardTitle: { color: colors.ink, fontWeight: '800', fontSize: 15 },
+  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  statusTop: { flexDirection: 'row', justifyContent: 'space-between' },
+  portraitWrap: { width: 100, height: 130, borderRadius: 20, overflow: 'hidden', borderWidth: 2, alignSelf: 'center', marginVertical: 10 },
+  portrait: { width: '100%', height: '100%' },
+  rankBig: { fontSize: 26, fontWeight: '900', textAlign: 'center' },
+  rankTitle: { fontSize: 18, fontWeight: '900', color: '#fff', textAlign: 'center' },
+  desc: { color: colors.mut, fontSize: 12, textAlign: 'center', marginVertical: 2 },
+  rowItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.line },
+  curRow: { backgroundColor: 'rgba(255,209,102,0.08)', borderRadius: 12, paddingHorizontal: 8 },
+  name: { color: colors.ink, fontWeight: '800', fontSize: 13 },
+  statsRow: { flexDirection: 'row', gap: 8, marginTop: 10 },
+  statBox: { flex: 1, backgroundColor: colors.card2, borderRadius: 14, padding: 10, alignItems: 'center' },
+  statV: { color: colors.ink, fontSize: 18, fontWeight: '900' },
+});

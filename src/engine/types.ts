@@ -1,0 +1,225 @@
+// Core domain types for the FORGE game engine.
+
+export type StatId = 'str' | 'vig' | 'vit' | 'flx' | 'foc';
+
+export interface PlayerStats {
+  str: number;
+  vig: number;
+  vit: number;
+  flx: number;
+  foc: number;
+}
+
+export interface ClassDef {
+  id: string;
+  icon: string;
+  name: string;
+  color: string;
+  desc: string;
+  bonus: Partial<PlayerStats>;
+}
+
+export interface GameState {
+  name: string;
+  cls: string;
+  created: number;
+  premium: boolean;
+  tier: string | null;
+  creatorCode: boolean;
+
+  level: number;
+  totalXP: number;
+  gold: number;
+
+  hp: number;
+  maxHP: number;
+  energy: number;
+  maxEnergy: number;
+  energyRegenAt: string;
+
+  stats: PlayerStats;
+  statGrowth: PlayerStats;
+  skillPoints: number;
+  skills: Record<string, number>;
+
+  questsDone: string[];
+  dayDone: string;
+
+  activities: { icon: string; name: string; xp: number; time: string }[];
+  workouts: number;
+  totalWorkoutMin: number;
+
+  stepsToday: number;
+  waterToday: number;
+  sleepHours: number;
+
+  streak: number;
+  lastActiveDay: string;
+  bestStreak: number;
+
+  bosses: string[];
+  totalWater: number;
+  achievements: string[];
+  owned: Record<string, boolean>;
+  bonusSlots: number;
+  xpMult: number;
+  goldMult: number;
+  bossDamage: number;
+
+  inventory: GearItem[];
+  equipped: { weapon?: string; armor?: string; accessory?: string };
+
+  daily: { lastClaim: string | null; claimStreak: number };
+
+  // v4 expansion
+  weekKey: string;
+  weekly: WeeklyProgress;
+  story: Record<string, number[]>;
+  milestones: MilestoneProgress;
+  tiered: Record<string, number>;
+  boosters: BoosterActive[];
+  combo: { n: number; date: string };
+  dailyChallenge: string;
+  dailyChallengeDone: boolean;
+
+  workoutsToday: number;
+  stepsTodayAbs: number;
+  strengthMinToday: number;
+  cardioMinToday: number;
+  meditationMinToday: number;
+  statsTrainedToday: Record<string, number>;
+
+  lastDay: string;
+  lastCrit: boolean;
+
+  // ---- v5 max systems ----
+  bossBattle: BossBattleState | null;
+  bossesDefeated: number;
+  suggestion: { id: string; icon: string; text: string; xp: number; gold: number; stat: string } | null;
+  suggestionDone: boolean;
+  guild: { name: string; icon: string };
+  guildRaid: GuildRaidState | null;
+  season: SeasonInfo | null;
+  seasonXP: number;
+  history: DailyRecord[]; // capped rolling history for analytics
+  stackProgress: Record<string, number>; // stackId -> steps completed today
+  duels: { rival: string; wins: number }[];
+  duelStreak: number;
+}
+
+export interface WeeklyProgress {
+  workouts: number;
+  stepsWeekly: number;
+  minWeekly: number;
+  waterWeekly: number;
+  statsTrained: number;
+  questsWeekly: number;
+  claimed: string[];
+}
+
+export interface MilestoneProgress {
+  workouts: number;
+  streak: number;
+  level: number;
+  bossCount: number;
+  claimed: string[];
+}
+
+export interface GearItem {
+  id: string;
+  slot: 'weapon' | 'armor' | 'accessory';
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  name: string;
+  power: number;
+  icon: string;
+}
+
+export interface BoosterActive {
+  id: string;
+  expires: number;
+}
+
+// ---- Boss battles ----
+export interface BossDef {
+  id: string;
+  icon: string;
+  name: string;
+  lvl: number;
+  hp: number;
+  atk: number;
+  xp: number;
+  gold: number;
+  unlock: string;
+}
+
+export interface BossBattleState {
+  bossId: string;
+  bossHp: number;
+  bossMaxHp: number;
+  bossAtk: number;
+  log: { t: string; c: 'you' | 'boss' | 'crit' }[];
+}
+
+// ---- Achievements ----
+export interface AchievementDef {
+  id: string;
+  icon: string;
+  name: string;
+  cond: (s: GameState) => boolean;
+}
+
+// ---- Skills ----
+export interface SkillDef {
+  id: string;
+  icon: string;
+  name: string;
+  max: number;
+  de: string;
+}
+
+// ---- Guild / raid ----
+export interface GuildRaidState {
+  startedAt: number;
+  bossName: string;
+  bossMaxHp: number;
+  bossHp: number;
+  contributed: number;
+  players: { name: string; icon: string; dmg: number }[];
+  defeated: boolean;
+}
+
+// ---- Seasons ----
+export interface SeasonInfo {
+  id: string;
+  name: string;
+  start: number;
+  end: number;
+}
+
+// ---- Analytics history ----
+export interface DailyRecord {
+  date: string;
+  xp: number;
+  gold: number;
+  workouts: number;
+  minutes: number;
+}
+
+// ---- Habit stacking ----
+export interface StackDef {
+  id: string;
+  icon: string;
+  name: string;
+  chain: string[]; // activity ids in order
+  desc: string;
+}
+
+export interface BoosterDef {
+  id: string;
+  icon: string;
+  name: string;
+  desc: string;
+  cost: number;
+  durMin?: number;
+  type: 'xp' | 'gold' | 'energy' | 'combo';
+}

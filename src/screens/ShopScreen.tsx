@@ -7,7 +7,7 @@ import { ScreenHeader } from '../components/Header';
 import { Icon } from '../theme/icons';
 import { colors } from '../theme/colors';
 import { ENGINE, BOOSTERS, PREMIUM_TIERS, isPremium } from '../engine';
-import { UPI_PLANS, payWithUPI, createOrder } from '../services/upi';
+import { UPI_TIERS, openUpiPayment, rs, FAMPAY_CONFIG, makePayment } from '../services/fampay';
 
 const UPGRADES = [
   { id: 'g1', icon: '🛡️', name: 'Iron Aegis', desc: '+5 max HP', cost: 120 },
@@ -25,27 +25,32 @@ export default function ShopScreen() {
   const [email, setEmail] = useState('');
   const [videoLink, setVideoLink] = useState('');
   const [paying, setPaying] = useState(false);
+  const [refNumber, setRefNumber] = useState('');
+  const [paidStage, setPaidStage] = useState(false); // after opening UPI, ask for ref
 
   async function handleUPIPayment() {
-    const plan = UPI_PLANS[selectedTier];
+    const plan = UPI_TIERS[selectedTier];
     if (!plan || paying) return;
     setPaying(true);
-    // 1. create order on backend
-    const order = await createOrder(plan);
-    if ('error' in order) { setPaying(false); useGame.getState().notify(order.error); return; }
-    // 2. open UPI checkout
-    const result = await payWithUPI(plan, order.orderId, authUser?.email || email || '', state.name);
-    if (result.status === 'success') {
-      // In prod: backend webhook confirms payment, then we grant entitlement.
-      mutate(s => ENGINE.activateTier(s, selectedTier));
-      useGame.getState().notify(`🎉 ${plan.name} Premium unlocked!`);
-      setPaywallOpen(false);
-    } else if (result.status === 'cancelled') {
-      useGame.getState().notify('Payment cancelled.');
+    // Open the payer's UPI app to send money to your Fampay ID.
+    const res = await openUpiPayment(plan.amountPaise, plan.name);
+    if (!res.ok) {
+      useGame.getState().notify('Could not open UPI app. Please pay manually via your UPI app to:\n' + FAMPAY_CONFIG.upiId);
     } else {
-      useGame.getState().notify(`Payment failed: ${result.message}`);
+      setPaidStage(true); // user has paid; now capture the reference
     }
     setPaying(false);
+  }
+
+  function submitVerification() {
+    if (!refNumber.trim()) { useGame.getState().notify('Please enter the UPI transaction reference.'); return; }
+    const p = makePayment(selectedTier, refNumber.trim());
+    // In prod: POST p to backend → admin reviews → approves → premium granted.
+    mutate(s => { s.premium = true; s.tier = selectedTier; });
+    useGame.getState().notify('Payment submitted for verification. Your premium will activate shortly!');
+    setPaywallOpen(false);
+    setPaidStage(false);
+    setRefNumber('');
   }
 
   return (
@@ -122,12 +127,27 @@ export default function ShopScreen() {
 
             <View style={s.upiNote}>
               <Icon name="wifi" size={14} color={colors.xpa} family="mci" />
-              <Text style={{ color: colors.xpa, fontSize: 12, fontWeight: '700' }}>Pay with UPI — GPay, PhonePe, Paytm & more</Text>
+              <Text style={{ color: colors.xpa, fontSize: 12, fontWeight: '700' }}>Pay via UPI to FORGE ({FAMPAY_CONFIG.upiId})</Text>
             </View>
-            <View style={{ height: 10 }} />
-            <Btn title={paying ? 'Processing...' : `Pay ₹${(UPI_PLANS[selectedTier]?.amountPaise || 0) / 100} via UPI`} onPress={handleUPIPayment} disabled={paying} />
+
+            {paidStage ? (
+              <>
+                <Text style={[s.desc, { textAlign: 'center', marginTop: 12 }]}>
+                  Done paying? Enter the <Text style={{ color: colors.ink, fontWeight: '800' }}>UPI transaction reference</Text> (UTR) from your payment so we can verify.
+                </Text>
+                <TextInput style={s.input} placeholder="UPI reference / UTR number" placeholderTextColor={colors.mut2} value={refNumber} onChangeText={setRefNumber} />
+                <View style={{ height: 8 }} />
+                <Btn title="Submit for verification" onPress={submitVerification} />
+              </>
+            ) : (
+              <>
+                <View style={{ height: 10 }} />
+                <Btn title={paying ? 'Opening UPI...' : `Pay ₹${rs(UPI_TIERS[selectedTier]?.amountPaise || 0)} via UPI`} onPress={handleUPIPayment} disabled={paying} />
+              </>
+            )}
+
             <View style={{ height: 8 }} />
-            <Btn kind="ghost" title="Restore Purchase" onPress={() => useGame.getState().notify('No prior purchase found on this device.')} />
+            <Btn kind="ghost" title="Close" onPress={() => setPaywallOpen(false)} />
             <View style={{ height: 8 }} />
             <Btn kind="ghost" title="Close" onPress={() => setPaywallOpen(false)} />
           </View>

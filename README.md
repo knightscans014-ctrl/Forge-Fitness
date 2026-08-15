@@ -98,11 +98,14 @@ Email/password + Google OAuth. `src/services/auth.ts` + `AuthContext.ts`.
 - Sessions persist via AsyncStorage.
 - To go live: create a Supabase project, enable Email + Google providers, set `EXPO_PUBLIC_SUPABASE_URL` + `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
 
-## 💳 Payments — strictly UPI (Razorpay)
-`src/services/upi.ts` handles **UPI-only** payments (GPay, PhonePe, Paytm) in INR. No cards.
+## 💳 Payments — Fampay UPI (for an 18yo, no merchant KYC)
+`src/services/fampay.ts` lets you **receive money via your Fampay UPI ID / QR** using the universal `upi://pay` deep link — no payment gateway, no business registration, no GST. The payer's UPI app (GPay/PhonePe/Paytm) opens and sends money straight to your Fampay ID.
 - Prices: **Ranger ₹99 / Elite ₹199 / Monarch ₹299** (yearly).
-- Flow: app creates a Razorpay order (server-side with your secret) → opens UPI checkout → backend webhook verifies payment → grants entitlement.
-- To go live: Razorpay account + `RAZORPAY_KEY_ID/SECRET` (server) + `EXPO_PUBLIC_RAZORPAY_KEY_ID` (app), add the RN Razorpay SDK natively.
+- **Verification:** since there's no gateway to auto-confirm, it's a manual flow:
+  1. User pays → opens their UPI app to your Fampay ID.
+  2. User enters the **UPI transaction reference (UTR)** from their payment.
+  3. You check your Fampay history, match the UTR, and approve → premium granted.
+- To go live: set `EXPO_PUBLIC_FAMPAY_UPI_ID` to your real Fampay ID.
 
 ### Pricing (your model)
 - **Free tier:** 100% playable, no paywalls.

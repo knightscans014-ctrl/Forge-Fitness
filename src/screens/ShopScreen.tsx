@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, Modal, TextInput, Pressable } from 'react-native';
 import { useGame } from '../context/GameContext';
 import { useAuth } from '../context/AuthContext';
+import { useSecurity } from '../context/SecurityContext';
 import { Card, Screen, Pill, Btn, StatRow } from '../components/ui';
 import { ScreenHeader } from '../components/Header';
 import { Icon } from '../theme/icons';
@@ -21,6 +22,7 @@ export default function ShopScreen() {
   const state = useGame(s => s.state)!;
   const { mutate } = useGame();
   const authUser = useAuth(s => s.auth.status === 'signedIn' ? (s.auth as any).user : null);
+  const security = useSecurity(); // server-authority premium
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [selectedTier, setSelectedTier] = useState('t2');
   const [email, setEmail] = useState('');
@@ -98,9 +100,9 @@ export default function ShopScreen() {
 
       <Card>
         <Text style={s.cardTitle}>👑 Premium</Text>
-        <Text style={s.desc}>{isPremium(state) ? 'You have Forge Premium. Thanks for supporting!' : 'Free mode is fully playable. Premium adds speed, depth & style.'}</Text>
+        <Text style={s.desc}>{security.premium.isPremium ? 'You have Forge Premium. Thanks for supporting!' : 'Free mode is fully playable. Premium adds speed, depth & style.'}</Text>
         <View style={{ height: 8 }} />
-        <Btn title={isPremium(state) ? 'Manage Subscription' : 'Go Premium ✦'} onPress={() => setPaywallOpen(true)} />
+        <Btn title={security.premium.isPremium ? 'Manage Subscription' : 'Go Premium ✦'} onPress={() => setPaywallOpen(true)} />
       </Card>
 
       <Modal transparent visible={paywallOpen} animationType="slide">

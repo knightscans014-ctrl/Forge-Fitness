@@ -91,6 +91,16 @@ The engine is framework-free — same logic powers web, iOS, and Android. **Test
 
 ---
 
+## 🔒 Anti-crack / server-authority (Layer 1)
+The app **never trusts local state for premium or admin**. All security-sensitive checks go to the Supabase server:
+- **`premium_entitlements`** table — server is the source of truth. A modded APK editing local save files **cannot** self-grant premium.
+- **`grant_premium` / `revoke_premium`** — SECURITY DEFINER functions callable **only by an admin** (email allowlist). The client has no direct write access.
+- **`has_premium`** — server-side check used to gate premium features.
+- **`src/services/secureAuth.ts`** + **`SecurityContext`** — the app fetches premium/admin status from the server; components use this, not local state.
+- **Admin is server-verified** — `isAdmin()` checks the `admins` table via auth email. No secret shipped in the APK.
+
+> A modded APK is effectively a "read-only" client: it can display anything, but it cannot grant itself premium or admin because those live on the server and are admin-gated.
+
 ## 🔐 Authentication (Supabase Auth)
 Email/password + Google OAuth. `src/services/auth.ts` + `AuthContext.ts`.
 - **Login/Signup screen** gating the whole app.

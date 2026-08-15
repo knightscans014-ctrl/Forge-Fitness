@@ -7,6 +7,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { View } from 'react-native';
 import { useGame } from './src/context/GameContext';
 import { useAuth } from './src/context/AuthContext';
+import { SecurityProvider } from './src/context/SecurityContext';
 import { Loader } from './src/components/ui';
 import { ToastHost } from './src/components/Toast';
 import { AuraOverlay } from './src/components/effects';
@@ -107,19 +108,21 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <StatusBar style="light" />
-      <View style={{ flex: 1 }}>
-        {!signedIn ? (
-          <AuthScreen />
-        ) : state ? (
-          <NavigationContainer>
-            <RootNavigator />
-          </NavigationContainer>
-        ) : (
-          <OnboardingScreen />
-        )}
-        <ToastHost />
-        <CelebrationHost />
-      </View>
+      <SecurityProvider>
+        <View style={{ flex: 1 }}>
+          {!signedIn ? (
+            <AuthScreen />
+          ) : state ? (
+            <NavigationContainer>
+              <RootNavigator />
+            </NavigationContainer>
+          ) : (
+            <OnboardingScreen />
+          )}
+          <ToastHost />
+          <CelebrationHost />
+        </View>
+      </SecurityProvider>
     </SafeAreaProvider>
   );
 }

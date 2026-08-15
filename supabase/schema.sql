@@ -92,13 +92,95 @@ create table public.payments (
   reviewed_at timestamptz
 );
 
+-- ============================================================================
+-- SECURITY (server-authority)
+-- The server (via RLS + triggers) is the ONLY thing that can grant premium or
+-- create admin rights. A modded APK / edited save CANNOT self-grant premium
+-- because these tables only allow writes through secure server functions.
+-- ============================================================================
+
+-- Premium entitlements: source of truth for who has premium.
+-- Only writable by an admin (via a SECURITY DEFINER function), NOT by the client.
+create table public.premium_entitlements (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  tier text not null,
+  granted_at timestamptz not null default now(),
+  expires_at timestamptz,
+  granted_by uuid references auth.users(id),
+  source text not null default 'upi', -- upi / creator / manual
+  note text
+);
+alter table public.premium_entitlements enable row level security;
+
+-- Users can READ their own entitlement, but never write it.
+create policy "read own entitlement" on public.premium_entitlements
+  for select using (auth.uid() = user_id);
+
+-- Premium expiry check helper: is the user's entitlement currently active?
+create or replace function public.has_premium(uid uuid)
+returns boolean language sql stable as $$
+  select exists (
+    select 1 from public.premium_entitlements e
+    where e.user_id = uid
+      and (e.expires_at is null or e.expires_at > now())
+  );
+$$;
+
+-- SECURITY DEFINER: admin grants premium. Only callable by an admin.
+create or replace function public.grant_premium(
+  target_user uuid,
+  p_tier text,
+  p_expires timestamptz,
+  p_source text default 'upi'
+) returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  caller_email text := (select email from auth.users where id = auth.uid());
+begin
+  -- Only admins can call this.
+  if caller_email is null or not exists (select 1 from public.admins where email = caller_email) then
+    raise exception 'not authorized';
+  end if;
+  insert into public.premium_entitlements (user_id, tier, expires_at, granted_by, source)
+  values (target_user, p_tier, p_expires, auth.uid(), p_source)
+  on conflict (user_id) do update
+    set tier = excluded.tier, expires_at = excluded.expires_at, granted_by = excluded.granted_by, source = excluded.source;
+end;
+$$;
+
+-- SECURITY DEFINER: remove premium (reject a payment).
+create or replace function public.revoke_premium(target_user uuid)
+returns void
+language plpgsql security definer set search_path = public
+as $$
+declare caller_email text := (select email from auth.users where id = auth.uid());
+begin
+  if caller_email is null or not exists (select 1 from public.admins where email = caller_email) then
+    raise exception 'not authorized';
+  end if;
+  delete from public.premium_entitlements where user_id = target_user;
+end;
+$$;
+
+-- Grant execute on premium functions to authenticated users.
+grant execute on function public.grant_premium(uuid, text, timestamptz, text) to authenticated;
+grant execute on function public.revoke_premium(uuid) to authenticated;
+grant execute on function public.has_premium(uuid) to authenticated;
+
+-- Save state: client may WRITE their own progression, but premium fields are
+-- ignored on write (server keeps the authoritative premium flag). We never
+-- store premium inside save_state payload.
+
 -- Admin allowlist (your email)
 create table public.admins (
   email text primary key
 );
 insert into public.admins (email) values ('replace-with-your-email@example.com');
 
--- Owner-only read access to payments (in prod: restrict by email allowlist)
+-- Owner-only read access to payments + premium (in prod: restrict by email allowlist)
 alter table public.payments enable row level security;
 create policy "admin can manage payments" on public.payments for all
   using (auth.jwt() ->> 'email' in (select email from public.admins));

@@ -4,11 +4,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, FlatList, RefreshControl } from 'react-native';
 import { useGame } from '../context/GameContext';
+import { useSecurity } from '../context/SecurityContext';
 import { ScreenHeader } from '../components/Header';
 import { Icon } from '../theme/icons';
 import { Btn } from '../components/ui';
 import { colors } from '../theme/colors';
-import { PaymentRecord, loadPayments, approvePayment, rejectPayment } from '../services/payments';
+import { PaymentRecord, loadPayments, rejectPayment } from '../services/payments';
+import { adminApprovePayment } from '../services/secureAuth';
 
 function statusColor(s: PaymentRecord['status']) {
   return s === 'approved' ? colors.xpa : s === 'rejected' ? colors.hp : colors.gold;
@@ -16,6 +18,7 @@ function statusColor(s: PaymentRecord['status']) {
 
 export default function AdminScreen() {
   const { mutate } = useGame();
+  const security = useSecurity();
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -25,12 +28,16 @@ export default function AdminScreen() {
   useEffect(() => { refresh(); }, []);
 
   async function approve(id: string) {
-    const rec = await approvePayment(id);
-    if (rec) {
-      // Grant the premium entitlement for that tier.
-      mutate(s => { s.premium = true; s.tier = rec.tierId; });
-      useGame.getState().notify(`Approved ${rec.tierName} — premium granted`);
+    const rec = payments.find(p => p.id === id);
+    if (!rec) return;
+    // Server-authority: call the secure function to grant premium.
+    const ok = await adminApprovePayment(id, rec.tierId);
+    if (ok) {
+      useGame.getState().notify(`Approved ${rec.tierName} — premium granted (server)`);
+      security.refresh();
       refresh();
+    } else {
+      useGame.getState().notify('Approval failed — are you signed in as an admin?');
     }
   }
   async function reject(id: string) {

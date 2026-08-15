@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { useGame } from '../context/GameContext';
 import { Card, Screen, Pill, Bar, Btn } from '../components/ui';
+import { DAILY_REWARDS } from '../engine';
 import { colors } from '../theme/colors';
 import {
   ENGINE, rankForLevel, nextRank, rankProgressPct, xpForLevel, effectiveMaxHP,
@@ -29,6 +30,7 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: string) =
   const cmb = ENGINE.comboMult(state);
 
   const activeBoosters = ['b_xp', 'b_gold', 'b_combo'].filter(id => boosterActive(state, id));
+  const canClaim = ENGINE.dailyClaimAvailable(state);
 
   return (
     <Screen>
@@ -54,6 +56,30 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: string) =
         <Bar pct={enPct} color={colors.en} />
         <Text style={s.barLabel}><Text>⚡ Energy</Text><Text>{state.energy}/{state.maxEnergy}</Text></Text>
       </View>
+
+      {/* daily reward */}
+      <Card border={colors.gold} style={s.compact}>
+        <View style={s.rowBetween}>
+          <Text style={s.cardTitle}>🎁 Daily Reward</Text>
+          {canClaim ? (
+            <Btn small kind="gold" title="Claim!" onPress={() => {
+              mutate(s => {
+                const r = ENGINE.claimDaily(s);
+                if (r) useGame.getState().notify(`🎁 Day ${r.day} reward! +${r.gold}🪙${r.xp ? ' +' + r.xp + ' XP' : ''}${r.energy ? ' +' + r.energy + '⚡' : ''}`);
+              });
+            }} />
+          ) : <Pill color={colors.gold}>Claimed</Pill>}
+        </View>
+        <View style={s.dailyRow}>
+          {DAILY_REWARDS.map((r, i) => (
+            <View key={i} style={[s.dailyBox, { opacity: (state.daily.claimStreak || 0) > i ? 0.5 : 1 }]}>
+              <Text style={{ fontSize: 16 }}>🎁</Text>
+              <Text style={s.dailyLabel}>D{i + 1}</Text>
+              <Text style={[s.dailyLabel, { color: colors.gold }]}>🪙{r.gold}</Text>
+            </View>
+          ))}
+        </View>
+      </Card>
 
       {/* dopamine strip */}
       <Card style={s.compact}>
@@ -120,6 +146,9 @@ const s = StyleSheet.create({
   barLabel: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', color: colors.mut, fontSize: 11, marginTop: 3 },
   compact: { padding: 12 },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  dailyRow: { flexDirection: 'row', gap: 6, marginTop: 10 },
+  dailyBox: { flex: 1, backgroundColor: colors.card2, borderWidth: 1, borderColor: colors.line, borderRadius: 11, paddingVertical: 8, alignItems: 'center' },
+  dailyLabel: { fontSize: 10, color: colors.mut, fontWeight: '700', marginTop: 2 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardTitle: { color: colors.ink, fontWeight: '800', fontSize: 15 },
   quest: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.line },

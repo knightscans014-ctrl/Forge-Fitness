@@ -167,6 +167,26 @@ export const ENGINE = {
     return g;
   },
 
+  dailyClaimAvailable(s: GameState): boolean {
+    if (!s.daily.lastClaim) return true;
+    return s.daily.lastClaim !== dayKey();
+  },
+  claimDaily(s: GameState): { ok: boolean; gold: number; xp: number; energy: number; day: number } | null {
+    if (!ENGINE.dailyClaimAvailable(s)) return null;
+    // streak logic
+    const yesterday = dayKey(new Date(Date.now() - 86400000));
+    if (s.daily.lastClaim === yesterday) s.daily.claimStreak++;
+    else if (s.daily.lastClaim) s.daily.claimStreak = 1;
+    else s.daily.claimStreak = 1;
+    s.daily.lastClaim = dayKey();
+    const tier = DAILY_REWARDS[(s.daily.claimStreak - 1) % 7];
+    const gold = addGold(s, tier.gold);
+    const xp = tier.xp ? addXP(s, tier.xp).xp : 0;
+    let energy = 0;
+    if (tier.energy) { s.energy = Math.min(s.maxEnergy, s.energy + tier.energy); energy = tier.energy; }
+    return { ok: true, gold, xp, energy, day: s.daily.claimStreak };
+  },
+
   buyBooster(s: GameState, id: string): boolean {
     const b = boosterDef(id);
     if (!b) return false;

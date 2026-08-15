@@ -1,9 +1,16 @@
 // Aura celebration overlay + toast notifications (in-app visual feedback).
 
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Modal, Easing } from 'react-native';
+import { View, Text, StyleSheet, Animated, Modal, Easing, Image } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { colors } from '../theme/colors';
+
+// Aura backgrounds per celebration type.
+const AURA_BG: Record<string, any> = {
+  'LEVEL': require('../../assets/mc/a_levelup.gif'),
+  'RANK': require('../../assets/mc/a_rankup.gif'),
+  'BOSS': require('../../assets/mc/a_boss.gif'),
+};
 
 // Full-screen aura celebration for level-ups, rank-ups, boss kills.
 export function AuraOverlay({ visible, title, subtitle, big, accent, onClose }: {
@@ -25,7 +32,9 @@ export function AuraOverlay({ visible, title, subtitle, big, accent, onClose }: 
 
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
-      <View style={[s.auraBg, { backgroundColor: accent || colors.mana }]}>
+      <View style={s.auraBg}>
+        <Image source={AURA_BG[bigType(title)] || require('../../assets/mc/a_levelup.gif')} style={StyleSheet.absoluteFill} resizeMode="cover" />
+        <View style={StyleSheet.absoluteFill} />
         <Animated.View style={[s.auraInner, { opacity: fade, transform: [{ scale: zoom.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }] }]}>
           <Text style={s.up}>{title}</Text>
           <Text style={[s.big, { color: accent || colors.gold }]}>{big}</Text>
@@ -37,8 +46,15 @@ export function AuraOverlay({ visible, title, subtitle, big, accent, onClose }: 
   );
 }
 
+// Map celebration title -> aura type for background selection.
+function bigType(title: string): string {
+  if (/RANK|PROMOTE/i.test(title)) return 'RANK';
+  if (/BOSS|SLAIN|VICTORY/i.test(title)) return 'BOSS';
+  return 'LEVEL';
+}
+
 const s = StyleSheet.create({
-  auraBg: { flex: 1, alignItems: 'center', justifyContent: 'center', opacity: 0.95 },
+  auraBg: { flex: 1, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   auraInner: { alignItems: 'center', padding: 30 },
   up: { fontSize: 15, letterSpacing: 5, color: '#fff', fontWeight: '800', textTransform: 'uppercase', textAlign: 'center' },
   big: { fontSize: 38, fontWeight: '900', marginTop: 8, textAlign: 'center' },

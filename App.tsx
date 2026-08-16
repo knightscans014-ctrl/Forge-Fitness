@@ -15,6 +15,7 @@ import { Icon, TAB_ICONS } from './src/theme/icons';
 import { colors } from './src/theme/colors';
 import { hardeningOk } from './src/services/hardening';
 import { checkForUpdate, openUpdate } from './src/services/versionCheck';
+import { isDeviceGenuine } from './src/services/integrity';
 import TamperedScreen from './src/screens/TamperedScreen';
 
 import OnboardingScreen from './src/screens/OnboardingScreen';
@@ -99,6 +100,7 @@ export default function App() {
   const authReady = useAuth(s => s.ready);
   const bootstrap = useAuth(s => s.bootstrap);
   const [harden, setHarden] = useState<ReturnType<typeof hardeningOk> | null>(null);
+  const [genuine, setGenuine] = useState<boolean | null>(null);
 
   useEffect(() => {
     hydrate();
@@ -106,22 +108,26 @@ export default function App() {
     // Run hardening gate (signature/tamper check).
     const h = hardeningOk();
     setHarden(h);
+    // Play Integrity: verify genuine device + app install (server-confirmed).
+    // Only blocks if the integrity module is active and reports not genuine.
+    isDeviceGenuine().then(ok => setGenuine(ok));
     // Non-blocking version check for APK updates.
     checkForUpdate().then(info => {
       if (info) {
         const { ToastAndroid } = require('react-native');
         ToastAndroid && ToastAndroid.show(`New version ${info.version} available`, ToastAndroid.SHORT);
-        // In a nicer UX, show a modal with openUpdate(info).
       }
     });
   }, []);
 
-  if (!hydrated || !authReady || !harden) return <Loader />;
+  if (!hydrated || !authReady || !harden || genuine === null) return <Loader />;
 
   const signedIn = auth.status === 'signedIn';
 
   // Tampered / re-signed APK -> refuse to run.
   if (!harden.ok) return <TamperedScreen signals={harden.signals} />;
+  // Play Integrity reports not genuine (root/modified) -> block.
+  if (genuine === false) return <TamperedScreen signals={{ isRooted: true, isEmulator: false, isDebugger: false }} />;
 
   return (
     <SafeAreaProvider>

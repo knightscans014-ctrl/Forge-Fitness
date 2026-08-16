@@ -16,8 +16,9 @@
       },
       "versionCode": 1,
       "hermesBytecode": true,
-      "proguard": true,
-      "enableProguardInReleaseBuilds": true
+      "enableProguardInReleaseBuilds": true,
+      "enableShrinkResourcesInReleaseBuilds": true,
+      "proguardRulesPath": "android/app/proguard-rules.pro"
     },
     "ios": {
       "bundleIdentifier": "com.forge.fitness",

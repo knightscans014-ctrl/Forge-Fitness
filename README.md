@@ -101,6 +101,20 @@ The app **never trusts local state for premium or admin**. All security-sensitiv
 
 > A modded APK is effectively a "read-only" client: it can display anything, but it cannot grant itself premium or admin because those live on the server and are admin-gated.
 
+## 🧱 Anti-tamper (Layer 2 — free tools)
+Two free Android build tools harden the app against reverse-engineering and tampering:
+
+- **ProGuard + R8** (`android/app/proguard-rules.pro` + `enableProguardInReleaseBuilds`) — obfuscates and shrinks the native Java/Kotlin in the release build, renaming classes/methods to obscure logic.
+- **Hermes bytecode** (`hermesBytecode: true`) — compiles the JS to bytecode so your logic isn't plaintext in the APK.
+- **Play Integrity API** (`src/services/integrity.ts` + `supabase/functions/verify-integrity`) — Google's free service (10k req/day free) that verifies device + app integrity **server-side**. Blocks rooted devices and modified APKs. The verdict is only trusted from the backend, never the client.
+- **Root/emulator/signature detection** (`src/services/hardening.ts`) + **TamperedScreen** — refuses to run on re-signed/repackaged APKs.
+
+### To enable Play Integrity
+1. Enable **Play Integrity API** in Google Cloud Console (free).
+2. Add the native module + `com.google.android.play:integrity:1.4.0` to `build.gradle`.
+3. Deploy `supabase/functions/verify-integrity` with your service-account key as a backend env var.
+4. App startup calls `isDeviceGenuine()` — blocks if not genuine.
+
 ## 🔐 Authentication (Supabase Auth)
 Email/password + Google OAuth. `src/services/auth.ts` + `AuthContext.ts`.
 - **Login/Signup screen** gating the whole app.

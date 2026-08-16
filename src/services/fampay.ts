@@ -13,21 +13,29 @@
 //            → you check your Fampay history & approve → premium granted.
 //            Optionally the user uploads a payment screenshot.
 //
-// To go live: set EXPO_PUBLIC_FAMPAY_UPI_ID (e.g. "yourname@fam") and a name.
+// SETUP INSTRUCTIONS:
+//   1. Replace 'yourname@fam' with your actual Fampay UPI ID
+//   2. Replace 'FORGE' with your name or business name to display to payers
+//   3. (Optional) Add your QR code image to assets/ as "fampay-qr.png"
+//   4. Users will scan your QR code or use the UPI link to pay you directly
+//
+// NO MERCHANT KYC NEEDED: This uses standard UPI P2P payments to your Fampay account.
 
 import * as Linking from 'expo-linking';
 
 export interface FampayConfig {
-  upiId: string;        // e.g. "yourname@fampay"
-  payeeName: string;    // shown to payer, e.g. "FORGE"
-  note: string;         // payment purpose
+  upiId: string;        // Your Fampay UPI ID (e.g., "yourname@fam")
+  payeeName: string;    // Name shown to payer
+  note: string;         // Payment purpose
+  qrCodeAsset?: number; // Optional: require('../assets/fampay-qr.png') - returns a number in Expo
 }
 
 export const FAMPAY_CONFIG: FampayConfig = {
-  // REPLACE with your real Fampay UPI ID:
-  upiId: 'yourname@fam',
-  payeeName: 'FORGE',
+  // ⚠️ REPLACE THESE WITH YOUR ACTUAL FAMPAY DETAILS:
+  upiId: 'yourname@fam',      // ← Put your Fampay UPI ID here
+  payeeName: 'FORGE',         // ← Put your name/business name here
   note: 'Forge Premium',
+  qrCodeAsset: undefined,     // e.g., require('../../assets/fampay-qr.png')
 };
 
 export interface UPITier {

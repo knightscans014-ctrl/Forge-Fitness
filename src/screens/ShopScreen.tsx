@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, Modal, TextInput, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Modal, TextInput, Pressable, Image, ScrollView } from 'react-native';
 import { useGame } from '../context/GameContext';
 import { useAuth } from '../context/AuthContext';
 import { useSecurity } from '../context/SecurityContext';
@@ -8,7 +8,7 @@ import { ScreenHeader } from '../components/Header';
 import { Icon } from '../theme/icons';
 import { colors } from '../theme/colors';
 import { ENGINE, BOOSTERS, PREMIUM_TIERS, isPremium } from '../engine';
-import { UPI_TIERS, openUpiPayment, rs, FAMPAY_CONFIG } from '../services/fampay';
+import { UPI_TIERS, openUpiPayment, rs, FAMPAY_CONFIG, buildUpiLink } from '../services/fampay';
 import { submitPayment } from '../services/payments';
 
 const UPGRADES = [
@@ -107,56 +107,74 @@ export default function ShopScreen() {
 
       <Modal transparent visible={paywallOpen} animationType="slide">
         <View style={s.modalBg}>
-          <View style={s.sheet}>
-            <Text style={s.sheetTitle}>👑 Forge Premium</Text>
-            <View style={s.freeNote}><Text style={{ color: '#b6ffd4', fontSize: 12 }}>💚 Free mode is 100% playable — no pay-to-win walls.</Text></View>
-            {PREMIUM_TIERS.map(t => (
-              <Pressable key={t.id} onPress={() => setSelectedTier(t.id)} style={[s.tier, selectedTier === t.id && s.tierSel]}>
-                <View style={{ flex: 1 }}>
-                  <Text style={s.tierName}>{t.name} {t.tag ? <Text style={{ color: colors.mana, fontSize: 10 }}>{t.tag}</Text> : null}</Text>
-                  <Text style={s.desc}>{t.perks.join(' · ')}</Text>
-                  <Text style={{ color: colors.gold, fontWeight: '900' }}>{t.price}<Text style={s.desc}> {t.per}</Text></Text>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end' }}>
+            <View style={s.sheet}>
+              <Text style={s.sheetTitle}>👑 Forge Premium</Text>
+              <View style={s.freeNote}><Text style={{ color: '#b6ffd4', fontSize: 12 }}>💚 Free mode is 100% playable — no pay-to-win walls.</Text></View>
+              
+              {/* Show QR Code if available */}
+              {FAMPAY_CONFIG.qrCodeAsset ? (
+                <View style={s.qrContainer}>
+                  <Text style={[s.desc, { textAlign: 'center', marginBottom: 8 }]}>Scan QR to pay via UPI</Text>
+                  <Image source={FAMPAY_CONFIG.qrCodeAsset} style={s.qrImage} resizeMode="contain" />
+                  <Text style={[s.desc, { textAlign: 'center', marginTop: 8, color: colors.gold }]}>
+                    UPI ID: {FAMPAY_CONFIG.upiId}
+                  </Text>
                 </View>
-              </Pressable>
-            ))}
+              ) : (
+                <View style={s.upiNote}>
+                  <Icon name="wallet" size={16} color={colors.gold} family="mci" />
+                  <Text style={{ color: colors.gold, fontSize: 13, fontWeight: '700' }}>
+                    Pay to: {FAMPAY_CONFIG.upiId}
+                  </Text>
+                </View>
+              )}
 
-            <View style={s.divider} />
-            <Text style={[s.cardTitle, { textAlign: 'center' }]}>🎬 Content Creator Unlock</Text>
-            <Text style={[s.desc, { textAlign: 'center', marginTop: 6 }]}>Make a video about FORGE, post it, send us the link — unlock Ranger (₹99) free for a year!</Text>
-            <TextInput style={s.input} placeholder="Your email" placeholderTextColor={colors.mut2} value={email} onChangeText={setEmail} />
-            <TextInput style={s.input} placeholder="Paste your video link" placeholderTextColor={colors.mut2} value={videoLink} onChangeText={setVideoLink} />
-            <Btn kind="ghost" small title="Submit video → unlock Ranger" onPress={() => {
-              if (!email || !videoLink) return;
-              mutate(s => ENGINE.unlockCreator(s));
-              setPaywallOpen(false);
-            }} />
+              {PREMIUM_TIERS.map(t => (
+                <Pressable key={t.id} onPress={() => setSelectedTier(t.id)} style={[s.tier, selectedTier === t.id && s.tierSel]}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={s.tierName}>{t.name} {t.tag ? <Text style={{ color: colors.mana, fontSize: 10 }}>{t.tag}</Text> : null}</Text>
+                    <Text style={s.desc}>{t.perks.join(' · ')}</Text>
+                    <Text style={{ color: colors.gold, fontWeight: '900' }}>{t.price}<Text style={s.desc}> {t.per}</Text></Text>
+                  </View>
+                </Pressable>
+              ))}
 
-            <View style={s.upiNote}>
-              <Icon name="wifi" size={14} color={colors.xpa} family="mci" />
-              <Text style={{ color: colors.xpa, fontSize: 12, fontWeight: '700' }}>Pay via UPI to FORGE ({FAMPAY_CONFIG.upiId})</Text>
+              <View style={s.divider} />
+              <Text style={[s.cardTitle, { textAlign: 'center' }]}>🎬 Content Creator Unlock</Text>
+              <Text style={[s.desc, { textAlign: 'center', marginTop: 6 }]}>Make a video about FORGE, post it, send us the link — unlock Ranger (₹99) free for a year!</Text>
+              <TextInput style={s.input} placeholder="Your email" placeholderTextColor={colors.mut2} value={email} onChangeText={setEmail} />
+              <TextInput style={s.input} placeholder="Paste your video link" placeholderTextColor={colors.mut2} value={videoLink} onChangeText={setVideoLink} />
+              <Btn kind="ghost" small title="Submit video → unlock Ranger" onPress={() => {
+                if (!email || !videoLink) return;
+                mutate(s => ENGINE.unlockCreator(s));
+                setPaywallOpen(false);
+              }} />
+
+              {paidStage ? (
+                <>
+                  <Text style={[s.desc, { textAlign: 'center', marginTop: 12 }]}>
+                    Done paying? Enter the <Text style={{ color: colors.ink, fontWeight: '800' }}>UPI transaction reference</Text> (UTR) from your payment so we can verify.
+                  </Text>
+                  <TextInput style={s.input} placeholder="UPI reference / UTR number" placeholderTextColor={colors.mut2} value={refNumber} onChangeText={setRefNumber} />
+                  <View style={{ height: 8 }} />
+                  <Btn title="Submit for verification" onPress={submitVerification} />
+                </>
+              ) : (
+                <>
+                  <View style={{ height: 10 }} />
+                  <Btn title={paying ? 'Opening UPI...' : `Pay ₹${rs(UPI_TIERS[selectedTier]?.amountPaise || 0)} via UPI`} onPress={handleUPIPayment} disabled={paying} />
+                  <View style={{ height: 6 }} />
+                  <Text style={[s.desc, { textAlign: 'center', fontSize: 11 }]}>
+                    This will open your UPI app (GPay, PhonePe, Paytm, etc.) to send payment directly to our Fampay account
+                  </Text>
+                </>
+              )}
+
+              <View style={{ height: 8 }} />
+              <Btn kind="ghost" title="Close" onPress={() => setPaywallOpen(false)} />
             </View>
-
-            {paidStage ? (
-              <>
-                <Text style={[s.desc, { textAlign: 'center', marginTop: 12 }]}>
-                  Done paying? Enter the <Text style={{ color: colors.ink, fontWeight: '800' }}>UPI transaction reference</Text> (UTR) from your payment so we can verify.
-                </Text>
-                <TextInput style={s.input} placeholder="UPI reference / UTR number" placeholderTextColor={colors.mut2} value={refNumber} onChangeText={setRefNumber} />
-                <View style={{ height: 8 }} />
-                <Btn title="Submit for verification" onPress={submitVerification} />
-              </>
-            ) : (
-              <>
-                <View style={{ height: 10 }} />
-                <Btn title={paying ? 'Opening UPI...' : `Pay ₹${rs(UPI_TIERS[selectedTier]?.amountPaise || 0)} via UPI`} onPress={handleUPIPayment} disabled={paying} />
-              </>
-            )}
-
-            <View style={{ height: 8 }} />
-            <Btn kind="ghost" title="Close" onPress={() => setPaywallOpen(false)} />
-            <View style={{ height: 8 }} />
-            <Btn kind="ghost" title="Close" onPress={() => setPaywallOpen(false)} />
-          </View>
+          </ScrollView>
         </View>
       </Modal>
     </Screen>
@@ -178,4 +196,6 @@ const s = StyleSheet.create({
   divider: { height: 1, backgroundColor: colors.line, marginVertical: 16 },
   input: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line, borderRadius: 13, padding: 13, color: colors.ink, marginTop: 8 },
   upiNote: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(124,255,178,0.08)', borderRadius: 10, padding: 10, marginTop: 8 },
+  qrContainer: { alignItems: 'center', padding: 16, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 16, marginTop: 10 },
+  qrImage: { width: 200, height: 200, backgroundColor: '#fff', borderRadius: 12 },
 });

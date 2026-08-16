@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -13,6 +13,9 @@ import { ToastHost } from './src/components/Toast';
 import { AuraOverlay } from './src/components/effects';
 import { Icon, TAB_ICONS } from './src/theme/icons';
 import { colors } from './src/theme/colors';
+import { hardeningOk } from './src/services/hardening';
+import { checkForUpdate, openUpdate } from './src/services/versionCheck';
+import TamperedScreen from './src/screens/TamperedScreen';
 
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import AuthScreen from './src/screens/AuthScreen';
@@ -95,15 +98,30 @@ export default function App() {
   const auth = useAuth(s => s.auth);
   const authReady = useAuth(s => s.ready);
   const bootstrap = useAuth(s => s.bootstrap);
+  const [harden, setHarden] = useState<ReturnType<typeof hardeningOk> | null>(null);
 
   useEffect(() => {
     hydrate();
     bootstrap();
+    // Run hardening gate (signature/tamper check).
+    const h = hardeningOk();
+    setHarden(h);
+    // Non-blocking version check for APK updates.
+    checkForUpdate().then(info => {
+      if (info) {
+        const { ToastAndroid } = require('react-native');
+        ToastAndroid && ToastAndroid.show(`New version ${info.version} available`, ToastAndroid.SHORT);
+        // In a nicer UX, show a modal with openUpdate(info).
+      }
+    });
   }, []);
 
-  if (!hydrated || !authReady) return <Loader />;
+  if (!hydrated || !authReady || !harden) return <Loader />;
 
   const signedIn = auth.status === 'signedIn';
+
+  // Tampered / re-signed APK -> refuse to run.
+  if (!harden.ok) return <TamperedScreen signals={harden.signals} />;
 
   return (
     <SafeAreaProvider>

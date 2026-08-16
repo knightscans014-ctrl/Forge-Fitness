@@ -14,7 +14,10 @@
       "adaptiveIcon": {
         "backgroundColor": "#0b0d17"
       },
-      "versionCode": 1
+      "versionCode": 1,
+      "hermesBytecode": true,
+      "proguard": true,
+      "enableProguardInReleaseBuilds": true
     },
     "ios": {
       "bundleIdentifier": "com.forge.fitness",

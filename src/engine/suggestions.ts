@@ -50,7 +50,7 @@ export function completeSuggestion(s: GameState): boolean {
   s.suggestionDone = true;
   const xp = addXP(s, q.xp).xp;
   addGold(s, q.gold);
-  (s.stats as any)[q.stat] += 0.5;
-  (s.statGrowth as any)[q.stat] += 0.12;
+  s.stats[q.stat as keyof typeof s.stats] += 0.5;
+  s.statGrowth[q.stat as keyof typeof s.statGrowth] += 0.12;
   return true;
 }

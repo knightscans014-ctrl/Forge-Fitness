@@ -90,8 +90,8 @@ export const ENGINE = {
     trackWeekly(s, 'questsWeekly', 1);
     addXP(s, q.xp);
     addGold(s, q.gold);
-    (s.stats as any)[q.stat] += 0.4;
-    (s.statGrowth as any)[q.stat] += 0.1;
+    s.stats[q.stat as keyof typeof s.stats] += 0.4;
+    s.statGrowth[q.stat as keyof typeof s.statGrowth] += 0.1;
     s.bossDamage += q.xp;
     bumpStreak(s);
     runAllChecks(s);
@@ -108,8 +108,8 @@ export const ENGINE = {
     const raw = Math.round(dur * a.xpPerMin * intensity);
     const xp = addXP(s, raw).xp;
     const gold = addGold(s, Math.round(dur * a.goldPerMin * intensity));
-    (s.stats as any)[a.stat] += dur * 0.12;
-    (s.statGrowth as any)[a.stat] += dur * 0.02;
+    s.stats[a.stat as keyof typeof s.stats] += dur * 0.12;
+    s.statGrowth[a.stat as keyof typeof s.statGrowth] += dur * 0.02;
     s.workouts++;
     s.totalWorkoutMin += dur;
     s.workoutsToday++;
@@ -136,8 +136,8 @@ export const ENGINE = {
   quickWater(s: GameState): number {
     s.waterToday += 1;
     s.totalWater += 1;
-    (s.stats as any).vit += 0.2;
-    (s.statGrowth as any).vit += 0.05;
+    s.stats.vit += 0.2;
+    s.statGrowth.vit += 0.05;
     s.statsTrainedToday.vit = 1;
     trackWeekly(s, 'waterWeekly', 1);
     const g = addGold(s, 8);
@@ -146,8 +146,8 @@ export const ENGINE = {
   },
   quickSleep(s: GameState): number {
     s.sleepHours = Math.max(s.sleepHours, 8);
-    (s.stats as any).vit += 0.5;
-    (s.statGrowth as any).vit += 0.1;
+    s.stats.vit += 0.5;
+    s.statGrowth.vit += 0.1;
     s.statsTrainedToday.vit = 1;
     addXP(s, 40);
     const g = addGold(s, 15);
@@ -157,8 +157,8 @@ export const ENGINE = {
   quickSteps(s: GameState): number {
     s.stepsToday += 2000;
     s.stepsTodayAbs += 2000;
-    (s.stats as any).vig += 0.3;
-    (s.statGrowth as any).vig += 0.08;
+    s.stats.vig += 0.3;
+    s.statGrowth.vig += 0.08;
     s.statsTrainedToday.vig = 1;
     trackWeekly(s, 'stepsWeekly', 2000);
     addXP(s, 30);

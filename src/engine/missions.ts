@@ -25,12 +25,12 @@ export function resetWeekly(s: GameState): void {
   s.weekKey = weekKey();
   s.weekly = { workouts: 0, stepsWeekly: 0, minWeekly: 0, waterWeekly: 0, statsTrained: 0, questsWeekly: 0, claimed: [] };
 }
-export function trackWeekly(s: GameState, stat: string, val: number): void {
+export function trackWeekly(s: GameState, stat: 'workouts' | 'stepsWeekly' | 'minWeekly' | 'waterWeekly' | 'statsTrained' | 'questsWeekly', val: number): void {
   if (s.weekKey !== weekKey()) resetWeekly(s);
-  (s.weekly as any)[stat] += val;
+  s.weekly[stat] += val;
 }
-export function weeklyVal(s: GameState, stat: string): number {
-  return (s.weekly as any)[stat] || 0;
+export function weeklyVal(s: GameState, stat: 'workouts' | 'stepsWeekly' | 'minWeekly' | 'waterWeekly' | 'statsTrained' | 'questsWeekly'): number {
+  return s.weekly[stat] || 0;
 }
 export function dayReset(s: GameState): void {
   if (s.lastDay !== dayKey()) {

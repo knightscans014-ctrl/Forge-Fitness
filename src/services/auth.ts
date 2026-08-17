@@ -13,6 +13,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
+import type { Session, User } from '@supabase/supabase-js';
 
 export type AuthUser = {
   id: string;
@@ -27,9 +28,8 @@ export type AuthState =
   | { status: 'signedOut' }
   | { status: 'signedIn'; user: AuthUser };
 
-// In prod, import from '@supabase/supabase-js'. We lazy-init so tests/dev run safely.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let supabase: any = null;
+import type { SupabaseClient } from '@supabase/supabase-js';
+let supabase: SupabaseClient | null = null;
 
 export function initAuth(url: string, anonKey: string): void {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -95,13 +95,13 @@ export async function signOut(): Promise<void> {
 
 export async function onAuthChange(cb: (state: AuthState) => void): Promise<void> {
   if (!supabase) return;
-  supabase.auth.onAuthStateChange((_event: string, session: any) => {
+  supabase.auth.onAuthStateChange((_event, session: Session | null) => {
     if (!session?.user) cb({ status: 'signedOut' });
     else cb({ status: 'signedIn', user: mapUser(session.user) });
   });
 }
 
-function mapUser(u: any): AuthUser {
+function mapUser(u: User): AuthUser {
   return {
     id: u.id,
     email: u.email ?? null,

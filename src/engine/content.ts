@@ -1,6 +1,6 @@
 // Static content: classes, quest pools, missions, boosters, subscription tiers.
 
-import { ClassDef, BoosterDef } from './types';
+import { ClassDef, BoosterDef, GameState } from './types';
 
 export const CLASSES: ClassDef[] = [
   { id: 'warrior', icon: '🛡️', name: 'Warrior', color: '#ff8a5c', desc: 'Strength & power. +STR growth, +gold from heavy lifts.', bonus: { str: 3, vig: 1 } },
@@ -59,7 +59,7 @@ export const DAILY_POOL: Quest[] = [
 
 export interface WeeklyQuest {
   id: string; icon: string; title: string; desc: string;
-  target: number; stat: string; xp: number; gold: number;
+  target: number; stat: 'workouts' | 'stepsWeekly' | 'minWeekly' | 'waterWeekly' | 'statsTrained' | 'questsWeekly'; xp: number; gold: number;
 }
 export const WEEKLY_QUESTS: WeeklyQuest[] = [
   { id: 'wk1', icon: '🎯', title: 'Workout Warrior', desc: 'Log 5 workouts this week', target: 5, stat: 'workouts', xp: 400, gold: 120 },
@@ -70,9 +70,17 @@ export const WEEKLY_QUESTS: WeeklyQuest[] = [
   { id: 'wk6', icon: '🔁', title: 'Quest Machine', desc: 'Complete 15 daily quests this week', target: 15, stat: 'questsWeekly', xp: 600, gold: 180 },
 ];
 
+export interface StoryMissionStep {
+  icon: string;
+  name: string;
+  xp: number;
+  gold: number;
+  check: (s: GameState) => boolean;
+}
+
 export interface StoryMission {
   id: string; icon: string; name: string; color: string;
-  steps: { icon: string; name: string; xp: number; gold: number; check: (s: any) => boolean }[];
+  steps: StoryMissionStep[];
 }
 export const STORY_MISSIONS: StoryMission[] = [
   {
@@ -115,7 +123,7 @@ export const TIERED_MISSIONS: TieredMission[] = [
 
 export interface DailyChallenge {
   id: string; icon: string; name: string; desc: string; xp: number; gold: number;
-  check: (s: any) => boolean;
+  check: (s: GameState) => boolean;
 }
 export const DAILY_CHALLENGES: DailyChallenge[] = [
   { id: 'c1', icon: '🃏', name: '5x5 Day', desc: 'Log 5 workouts', xp: 200, gold: 80, check: s => s.workoutsToday >= 5 },

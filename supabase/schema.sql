@@ -178,7 +178,7 @@ grant execute on function public.has_premium(uuid) to authenticated;
 create table public.admins (
   email text primary key
 );
-insert into public.admins (email) values ('replace-with-your-email@example.com');
+insert into public.admins (email) values ('knightscans014@gmail.com');
 
 -- Owner-only read access to payments + premium (in prod: restrict by email allowlist)
 alter table public.payments enable row level security;

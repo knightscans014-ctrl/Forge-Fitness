@@ -2,7 +2,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, ActivityIndicator, ScrollView, Animated } from 'react-native';
 import { colors, shadows } from '../theme/colors';
-import { Icon } from '../theme/icons';
+import { Icon, type IconFamily } from '../theme/icons';
 
 export function Card({ children, style, border, glow, onPress }: { 
   children: React.ReactNode; 
@@ -131,7 +131,7 @@ export function StatRow({
   name: string; 
   desc?: string; 
   right?: React.ReactNode;
-  iconFamily?: string;
+  iconFamily?: IconFamily;
 }) {
   return (
     <View style={styles.statRow}>

@@ -3,6 +3,7 @@
     "name": "Forge",
     "slug": "forge",
     "version": "0.1.0",
+    "scheme": "forge",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",

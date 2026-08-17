@@ -76,7 +76,13 @@ export async function signUp(email: string, password: string, name?: string): Pr
   const { error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { display_name: name || 'Adventurer' } },
+    options: {
+      data: { display_name: name || 'Adventurer' },
+      // Without this, the confirmation link falls back to Supabase's Site URL
+      // (http://localhost:3000 by default) and the user lands on a dead page.
+      // Sends them back into the app instead.
+      emailRedirectTo: googleRedirectUri(),
+    },
   });
   return error ? { error: error.message } : {};
 }

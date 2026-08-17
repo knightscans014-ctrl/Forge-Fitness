@@ -31,10 +31,26 @@ export type AuthState =
 import type { SupabaseClient } from '@supabase/supabase-js';
 let supabase: SupabaseClient | null = null;
 
-export function initAuth(url: string, anonKey: string): void {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+// Initialize Supabase client with environment variables
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn('Supabase not configured. Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in .env');
+}
+
+export function initAuth(url?: string, anonKey?: string): void {
+  // Use env vars if not provided explicitly
+  const finalUrl = url || supabaseUrl;
+  const finalKey = anonKey || supabaseAnonKey;
+  
+  if (!finalUrl || !finalKey) {
+    console.warn('Supabase credentials missing. Auth will not work until configured.');
+    return;
+  }
+  
   const { createClient } = require('@supabase/supabase-js');
-  supabase = createClient(url, anonKey, {
+  supabase = createClient(finalUrl, finalKey, {
     auth: { storage: AsyncStorage, autoRefreshToken: true, persistSession: true },
   });
 }

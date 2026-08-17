@@ -32,8 +32,8 @@ export interface FampayConfig {
 
 export const FAMPAY_CONFIG: FampayConfig = {
   // ⚠️ REPLACE THESE WITH YOUR ACTUAL FAMPAY DETAILS:
-  upiId: 'yourname@fam',      // ← Put your Fampay UPI ID here
-  payeeName: 'FORGE',         // ← Put your name/business name here
+  upiId: process.env.EXPO_PUBLIC_FAMPAY_UPI_ID || 'yourname@fam',      // ← Put your Fampay UPI ID here
+  payeeName: process.env.EXPO_PUBLIC_FAMPAY_NAME || 'FORGE',         // ← Put your name/business name here
   note: 'Forge Premium',
   qrCodeAsset: undefined,     // e.g., require('../../assets/fampay-qr.png')
 };

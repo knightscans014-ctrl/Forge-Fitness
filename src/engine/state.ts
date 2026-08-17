@@ -141,11 +141,53 @@ export function normalize(s: GameState): GameState {
   return s;
 }
 
+// ---- Server-authority entitlement -------------------------------------------
+// The save file is attacker-controlled: anyone can flip `premium: true` in
+// AsyncStorage and get the boosts. So when the backend is reachable, the engine
+// trusts ONLY the entitlement the server reported (via my_premium()).
+//
+//   setServerEntitlement({...})  -> authoritative, overrides local state
+//   setServerEntitlement(null)   -> signed out: no premium
+//   never called (offline/dev)   -> fall back to local state
+//
+// SecurityContext pushes the value in after every refresh.
+
+export interface ServerEntitlement {
+  isPremium: boolean;
+  tier: string | null;
+}
+
+let serverEntitlement: ServerEntitlement | null = null;
+let serverAuthority = false;
+
+/** Called by the app once the server verdict is known. */
+export function setServerEntitlement(e: ServerEntitlement | null): void {
+  serverEntitlement = e;
+  serverAuthority = true;
+}
+
+/** Drop back to local state (e.g. backend not configured). */
+export function clearServerAuthority(): void {
+  serverEntitlement = null;
+  serverAuthority = false;
+}
+
+export function hasServerAuthority(): boolean {
+  return serverAuthority;
+}
+
 // ---- Multipliers / premium ----
 export function isPremium(s: GameState): boolean {
+  if (serverAuthority) return !!serverEntitlement?.isPremium;
   return !!s.premium || !!s.creatorCode;
 }
 export function tierValue(s: GameState): number {
+  if (serverAuthority) {
+    const ent = serverEntitlement;
+    if (!ent?.isPremium) return 0;
+    const t = PREMIUM_TIERS.find(x => x.id === ent.tier);
+    return t ? t.value : 1;
+  }
   if (s.premium) {
     const t = PREMIUM_TIERS.find(x => x.id === s.tier) || PREMIUM_TIERS[0];
     return t ? t.value : 1;

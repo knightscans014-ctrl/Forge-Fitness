@@ -15,6 +15,8 @@
 //   - Create a Supabase Edge Function `verify-integrity` that calls Google.
 //   - Put your service account key env var on the backend ONLY.
 
+import { getSupabase } from './supabaseClient';
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let nativeIntegrity: any = null;
 
@@ -43,18 +45,18 @@ export interface IntegrityVerdict {
 }
 
 // Verify the token against your backend. Returns a server-confirmed verdict.
+// Invoked through the shared Supabase client so the URL is derived from your
+// configured project instead of a hardcoded placeholder (the old code pointed
+// at 'YOUR-SUPABASE-PROJECT', so verification could never succeed).
 export async function verifyIntegrity(integrityToken: string): Promise<IntegrityVerdict | null> {
+  const supabase = getSupabase();
+  if (!supabase) return null;
   try {
-    // In prod: supabase.functions.invoke('verify-integrity', { body: { token: integrityToken } })
-    // The edge function calls Google, verifies, and returns the verdict.
-    const res = await fetch('https://YOUR-SUPABASE-PROJECT.functions.supabase.co/verify-integrity', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: integrityToken }),
+    const { data, error } = await supabase.functions.invoke('verify-integrity', {
+      body: { token: integrityToken },
     });
-    if (!res.ok) return null;
-    const verdict = await res.json();
-    return verdict;
+    if (error || !data) return null;
+    return data as IntegrityVerdict;
   } catch {
     return null;
   }

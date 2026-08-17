@@ -19,15 +19,25 @@
       "adaptiveIcon": {
         "backgroundColor": "#0b0d17"
       },
-      "versionCode": 1,
-      "hermesBytecode": true,
-      "enableProguardInReleaseBuilds": true,
-      "enableShrinkResourcesInReleaseBuilds": true,
-      "proguardRulesPath": "android/app/proguard-rules.pro"
+      "versionCode": 1
     },
     "ios": {
       "bundleIdentifier": "com.forge.fitness",
       "supportsTablet": false
-    }
+    },
+    "plugins": [
+      "expo-font",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableProguardInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true,
+            "extraProguardRules": "-keep class com.forge.fitness.** { *; }\n-keepclassmembers class * { @com.facebook.proguard.annotations.DoNotStrip *; }\n-keep,allowobfuscation @interface com.facebook.proguard.annotations.DoNotStrip\n-dontwarn okhttp3.**\n-dontwarn okio.**"
+          }
+        }
+      ]
+    ],
+    "jsEngine": "hermes"
   }
 }

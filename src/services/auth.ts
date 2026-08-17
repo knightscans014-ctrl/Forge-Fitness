@@ -7,8 +7,8 @@
 //       EXPO_PUBLIC_SUPABASE_URL
 //       EXPO_PUBLIC_SUPABASE_ANON_KEY
 //     (Google requires configuring the OAuth callback URL in Supabase.)
-//  3. This file wires straight to the Supabase client. It is fully typed
-//     and ready; the client is null until env vars are set (safe for dev).
+//  3. This file wires straight to the shared Supabase client (supabaseClient.ts).
+//     The client is null until env vars are set (safe for dev).
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as AuthSession from 'expo-auth-session';
@@ -28,45 +28,37 @@ export type AuthState =
   | { status: 'signedOut' }
   | { status: 'signedIn'; user: AuthUser };
 
-import type { SupabaseClient } from '@supabase/supabase-js';
-let supabase: SupabaseClient | null = null;
+import { getSupabase, isConfigured } from './supabaseClient';
 
-// Initialize Supabase client with environment variables
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase not configured. Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in .env');
+/**
+ * Initialise auth. Safe to call repeatedly — the shared client is built once.
+ * Previously AuthContext never called this, so `supabase` stayed null and every
+ * auth call returned 'Auth not configured'. Now the client is lazily created on
+ * first use, so auth works even if initAuth() is never called explicitly.
+ */
+export function initAuth(): void {
+  getSupabase();
 }
 
-export function initAuth(url?: string, anonKey?: string): void {
-  // Use env vars if not provided explicitly
-  const finalUrl = url || supabaseUrl;
-  const finalKey = anonKey || supabaseAnonKey;
-  
-  if (!finalUrl || !finalKey) {
-    console.warn('Supabase credentials missing. Auth will not work until configured.');
-    return;
-  }
-  
-  const { createClient } = require('@supabase/supabase-js');
-  supabase = createClient(finalUrl, finalKey, {
-    auth: { storage: AsyncStorage, autoRefreshToken: true, persistSession: true },
-  });
-}
+// Complete any pending OAuth session as early as possible (required on web
+// and harmless on native).
+WebBrowser.maybeCompleteAuthSession();
 
-const GOOGLE_AUTH_URL = 'https://your-project.supabase.co/auth/v1/authorize?provider=google';
-
-// Discover OAuth redirect config (works with Expo deep linking).
-AuthSession.makeRedirectUri;
-
-async function configureGoogleRedirect(): Promise<string> {
-  const redirectUri = AuthSession.makeRedirectUri();
-  WebBrowser.maybeCompleteAuthSession();
-  return redirectUri;
+/**
+ * The deep link Supabase should send the user back to after Google sign-in.
+ * Computed from the running app (expo-auth-session) rather than hardcoded --
+ * the old code built a 'your-project.supabase.co' URL and used it as redirectTo,
+ * which broke Google sign-in entirely.
+ *
+ * Add the value this returns to Supabase -> Authentication -> URL Configuration
+ * -> Redirect URLs.
+ */
+export function googleRedirectUri(): string {
+  return AuthSession.makeRedirectUri({ scheme: 'forge', path: 'auth/callback' });
 }
 
 export async function getSession(): Promise<AuthState> {
+  const supabase = getSupabase();
   if (!supabase) return { status: 'signedOut' };
   try {
     const { data } = await supabase.auth.getSession();
@@ -79,6 +71,7 @@ export async function getSession(): Promise<AuthState> {
 }
 
 export async function signUp(email: string, password: string, name?: string): Promise<{ error?: string }> {
+  const supabase = getSupabase();
   if (!supabase) return { error: 'Auth not configured' };
   const { error } = await supabase.auth.signUp({
     email,
@@ -89,27 +82,69 @@ export async function signUp(email: string, password: string, name?: string): Pr
 }
 
 export async function signIn(email: string, password: string): Promise<{ error?: string }> {
+  const supabase = getSupabase();
   if (!supabase) return { error: 'Auth not configured' };
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   return error ? { error: error.message } : {};
 }
 
 export async function signInWithGoogle(): Promise<{ error?: string }> {
+  const supabase = getSupabase();
   if (!supabase) return { error: 'Auth not configured' };
-  await configureGoogleRedirect();
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: GOOGLE_AUTH_URL },
-  });
-  return error ? { error: error.message } : {};
+
+  const redirectTo = googleRedirectUri();
+  try {
+    // skipBrowserRedirect: we open the URL ourselves so we can capture the
+    // callback and hand the code back to Supabase (RN has no URL bar).
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo, skipBrowserRedirect: true },
+    });
+    if (error) return { error: error.message };
+    if (!data?.url) return { error: 'Could not start Google sign-in' };
+
+    const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+    if (result.type !== 'success' || !result.url) {
+      return result.type === 'cancel' || result.type === 'dismiss'
+        ? { error: 'Sign-in cancelled' }
+        : { error: 'Google sign-in failed' };
+    }
+
+    // Exchange the returned code (PKCE) for a real session.
+    const url = result.url;
+    const code = /[?&]code=([^&]+)/.exec(url)?.[1];
+    if (code) {
+      const { error: exErr } = await supabase.auth.exchangeCodeForSession(
+        decodeURIComponent(code),
+      );
+      return exErr ? { error: exErr.message } : {};
+    }
+
+    // Implicit flow fallback: tokens arrive in the URL fragment.
+    const frag = url.includes('#') ? url.slice(url.indexOf('#') + 1) : '';
+    const access_token = /(?:^|&)access_token=([^&]+)/.exec(frag)?.[1];
+    const refresh_token = /(?:^|&)refresh_token=([^&]+)/.exec(frag)?.[1];
+    if (access_token && refresh_token) {
+      const { error: sErr } = await supabase.auth.setSession({
+        access_token: decodeURIComponent(access_token),
+        refresh_token: decodeURIComponent(refresh_token),
+      });
+      return sErr ? { error: sErr.message } : {};
+    }
+    return { error: 'No session returned from Google' };
+  } catch (e: any) {
+    return { error: e?.message || 'Google sign-in failed' };
+  }
 }
 
 export async function signOut(): Promise<void> {
+  const supabase = getSupabase();
   if (!supabase) return;
   await supabase.auth.signOut();
 }
 
 export async function onAuthChange(cb: (state: AuthState) => void): Promise<void> {
+  const supabase = getSupabase();
   if (!supabase) return;
   supabase.auth.onAuthStateChange((_event, session: Session | null) => {
     if (!session?.user) cb({ status: 'signedOut' });
@@ -126,5 +161,3 @@ function mapUser(u: User): AuthUser {
     provider: u.app_metadata?.provider === 'google' ? 'google' : 'email',
   };
 }
-
-export { GOOGLE_AUTH_URL };

@@ -23,6 +23,9 @@ export interface GameState {
   name: string;
   cls: string;
   created: number;
+  /** Epoch ms of the last local mutation. Used to pick the newer copy when
+   *  reconciling this device's save against the cloud save. */
+  updatedAt?: number;
   premium: boolean;
   tier: string | null;
   creatorCode: boolean;

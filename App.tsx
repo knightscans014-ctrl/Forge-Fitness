@@ -4,7 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { View } from 'react-native';
+import { View, Alert } from 'react-native';
 import { useGame } from './src/context/GameContext';
 import { useAuth } from './src/context/AuthContext';
 import { SecurityProvider } from './src/context/SecurityContext';
@@ -14,7 +14,7 @@ import { AuraOverlay } from './src/components/effects';
 import { Icon, TAB_ICONS } from './src/theme/icons';
 import { colors } from './src/theme/colors';
 import { hardeningOk } from './src/services/hardening';
-import { checkForUpdate, openUpdate } from './src/services/versionCheck';
+import { checkForUpdate, openUpdate, VersionInfo } from './src/services/versionCheck';
 import { isDeviceGenuine } from './src/services/integrity';
 import TamperedScreen from './src/screens/TamperedScreen';
 
@@ -100,7 +100,10 @@ export default function App() {
   const authReady = useAuth(s => s.ready);
   const bootstrap = useAuth(s => s.bootstrap);
   const [harden, setHarden] = useState<ReturnType<typeof hardeningOk> | null>(null);
+  // null = still checking, true = genuine, false = blocked.
   const [genuine, setGenuine] = useState<boolean | null>(null);
+  const [integrityDone, setIntegrityDone] = useState(false);
+  const [update, setUpdate] = useState<VersionInfo | null>(null);
 
   useEffect(() => {
     hydrate();
@@ -108,21 +111,52 @@ export default function App() {
     // Run hardening gate (signature/tamper check).
     const h = hardeningOk();
     setHarden(h);
+
     // Play Integrity: verify genuine device + app install (server-confirmed).
     // Only blocks if the integrity module is active and reports not genuine.
-    isDeviceGenuine().then(ok => setGenuine(ok));
+    // A hung or unreachable check must never brick the app, so the boot gate
+    // is released after a timeout and treated as "unknown" (not blocked).
+    let settled = false;
+    const finish = (ok: boolean | null) => {
+      if (settled) return;
+      settled = true;
+      setGenuine(ok);
+      setIntegrityDone(true);
+    };
+    const timer = setTimeout(() => finish(null), 6000);
+    isDeviceGenuine()
+      .then(ok => { clearTimeout(timer); finish(ok); })
+      .catch(() => { clearTimeout(timer); finish(null); });
+
     // Non-blocking version check for APK updates.
-    checkForUpdate().then(info => {
-      if (info) {
-        const { ToastAndroid } = require('react-native');
-        ToastAndroid && ToastAndroid.show(`New version ${info.version} available`, ToastAndroid.SHORT);
-      }
-    });
+    checkForUpdate().then(info => { if (info) setUpdate(info); }).catch(() => {});
+
+    return () => clearTimeout(timer);
   }, []);
 
-  if (!hydrated || !authReady || !harden || genuine === null) return <Loader />;
-
   const signedIn = auth.status === 'signedIn';
+
+  // Once signed in, reconcile this device's save with the cloud copy.
+  useEffect(() => {
+    if (signedIn && hydrated) { useGame.getState().syncWithCloud(); }
+  }, [signedIn, hydrated]);
+
+  // Surface the update as an actionable toast rather than a dead-end message.
+  useEffect(() => {
+    if (!update) return;
+    Alert.alert(
+      'Update available',
+      `Version ${update.version} is ready to install.`,
+      [
+        { text: 'Later', style: 'cancel' },
+        { text: 'Update', onPress: () => { openUpdate(update); } },
+      ],
+    );
+  }, [update]);
+
+  // Wait for local data + auth + the tamper gate. Integrity resolves via
+  // `integrityDone` so `genuine === null` (unknown) can no longer hang boot.
+  if (!hydrated || !authReady || !harden || !integrityDone) return <Loader />;
 
   // Tampered / re-signed APK -> refuse to run.
   if (!harden.ok) return <TamperedScreen signals={harden.signals} />;

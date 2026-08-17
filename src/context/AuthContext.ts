@@ -1,7 +1,7 @@
 // Auth global state via Zustand. Wraps the auth service.
 import { create } from 'zustand';
 import {
-  AuthState, signIn, signUp, signOut, signInWithGoogle, getSession, onAuthChange,
+  AuthState, initAuth, signIn, signUp, signOut, signInWithGoogle, getSession, onAuthChange,
 } from '../services/auth';
 
 interface AuthStore {
@@ -19,9 +19,14 @@ export const useAuth = create<AuthStore>((set) => ({
   ready: false,
 
   async bootstrap() {
+    // Build the Supabase client BEFORE asking for a session. Without this the
+    // client was never created, so getSession() always returned signedOut and
+    // nobody could ever log in.
+    initAuth();
+    // Subscribe first so a session restored mid-bootstrap is never missed.
+    await onAuthChange(session => set({ auth: session, ready: true }));
     const s = await getSession();
     set({ auth: s, ready: true });
-    onAuthChange(session => set({ auth: session }));
   },
 
   async emailSignIn(email, pw) {

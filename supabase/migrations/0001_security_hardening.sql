@@ -346,6 +346,29 @@ revoke all on public.admins from anon, authenticated;
 revoke all on public.premium_entitlements from anon;
 revoke all on public.payments from anon;
 
+-- --- leaderboard display names ----------------------------------------------
+-- profiles remains read-own; this narrow definer function is the only way to
+-- read another user's display name, and it returns nothing else.
+create or replace function public.leaderboard_top(p_limit int default 50)
+returns table (user_id uuid, display_name text, xp int)
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select l.user_id,
+         coalesce(p.display_name, 'Hunter') as display_name,
+         l.xp
+    from public.leaderboard l
+    left join public.profiles p on p.id = l.user_id
+   where l.season = 'current'
+   order by l.xp desc
+   limit least(greatest(coalesce(p_limit, 50), 1), 200);
+$$;
+
+revoke all on function public.leaderboard_top(int) from public;
+grant execute on function public.leaderboard_top(int) to authenticated;
+
 commit;
 
 -- ============================================================================

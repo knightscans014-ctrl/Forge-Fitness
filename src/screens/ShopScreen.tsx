@@ -45,12 +45,26 @@ export default function ShopScreen() {
     setPaying(false);
   }
 
+  const [submitting, setSubmitting] = useState(false);
+
   async function submitVerification() {
     if (!refNumber.trim()) { useGame.getState().notify('Please enter the UPI transaction reference.'); return; }
-    // Record the payment (pending). The owner approves it in the admin panel.
+    if (submitting) return;
+    setSubmitting(true);
+    // Record the payment (pending) ON THE SERVER so the owner can see and
+    // approve it. Previously this only wrote to this phone's local storage,
+    // so the owner never received the submission.
     const res = await submitPayment({ tierId: selectedTier, utr: refNumber.trim(), buyerName: state.name });
+    setSubmitting(false);
+
+    if (!res.ok) {
+      // Report the real failure instead of claiming success. The modal stays
+      // open so the buyer can correct the UTR and retry.
+      useGame.getState().notify(res.error || 'Could not submit payment. Please try again.');
+      return;
+    }
     if (res.flags.length > 0) {
-      useGame.getState().notify('Submitted — please double-check the UTR (⚠ amount should match tier).');
+      useGame.getState().notify('Submitted — please double-check the UTR (⚠ it looked unusual).');
     } else {
       useGame.getState().notify('Payment submitted for verification. Your premium will activate once approved!');
     }
@@ -158,7 +172,7 @@ export default function ShopScreen() {
                   </Text>
                   <TextInput style={s.input} placeholder="UPI reference / UTR number" placeholderTextColor={colors.mut2} value={refNumber} onChangeText={setRefNumber} />
                   <View style={{ height: 8 }} />
-                  <Btn title="Submit for verification" onPress={submitVerification} />
+                  <Btn title={submitting ? 'Submitting…' : 'Submit for verification'} onPress={submitVerification} disabled={submitting} />
                 </>
               ) : (
                 <>

@@ -9,8 +9,8 @@ import { ScreenHeader } from '../components/Header';
 import { Icon } from '../theme/icons';
 import { Btn } from '../components/ui';
 import { colors } from '../theme/colors';
-import { PaymentRecord, loadPayments, rejectPayment } from '../services/payments';
-import { adminApprovePayment } from '../services/secureAuth';
+import { PaymentRecord, adminLoadPayments } from '../services/payments';
+import { adminApprovePayment, adminRejectPayment } from '../services/secureAuth';
 
 function statusColor(s: PaymentRecord['status']) {
   return s === 'approved' ? colors.xpa : s === 'rejected' ? colors.hp : colors.gold;
@@ -22,28 +22,39 @@ export default function AdminScreen() {
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
+  const [busy, setBusy] = useState<string | null>(null);
+
+  // Loads EVERY user's payments via admin_list_payments() -- the server checks
+  // that the caller is an admin. Previously this read the owner's own phone,
+  // so buyer submissions were never visible here.
   async function refresh() {
-    setPayments(await loadPayments());
+    setPayments(await adminLoadPayments());
   }
   useEffect(() => { refresh(); }, []);
 
   async function approve(id: string) {
     const rec = payments.find(p => p.id === id);
-    if (!rec) return;
-    // Server-authority: call the secure function to grant premium.
-    const ok = await adminApprovePayment(id, rec.tierId);
-    if (ok) {
+    if (!rec || busy) return;
+    setBusy(id);
+    // Server-authority: approve_payment() marks the row paid AND writes the
+    // entitlement atomically. 12 months to match the '/year' tier pricing.
+    const res = await adminApprovePayment(id, 12);
+    setBusy(null);
+    if (res.ok) {
       useGame.getState().notify(`Approved ${rec.tierName} — premium granted (server)`);
       security.refresh();
       refresh();
     } else {
-      useGame.getState().notify('Approval failed — are you signed in as an admin?');
+      useGame.getState().notify(res.error || 'Approval failed — are you signed in as the owner?');
     }
   }
   async function reject(id: string) {
-    await rejectPayment(id);
-    useGame.getState().notify('Payment rejected');
-    refresh();
+    if (busy) return;
+    setBusy(id);
+    const res = await adminRejectPayment(id);
+    setBusy(null);
+    useGame.getState().notify(res.ok ? 'Payment rejected' : (res.error || 'Reject failed'));
+    if (res.ok) refresh();
   }
 
   const pending = payments.filter(p => p.status === 'pending');
@@ -89,11 +100,11 @@ export default function AdminScreen() {
 
               {st === 'pending' ? (
                 <View style={styles.actions}>
-                  <Pressable style={[styles.actionBtn, { backgroundColor: colors.xpa }]} onPress={() => approve(item.id)}>
+                  <Pressable disabled={busy === item.id} style={[styles.actionBtn, { backgroundColor: colors.xpa, opacity: busy === item.id ? 0.5 : 1 }]} onPress={() => approve(item.id)}>
                     <Icon name="checkmark" size={18} color="#06281a" />
-                    <Text style={styles.approveText}>Approve</Text>
+                    <Text style={styles.approveText}>{busy === item.id ? 'Working…' : 'Approve'}</Text>
                   </Pressable>
-                  <Pressable style={[styles.actionBtn, { backgroundColor: colors.card2 }]} onPress={() => reject(item.id)}>
+                  <Pressable disabled={busy === item.id} style={[styles.actionBtn, { backgroundColor: colors.card2, opacity: busy === item.id ? 0.5 : 1 }]} onPress={() => reject(item.id)}>
                     <Icon name="close" size={18} color={colors.hp} />
                     <Text style={{ color: colors.hp, fontWeight: '800' }}>Reject</Text>
                   </Pressable>

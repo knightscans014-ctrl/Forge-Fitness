@@ -7,7 +7,9 @@ import Constants from 'expo-constants';
 
 // Point this at a JSON file you host on your website:
 //   { "version": "0.1.1", "apkUrl": "https://your-site.com/forge.apk" }
-const VERSION_MANIFEST_URL = 'https://YOUR-WEBSITE.com/forge/latest.json';
+// Set EXPO_PUBLIC_VERSION_MANIFEST_URL in .env. When unset, the update check
+// is skipped entirely rather than hammering a placeholder domain.
+const VERSION_MANIFEST_URL = process.env.EXPO_PUBLIC_VERSION_MANIFEST_URL || '';
 
 export interface VersionInfo {
   version: string;
@@ -16,6 +18,7 @@ export interface VersionInfo {
 }
 
 export async function checkForUpdate(): Promise<VersionInfo | null> {
+  if (!VERSION_MANIFEST_URL) return null; // not configured -> no update check
   try {
     const res = await fetch(VERSION_MANIFEST_URL, { headers: { 'Cache-Control': 'no-cache' } });
     if (!res.ok) return null;

@@ -412,6 +412,31 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
+-- Leaderboard read: exposes ONLY (user_id, display_name, xp) for the top N.
+--
+-- profiles stays read-own under RLS -- we never want one user able to SELECT
+-- the whole profiles table. This definer function is the single, narrow hole:
+-- it joins leaderboard to profiles and returns just the display name, never
+-- emails, class data, avatars, timestamps or any other column.
+-- ---------------------------------------------------------------------------
+create or replace function public.leaderboard_top(p_limit int default 50)
+returns table (user_id uuid, display_name text, xp int)
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select l.user_id,
+         coalesce(p.display_name, 'Hunter') as display_name,
+         l.xp
+    from public.leaderboard l
+    left join public.profiles p on p.id = l.user_id
+   where l.season = 'current'
+   order by l.xp desc
+   limit least(greatest(coalesce(p_limit, 50), 1), 200);
+$$;
+
+-- ---------------------------------------------------------------------------
 -- Leaderboard integrity: a client may only claim the XP that is actually in
 -- their own save_state row. Without this, RLS still permits a user to write
 -- an arbitrary score to their OWN leaderboard row (policy checks WHO, not WHAT).
@@ -481,11 +506,13 @@ revoke all on function public.admin_list_payments(text) from public;
 revoke all on function public.apply_raid_damage(uuid, int) from public;
 revoke all on function public.has_premium(uuid) from public;
 revoke all on function public.my_premium() from public;
+revoke all on function public.leaderboard_top(int) from public;
 
 grant execute on function public.grant_premium(uuid, text, timestamptz, text) to authenticated;
 grant execute on function public.revoke_premium(uuid)        to authenticated;
 grant execute on function public.approve_payment(text, int)  to authenticated;
 grant execute on function public.reject_payment(text)        to authenticated;
+grant execute on function public.leaderboard_top(int)        to authenticated;
 grant execute on function public.admin_list_payments(text)   to authenticated;
 grant execute on function public.apply_raid_damage(uuid,int) to authenticated;
 grant execute on function public.has_premium(uuid)           to authenticated;

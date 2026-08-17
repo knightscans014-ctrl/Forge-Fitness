@@ -2,7 +2,32 @@
 import { create } from 'zustand';
 import { GameState, ENGINE } from '../engine';
 import { loadGame, saveGame } from '../services/storage';
+import { pushSave, pullSave, cloudSaveTimestamp, upsertProfile } from '../services/sync';
 import { colors } from '../theme/colors';
+
+// Cloud pushes are debounced: mutate() fires on every rep logged, and we do not
+// want one network write per tap. Trailing-edge only, so the last state wins.
+const CLOUD_PUSH_DELAY = 4000;
+let pushTimer: ReturnType<typeof setTimeout> | null = null;
+let cloudEnabled = false;
+
+function schedulePush(s: GameState) {
+  if (!cloudEnabled) return;
+  if (pushTimer) clearTimeout(pushTimer);
+  const snapshot = JSON.parse(JSON.stringify(s)) as GameState;
+  pushTimer = setTimeout(() => {
+    pushTimer = null;
+    // Fire and forget: a failed cloud push must never break local play.
+    pushSave(snapshot).catch(() => {});
+  }, CLOUD_PUSH_DELAY);
+}
+
+/** Flush any pending cloud write immediately (e.g. on sign-out/background). */
+export async function flushCloudSave(): Promise<void> {
+  if (pushTimer) { clearTimeout(pushTimer); pushTimer = null; }
+  const s = useGame.getState().state;
+  if (cloudEnabled && s) { try { await pushSave(s); } catch { /* ignore */ } }
+}
 
 interface GameStore {
   state: GameState | null;
@@ -10,6 +35,7 @@ interface GameStore {
   notifications: string[];
   celebration: { title: string; big: string; subtitle?: string; accent?: string } | null;
   hydrate: () => Promise<void>;
+  syncWithCloud: () => Promise<void>;
   newGame: (name: string, clsId: string) => void;
   mutate: (fn: (s: GameState) => void) => void;
   notify: (msg: string) => void;
@@ -28,10 +54,44 @@ export const useGame = create<GameStore>((set, get) => ({
     set({ state: s, hydrated: true });
   },
 
+  // Called once the user is signed in. Picks whichever copy is newer -- the
+  // cloud save or this device's -- so reinstalling the app restores progress
+  // and playing offline is not clobbered by a stale cloud row.
+  async syncWithCloud() {
+    cloudEnabled = true;
+    const local = get().state;
+    try {
+      const cloudTs = await cloudSaveTimestamp();
+      const localTs = local?.updatedAt ?? 0;
+
+      if (cloudTs && cloudTs > localTs) {
+        const remote = await pullSave();
+        if (remote) {
+          ENGINE.normalize(remote);
+          set({ state: remote });
+          await saveGame(remote);
+          get().notify('Cloud save restored.');
+          return;
+        }
+      }
+      if (local) {
+        await upsertProfile(local.name, local.cls).catch(() => false);
+        await pushSave(local);
+      }
+    } catch {
+      // Offline or backend down: keep playing locally.
+    }
+  },
+
   newGame(name, clsId) {
     const s = ENGINE.newGame(name, clsId);
+    s.updatedAt = Date.now();
     set({ state: s });
     saveGame(s);
+    // Publish the display name so the player shows up by name on the
+    // leaderboard instead of an anonymous handle.
+    upsertProfile(name, clsId).catch(() => {});
+    schedulePush(s);
   },
 
   mutate(fn) {
@@ -64,8 +124,10 @@ export const useGame = create<GameStore>((set, get) => ({
       get().celebrate({ title: 'Boss Slain', big: 'VICTORY', subtitle: 'The realm remembers your might', accent: colors.mana });
     }
     const msgs = get().notifications;
+    s.updatedAt = Date.now();
     set({ state: { ...s }, notifications: msgs });
     saveGame(s);
+    schedulePush(s);
   },
 
   notify(msg) {

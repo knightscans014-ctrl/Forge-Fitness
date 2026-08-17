@@ -1,4 +1,4 @@
-{
+
   "expo": {
     "name": "Forge",
     "slug": "forge",
@@ -9,6 +9,11 @@
     "splash": {
       "backgroundColor": "#0b0d17"
     },
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "android": {
       "package": "com.forge.fitness",
       "adaptiveIcon": {

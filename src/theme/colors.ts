@@ -76,7 +76,10 @@ export const colors = {
 };
 
 // Rank -> aura colour, used by portraits and system windows.
+// Every id in RANKS must appear here. F was missing, so brand-new players —
+// the ones most worth impressing — fell through to the default accent.
 export const rankAura: Record<string, string> = {
+  F: '#9fb0c8',
   E: '#7d8799',
   D: '#7cffb2',
   C: '#4dc3ff',
@@ -84,6 +87,9 @@ export const rankAura: Record<string, string> = {
   A: '#ffd166',
   S: '#ff8a5c',
   SS: '#ff2d55',
+  SSS: '#ff2d55',
+  NATIONAL: '#5ef2ff',
+  MONARCH: '#ffffff',
 };
 
 // Shadow configurations

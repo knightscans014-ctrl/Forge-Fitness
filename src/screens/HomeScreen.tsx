@@ -38,13 +38,17 @@ export default function HomeScreen() {
   const prog = state.totalXP - xpN;
   const need = xpP - xpN;
   const hpPct = Math.max(0, Math.round((state.hp / effectiveMaxHP(state)) * 100));
-  const xpPct = Math.max(0, Math.round((prog / need) * 100));
+  // Clamped both ends: `need` is never 0 for a valid curve, but a bad import or
+  // a level pinned at MAX_LEVEL could make it 0 and render a NaN-width bar.
+  const xpPct = need > 0 ? Math.max(0, Math.min(100, Math.round((prog / need) * 100))) : 100;
   const canClaim = ENGINE.dailyClaimAvailable(state);
   const quests = ENGINE.dailyQuests(state);
   const done = quests.filter(q => state.questsDone.includes(q.id)).length;
   const dc = dayChallenge(state);
   const cmb = Math.round((comboMult(state) - 1) * 100);
   const suggestion = state.suggestion;
+  // Stamped once by normalize() when a pre-retune save is repriced.
+  const prevCurveLevel = (state as unknown as { prevCurveLevel?: number }).prevCurveLevel;
 
   const live = state.liveSession;
 
@@ -61,6 +65,32 @@ export default function HomeScreen() {
             </Text>
           </View>
           <Text style={styles.liveGo}>RESUME ›</Text>
+        </Pressable>
+      ) : null}
+
+      {/* A returning player whose save predates the curve retune would other-
+          wise open the app to a much lower level and read it as lost progress.
+          Explain it once, then let them dismiss it for good. */}
+      {prevCurveLevel ? (
+        <Pressable
+          onPress={() => mutate(s => { delete (s as any).prevCurveLevel; })}
+          style={styles.curveNotice}
+          accessibilityRole="button"
+          accessibilityLabel={`Level scale updated. You were level ${prevCurveLevel}, now level ${state.level}. Tap to dismiss.`}
+        >
+          <Text style={styles.curveTitle}>⚙ LEVEL SCALE UPDATED</Text>
+          <Text style={styles.curveBody}>
+            Levels used to arrive far too quickly — S-rank was reachable in under a week.
+            The scale has been rebuilt, so you now read as{' '}
+            <Text style={styles.curveEm}>Lv {state.level}</Text> instead of{' '}
+            <Text style={styles.curveEm}>Lv {prevCurveLevel}</Text>.
+          </Text>
+          <Text style={styles.curveBody}>
+            Nothing was taken away. Your XP, gold, gear, achievements, defeated bosses and
+            skill points are all untouched — only the number is priced differently, and
+            there is a lot more ladder above you now.
+          </Text>
+          <Text style={styles.curveDismiss}>TAP TO DISMISS</Text>
         </Pressable>
       ) : null}
 
@@ -256,6 +286,19 @@ export default function HomeScreen() {
 import { ENGINE } from '../engine';
 
 const styles = StyleSheet.create({
+  curveNotice: {
+    borderWidth: 1,
+    borderColor: `${colors.sys}55`,
+    backgroundColor: '#0b1220',
+    borderRadius: 6,
+    padding: 14,
+    marginBottom: 12,
+    gap: 6,
+  },
+  curveTitle: { color: colors.sys, fontSize: 12, fontWeight: '800', letterSpacing: 1.4 },
+  curveBody: { color: '#b9c6dd', fontSize: 12, lineHeight: 18 },
+  curveEm: { color: '#fff', fontWeight: '800' },
+  curveDismiss: { color: '#6b7a93', fontSize: 10, fontWeight: '700', letterSpacing: 1.2, marginTop: 2 },
   screen: { flex: 1, backgroundColor: colors.bg },
   pad: { padding: 16, paddingBottom: 40 },
   hero: {

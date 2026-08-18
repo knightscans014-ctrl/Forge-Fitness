@@ -199,6 +199,35 @@ export function normalize(s: GameState): GameState {
   const lg = (s as unknown as { lastGood?: Record<string, number> }).lastGood || {};
   s.level = Math.max(1, Math.floor(keep(s.level, lg.level, 1)));
   s.totalXP = Math.max(0, keep(s.totalXP, lg.totalXP, 0));
+  // --- levelCurveV2 -------------------------------------------------------
+  // The old curve (100*l^1.5) was so shallow that a year of play reached level
+  // 358 and S-rank landed on day 6. The new curve reprices every level, and
+  // because `level` is always derived from `totalXP` an existing save would
+  // silently show a much lower number with no explanation.
+  //
+  // Granting XP to preserve the old level was the obvious fix and is wrong:
+  // computePower() is totalXP/10, so keeping a level-358 player at 358 means
+  // handing them 50.4M XP and power 5,037,079 instead of 67,737 — every boss
+  // in the game becomes a one-hit kill. The number is cosmetic; the power it
+  // implies is not.
+  //
+  // So the level moves and everything earned stays. Achievements, defeated
+  // bosses, claimed milestones and skill points all live in append-only
+  // fields, so nothing is revoked — only the badge changes. We stamp the old
+  // level once so the UI can tell the player why, rather than letting them
+  // discover it as an apparent rollback.
+  const mig = s as unknown as { levelCurveV2?: number; prevCurveLevel?: number };
+  if (!mig.levelCurveV2) {
+    mig.levelCurveV2 = 1;
+    // Required lazily: levels.ts pulls in inventory.ts and loot.ts, and
+    // loot.ts requires state.ts, so a static import here closes a cycle at
+    // module-init time.
+    const { levelFromXP } = require('./levels') as typeof import('./levels');
+    const derived = levelFromXP(s.totalXP);
+    // Only worth explaining if the change is actually visible.
+    if (s.level - derived >= 2) mig.prevCurveLevel = s.level;
+    s.level = derived;
+  }
   s.gold = Math.max(0, keep(s.gold, lg.gold, 0));
   s.energy = num(s.energy, base.energy);
   s.maxEnergy = Math.max(1, num(s.maxEnergy, base.maxEnergy));

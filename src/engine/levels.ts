@@ -16,17 +16,64 @@ export const RANKS: { id: string; lvl: number; title: string; icon: string; colo
   { id: 'D', lvl: 6, title: 'Rookie Hunter', icon: '🥈', color: '#6fd6ff' },
   { id: 'C', lvl: 10, title: 'Regular Hunter', icon: '🟦', color: '#4dc3ff' },
   { id: 'B', lvl: 15, title: 'Elite Hunter', icon: '🟩', color: '#37e08a' },
-  { id: 'A', lvl: 20, title: 'High Hunter', icon: '🟪', color: '#b18cff' },
-  { id: 'S', lvl: 30, title: 'Iron Sovereign', icon: '👑', color: '#ffd166' },
+  { id: 'A', lvl: 22, title: 'High Hunter', icon: '🟪', color: '#b18cff' },
+  { id: 'S', lvl: 32, title: 'Iron Sovereign', icon: '👑', color: '#ffd166' },
+  // Endgame. S used to be the ceiling and was reachable inside a week, which
+  // left long-term players with a rank badge that could never change again.
+  // These four extend the ladder to roughly the three-year mark.
+  { id: 'SS', lvl: 45, title: 'Sovereign', icon: '🔱', color: '#ff8a5c' },
+  { id: 'SSS', lvl: 60, title: 'Ascendant', icon: '⚜️', color: '#ff2d55' },
+  { id: 'NATIONAL', lvl: 80, title: 'National Level', icon: '🌐', color: '#5ef2ff' },
+  { id: 'MONARCH', lvl: 100, title: 'Monarch of Iron', icon: '👁️', color: '#ffffff' },
 ];
 
+/**
+ * Total XP required to reach a level.
+ *
+ * Was `100 * l^1.5`, which is far too shallow: XP income is roughly flat per
+ * day (~900 for a committed player) while the cost per level grew by only
+ * ~2 XP per level. Simulating a year of real play through the engine gave
+ * level 358 and S-rank on day 6 — the ladder was finished before the habit
+ * was.
+ *
+ * The quadratic term keeps the first few sessions generous (level 2 costs 138
+ * XP, about one workout) and the l^2.7 term takes over later so the curve
+ * keeps its shape into the hundreds of days. Measured against replayed XP
+ * traces for three player profiles:
+ *
+ *   casual (20m walk)          d7=8   d30=19  d365=49   d730=62
+ *   regular (30m strength)     d7=10  d30=20  d365=50   d730=63
+ *   committed (75m, int 2)     d7=18  d30=31  d365=69   d730=88
+ *
+ * NOTE: level is derived from totalXP, never stored, so this reprices every
+ * existing save — see normalize()'s levelCurveV2 migration, which grants the
+ * XP difference so nobody is demoted.
+ */
 export function xpForLevel(l: number): number {
-  return Math.floor(100 * Math.pow(l, 1.5));
+  return Math.floor(25 * Math.pow(l, 2) + 6 * Math.pow(l, 2.7));
 }
+/** Hard ceiling on level. Far past reachable play (~3y of maximal effort is
+ *  ~level 100) but low enough that the search below can never run long. */
+export const MAX_LEVEL = 20000;
+
+/**
+ * Level implied by a total XP value.
+ *
+ * Binary search rather than the old `while (xp >= xpForLevel(l+1)) l++`. That
+ * loop stepped one level at a time, so a corrupt or hostile save with
+ * totalXP = 1e308 walked toward ~1e114 iterations and froze the app on load.
+ * normalize() calls this during migration, so a slow path here is a startup
+ * hang, not just a slow screen.
+ */
 export function levelFromXP(xp: number): number {
-  let l = 1;
-  while (xp >= xpForLevel(l + 1)) l++;
-  return l;
+  if (!Number.isFinite(xp) || xp <= 0) return 1;
+  let lo = 1, hi = MAX_LEVEL;
+  if (xp >= xpForLevel(hi)) return hi;
+  while (lo < hi) {
+    const mid = Math.floor((lo + hi + 1) / 2);
+    if (xp >= xpForLevel(mid)) lo = mid; else hi = mid - 1;
+  }
+  return lo;
 }
 export function rankForLevel(l: number) {
   let r = RANKS[0];

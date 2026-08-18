@@ -3,7 +3,7 @@ import {
   defaultState, xpMultNow, goldMultNow, xpForLevel, computePower,
   startBossBattle, bossStrike, bossUnlocked, checkAchievements, buySkill, equipGear,
   generateSuggestion, completeSuggestion, bout, nextOpponent, startTrial, trialStrike,
-  recordStackActivity, dropLoot,
+  recordStackActivity, dropLoot, SKILLS,
 } from '../index';
 
 describe('FORGE engine', () => {
@@ -14,7 +14,10 @@ describe('FORGE engine', () => {
   test('rank mapping', () => {
     expect(rankForLevel(1).id).toBe('F');
     expect(rankForLevel(6).id).toBe('D');
-    expect(rankForLevel(30).id).toBe('S');
+    expect(rankForLevel(32).id).toBe('S');
+    // S is no longer the ceiling; the ladder continues past it.
+    expect(rankForLevel(45).id).toBe('SS');
+    expect(rankForLevel(100).id).toBe('MONARCH');
   });
   test('new game has numeric stats', () => {
     const s = defaultState('Hero', 'assassin');
@@ -123,8 +126,9 @@ describe('FORGE engine', () => {
   test('skill tree cannot exceed max rank', () => {
     const s = defaultState('Hero', 'warrior');
     s.skillPoints = 99;
-    for (let i = 0; i < 10; i++) buySkill(s, 's_sage');
-    expect(s.skills.s_sage).toBe(5); // capped at max
+    const cap = SKILLS.find(x => x.id === 's_sage')!.max;
+    for (let i = 0; i < cap + 5; i++) buySkill(s, 's_sage');
+    expect(s.skills.s_sage).toBe(cap); // capped at max, whatever the tree depth
   });
   test('achievements award XP once', () => {
     const s = defaultState('Hero', 'warrior');

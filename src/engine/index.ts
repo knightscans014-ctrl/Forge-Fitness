@@ -12,7 +12,7 @@ import { addXP, addGold, dropLoot } from './rewards';
 import { runAllChecks, trackWeekly, bumpStreak, dayReset, questsToday, dailyQuests, checkDailyChallenge, checkWeekly, checkStory, checkTiered, checkMilestones, weeklyVal, tieredVal } from './missions';
 import { startBossBattle, bossStrike, bossHeal, retreatBoss, currentBoss, bossUnlocked } from './bosses';
 import { checkAchievements } from './achievements';
-import { buySkill } from './skills';
+import { buySkill, statGainMult } from './skills';
 import { equipGear } from './inventory';
 import { generateSuggestion, completeSuggestion } from './suggestions';
 import { recordStackActivity } from './stacking';
@@ -94,7 +94,7 @@ export const ENGINE = {
     trackWeekly(s, 'questsWeekly', 1);
     addXP(s, q.xp);
     addGold(s, q.gold);
-    s.stats[q.stat as keyof typeof s.stats] += 0.4;
+    s.stats[q.stat as keyof typeof s.stats] += 0.4 * statGainMult(s);
     s.statGrowth[q.stat as keyof typeof s.statGrowth] += 0.1;
     s.bossDamage += q.xp;
     bumpStreak(s);
@@ -121,7 +121,7 @@ export const ENGINE = {
     const raw = Math.round(dur * a.xpPerMin * intensity);
     const xp = addXP(s, raw).xp;
     const gold = addGold(s, Math.round(dur * a.goldPerMin * intensity));
-    s.stats[a.stat as keyof typeof s.stats] += dur * 0.12;
+    s.stats[a.stat as keyof typeof s.stats] += dur * 0.12 * statGainMult(s);
     s.statGrowth[a.stat as keyof typeof s.statGrowth] += dur * 0.02;
     s.workouts++;
     s.totalWorkoutMin += dur;

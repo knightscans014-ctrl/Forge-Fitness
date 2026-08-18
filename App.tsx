@@ -8,6 +8,7 @@ import { View } from 'react-native';
 import { useGame } from './src/context/GameContext';
 import { Loader } from './src/components/ui';
 import { ToastHost } from './src/components/Toast';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { AuraOverlay } from './src/components/effects';
 import { Icon, TAB_ICONS } from './src/theme/icons';
 import { colors } from './src/theme/colors';
@@ -103,17 +104,21 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <StatusBar style="light" />
-      <View style={{ flex: 1 }}>
-        {state ? (
-          <NavigationContainer>
-            <RootNavigator />
-          </NavigationContainer>
-        ) : (
-          <OnboardingScreen />
-        )}
-        <ToastHost />
-        <CelebrationHost />
-      </View>
+      {/* Wraps the whole tree: a crash in any screen must still leave the
+          player a route to their save data. */}
+      <ErrorBoundary>
+        <View style={{ flex: 1 }}>
+          {state ? (
+            <NavigationContainer>
+              <RootNavigator />
+            </NavigationContainer>
+          ) : (
+            <OnboardingScreen />
+          )}
+          <ToastHost />
+          <CelebrationHost />
+        </View>
+      </ErrorBoundary>
     </SafeAreaProvider>
   );
 }

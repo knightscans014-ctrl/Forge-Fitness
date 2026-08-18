@@ -5,20 +5,73 @@ import { CLASSES, DAILY_CHALLENGES, BOOSTERS, PREMIUM_TIERS } from './content';
 
 export const SAVE_KEY = 'forge_save_v4';
 
+const pad2 = (n: number) => (n < 10 ? '0' : '') + n;
+
+/**
+ * Day stamp, zero-padded so it sorts and compares lexicographically.
+ *
+ * The unpadded form ("2026-8-9") broke every string comparison against a
+ * two-digit day: "2026-8-9" >= "2026-8-18" evaluates to true. analytics'
+ * date-range query depended on exactly that, so it mis-reported for most of
+ * every month. Padding makes string order match chronological order.
+ */
 export function dayKey(d?: Date): string {
   const t = d || new Date();
-  return `${t.getFullYear()}-${t.getMonth() + 1}-${t.getDate()}`;
+  return `${t.getFullYear()}-${pad2(t.getMonth() + 1)}-${pad2(t.getDate())}`;
 }
 export function weekKey(d?: Date): string {
   const now = d || new Date();
   const day = (now.getDay() + 6) % 7;
   const d0 = new Date(now);
   d0.setDate(now.getDate() - day);
-  return `${d0.getFullYear()}-${d0.getMonth() + 1}-${d0.getDate()}`;
+  return `${d0.getFullYear()}-${pad2(d0.getMonth() + 1)}-${pad2(d0.getDate())}`;
 }
-export function dayChallengeSeed(): string {
-  const n = dayKey().split('-').reduce((a, b) => a + +b, 0);
-  return DAILY_CHALLENGES[Math.abs(n) % DAILY_CHALLENGES.length].id;
+
+/**
+ * Upgrade a legacy unpadded stamp ("2026-8-9") to the padded form. Returns
+ * non-matching input unchanged, so it is safe to run over any stored value.
+ */
+export function padDayKey(k: unknown): string {
+  if (typeof k !== 'string') return '';
+  const m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(k);
+  return m ? `${m[1]}-${pad2(+m[2])}-${pad2(+m[3])}` : k;
+}
+/**
+ * FNV-1a plus an avalanche finalizer.
+ *
+ * The finalizer is not optional here. Raw FNV-1a only mixes forward, so two
+ * keys differing in the last character differ by exactly charDiff * 16777619 —
+ * and 16777619 mod 22 === 1 for our challenge pool, which means consecutive
+ * days would land on consecutive challenges. That is the same predictable
+ * march the digit-sum seed produced. The xor-shift/multiply tail spreads a
+ * one-character change across all 32 bits so the modulo is unbiased.
+ *
+ * (missions.ts feeds its FNV output into mulberry32, which does this mixing
+ * itself, so the daily slate was never affected.)
+ */
+function hashKey(key: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < key.length; i++) {
+    h ^= key.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  h ^= h >>> 16;
+  h = Math.imul(h, 2246822507);
+  h ^= h >>> 13;
+  h = Math.imul(h, 3266489909);
+  h ^= h >>> 16;
+  return h >>> 0;
+}
+
+/**
+ * Which challenge is offered today.
+ *
+ * Previously a digit sum of the date, which collides across months — 1 Nov and
+ * 3 Sep both sum to 2036, so the same challenge reappeared on unrelated days.
+ * A proper hash distributes the pool evenly.
+ */
+export function dayChallengeSeed(key = dayKey()): string {
+  return DAILY_CHALLENGES[hashKey(key) % DAILY_CHALLENGES.length].id;
 }
 export function dayChallenge(s: GameState) {
   return DAILY_CHALLENGES.find(c => c.id === s.dailyChallenge) || DAILY_CHALLENGES[0];
@@ -129,38 +182,67 @@ export function normalize(s: GameState): GameState {
   if (!Array.isArray(s.bosses)) s.bosses = [];
   if (!s.skills || typeof s.skills !== 'object') s.skills = {};
   const num = (v: unknown, d: number) => (typeof v === 'number' && isFinite(v) ? v : d);
-  s.level = Math.max(1, Math.floor(num(s.level, 1)));
-  s.totalXP = Math.max(0, num(s.totalXP, 0));
-  s.gold = Math.max(0, num(s.gold, 0));
+  // Progression fields get stricter handling than `num`. Coercing a corrupt
+  // value straight to 0 is what silently wiped maxed accounts: normalize()
+  // could not tell "field absent" from "field is NaN", so one bad activity
+  // rewrote a level-97 save as a fresh character. `keep` preserves the last
+  // known-good value instead, and only falls back to the default when there
+  // is genuinely nothing to preserve.
+  const CEIL = 1e12; // far beyond reachable play; blocks 1e308-style imports
+  const keep = (v: unknown, prev: unknown, d: number) => {
+    if (typeof v === 'number' && isFinite(v)) return Math.min(v, CEIL);
+    if (typeof prev === 'number' && isFinite(prev)) return Math.min(prev, CEIL);
+    return d;
+  };
+  // `lastGood` is written on every successful normalize, so it trails the live
+  // values by exactly one repair and acts as the recovery point.
+  const lg = (s as unknown as { lastGood?: Record<string, number> }).lastGood || {};
+  s.level = Math.max(1, Math.floor(keep(s.level, lg.level, 1)));
+  s.totalXP = Math.max(0, keep(s.totalXP, lg.totalXP, 0));
+  s.gold = Math.max(0, keep(s.gold, lg.gold, 0));
   s.energy = num(s.energy, base.energy);
   s.maxEnergy = Math.max(1, num(s.maxEnergy, base.maxEnergy));
-  s.streak = Math.max(0, num(s.streak, 0));
-  s.bestStreak = Math.max(s.streak, num(s.bestStreak, 0));
-  s.workouts = Math.max(0, num(s.workouts, 0));
+  s.streak = Math.max(0, keep(s.streak, lg.streak, 0));
+  s.bestStreak = Math.max(s.streak, keep(s.bestStreak, lg.bestStreak, 0));
+  s.workouts = Math.max(0, keep(s.workouts, lg.workouts, 0));
   s.skillPoints = Math.max(0, num(s.skillPoints, 0));
-  s.totalWorkoutMin = Math.max(0, num(s.totalWorkoutMin, 0));
-  s.totalWater = Math.max(0, num(s.totalWater, 0));
+  s.totalWorkoutMin = Math.max(0, keep(s.totalWorkoutMin, lg.totalWorkoutMin, 0));
+  s.totalWater = Math.max(0, keep(s.totalWater, lg.totalWater, 0));
+  // Energy is a daily resource, not progression — clamping it is safe and
+  // stops imported saves from carrying an infinite pool.
+  s.energy = Math.max(0, Math.min(s.energy, s.maxEnergy));
+  // Stats are progression too, so clamp them rather than let 1e308 through.
+  for (const k of Object.keys(base.stats) as (keyof typeof base.stats)[]) {
+    s.stats[k] = Math.max(0, Math.min(s.stats[k], CEIL));
+  }
 
   // Backfill any fields missing from older saves.
-  if (!s.inventory) s.inventory = [];
-  if (!s.equipped) s.equipped = {};
+  // These use Array.isArray / typeof rather than a falsy check: a hand-edited
+  // import can supply a string or a number where a collection belongs, which
+  // passes `!s.inventory` and then throws `.filter is not a function` mid-render.
+  if (!Array.isArray(s.activities)) s.activities = [];
+  if (s.activities.length > MAX_ACTIVITY_LOG) s.activities = s.activities.slice(-MAX_ACTIVITY_LOG);
+  if (!Array.isArray(s.inventory)) s.inventory = [];
+  // An unbounded inventory is a memory and render hazard on import.
+  if (s.inventory.length > MAX_INVENTORY) s.inventory = s.inventory.slice(0, MAX_INVENTORY);
+  if (!s.equipped || typeof s.equipped !== 'object' || Array.isArray(s.equipped)) s.equipped = {};
   if (!s.daily) s.daily = { lastClaim: null, claimStreak: 0 };
   if (!s.weekly) s.weekly = { workouts: 0, stepsWeekly: 0, minWeekly: 0, waterWeekly: 0, statsTrained: 0, questsWeekly: 0, claimed: [] };
   if (!s.story) s.story = { sm1: [], sm2: [], sm3: [] };
   if (!s.milestones) s.milestones = { workouts: 0, streak: 0, level: 1, bossCount: 0, claimed: [] };
-  if (!s.tiered) s.tiered = {};
+  if (!s.tiered || typeof s.tiered !== 'object') s.tiered = {};
   // Saves written before the paywall was removed may carry no tier, or a tier
   // that was locked behind a purchase. Everything is free now, so just ensure
   // a valid one is set.
   if (!s.tier || !PREMIUM_TIERS.some(t => t.id === s.tier)) s.tier = 't1';
-  if (!s.boosters) s.boosters = [];
+  if (!Array.isArray(s.boosters)) s.boosters = [];
   if (!s.combo) s.combo = { n: 0, date: dayKey() };
-  if (!s.statsTrainedToday) s.statsTrainedToday = {};
+  if (!s.statsTrainedToday || typeof s.statsTrainedToday !== 'object') s.statsTrainedToday = {};
   if (s.dailyChallengeDone === undefined) s.dailyChallengeDone = false;
   if (s.dailyChallenge === undefined) s.dailyChallenge = dayChallengeSeed();
   // v5 backfills
-  if (!s.achievements) s.achievements = [];
-  if (!s.bossBattle) s.bossBattle = null;
+  if (!Array.isArray(s.achievements)) s.achievements = [];
+  if (!s.bossBattle || typeof s.bossBattle !== 'object') s.bossBattle = null;
   // Legacy gear predates affixes/ilvl. Backfill rather than discard: a player's
   // existing loadout must survive the update intact.
   if (Array.isArray(s.inventory)) {
@@ -191,13 +273,35 @@ export function normalize(s: GameState): GameState {
   if (!s.bouts && legacy.duels) s.bouts = legacy.duels.map(d => ({ opponent: d.rival, wins: d.wins }));
   if (s.boutStreak === undefined && legacy.duelStreak !== undefined) s.boutStreak = legacy.duelStreak;
   delete legacy.guild; delete legacy.guildRaid; delete legacy.duels; delete legacy.duelStreak;
-  if (!s.weeklyTrial) s.weeklyTrial = null;
-  if (!s.season) s.season = null;
-  if (!s.history) s.history = [];
-  if (!s.stackProgress) s.stackProgress = {};
-  if (!s.bouts) s.bouts = [];
+  if (!s.weeklyTrial || typeof s.weeklyTrial !== 'object') s.weeklyTrial = null;
+  if (!s.season || typeof s.season !== 'object') s.season = null;
+  if (!Array.isArray(s.history)) s.history = [];
+  if (s.history.length > MAX_HISTORY) s.history = s.history.slice(-MAX_HISTORY);
+  if (!s.stackProgress || typeof s.stackProgress !== 'object') s.stackProgress = {};
+  if (!Array.isArray(s.bouts)) s.bouts = [];
   if (s.boutStreak === undefined) s.boutStreak = 0;
-  if (!s.suggestion) s.suggestion = null;
+  if (!s.suggestion || typeof s.suggestion !== 'object') s.suggestion = null;
+
+  // Migrate day stamps written before dayKey() was zero-padded. These are all
+  // compared with ===, so leaving a legacy "2026-8-9" next to a new
+  // "2026-08-09" would read as a different day: the player would lose their
+  // streak and get a spurious day reset. Rewrite them in place.
+  s.energyRegenAt = padDayKey(s.energyRegenAt);
+  s.dayDone = padDayKey(s.dayDone);
+  s.lastActiveDay = padDayKey(s.lastActiveDay);
+  s.lastDay = padDayKey(s.lastDay);
+  s.weekKey = padDayKey(s.weekKey);
+  if (s.daily.lastClaim) s.daily.lastClaim = padDayKey(s.daily.lastClaim);
+  if (s.combo && s.combo.date) s.combo.date = padDayKey(s.combo.date);
+  s.history.forEach(r => { if (r) r.date = padDayKey(r.date); });
+
+  // Record the repaired progression values as the recovery point for the next
+  // normalize(). Written last so it only ever captures a fully-validated state.
+  (s as unknown as { lastGood?: Record<string, number> }).lastGood = {
+    level: s.level, totalXP: s.totalXP, gold: s.gold, streak: s.streak,
+    bestStreak: s.bestStreak, workouts: s.workouts,
+    totalWorkoutMin: s.totalWorkoutMin, totalWater: s.totalWater,
+  };
   return s;
 }
 
@@ -253,6 +357,19 @@ export function comboMult(s: GameState): number {
 export function critXP(s: GameState): boolean {
   return Math.random() < 0.12 + (s.skills.s_crit || 0) * 0.01;
 }
+/**
+ * Sanity ceilings for player-supplied activity input. These are deliberately
+ * generous — an ultra-marathoner logging 12 hours is legitimate — they exist
+ * only to stop absurd or hostile values from reaching the save.
+ */
+export const MAX_ACTIVITY_MIN = 1440; // one day
+export const MAX_INTENSITY = 3;
+
+/** Collection ceilings, enforced in normalize() so an import cannot blow up memory. */
+export const MAX_INVENTORY = 500;
+export const MAX_HISTORY = 90; // matches analytics' own rolling cap
+export const MAX_ACTIVITY_LOG = 100;
+
 export function energyCost(min: number): number {
   return Math.ceil(min * 0.6);
 }

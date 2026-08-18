@@ -6,6 +6,7 @@ import {
   dayKey, weekKey, dayChallenge, defaultState, normalize, isPremium, tierValue,
   premiumXPBoost, premiumGoldBoost, boosterActive, boosterDef, xpMultNow, goldMultNow,
   comboNow, comboMult, critXP, energyCost, refillEnergy, SAVE_KEY,
+  MAX_ACTIVITY_MIN, MAX_INTENSITY,
 } from './state';
 import { addXP, addGold, dropLoot } from './rewards';
 import { runAllChecks, trackWeekly, bumpStreak, dayReset, questsToday, dailyQuests, checkDailyChallenge, checkWeekly, checkStory, checkTiered, checkMilestones, weeklyVal, tieredVal } from './missions';
@@ -105,6 +106,15 @@ export const ENGINE = {
   logActivity(s: GameState, actId: string, dur: number, intensity: number): { ok: boolean; xp: number; gold: number } {
     const a = ACTIVITIES.find(x => x.id === actId);
     if (!a) return { ok: false, xp: 0, gold: 0 };
+    // Validate before anything touches the save. A NaN or negative duration
+    // used to propagate into totalXP/gold/stats, and normalize() would then
+    // "repair" the NaN to 0 — silently wiping a maxed account. Reject at the
+    // boundary instead: the engine is a public API and callers are not
+    // guaranteed to be our own stepper UI.
+    dur = Math.floor(dur);
+    if (!Number.isFinite(dur) || dur <= 0 || dur > MAX_ACTIVITY_MIN) return { ok: false, xp: 0, gold: 0 };
+    if (!Number.isFinite(intensity) || intensity <= 0) return { ok: false, xp: 0, gold: 0 };
+    intensity = Math.min(intensity, MAX_INTENSITY);
     const cost = energyCost(dur);
     if (s.energy < cost) return { ok: false, xp: 0, gold: 0 };
     s.energy -= cost;

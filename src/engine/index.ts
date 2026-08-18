@@ -19,6 +19,7 @@ import { startTrial, trialStrike, trialStatus, trialProgress } from './trials';
 import { currentSeason, addSeasonXP, seasonTier } from './seasons';
 import { bout, nextOpponent } from './bouts';
 import { recordDay } from './analytics';
+import { endSession, type LiveSession } from './session';
 import { computePower, rankForLevel } from './levels';
 import { CLASSES, ACTIVITIES, BOOSTERS, PREMIUM_TIERS, DAILY_REWARDS, DAILY_POOL } from './content';
 
@@ -39,6 +40,7 @@ export * from './trials';
 export * from './seasons';
 export * from './bouts';
 export * from './analytics';
+export * from './session';
 
 export const ENGINE = {
   constants: {
@@ -131,6 +133,31 @@ export const ENGINE = {
     addSeasonXP(s, xp);
     if (Math.random() < a.drop) dropLoot(s, false);
     return { ok: true, xp, gold };
+  },
+
+  /**
+   * Close a live session and pay it out.
+   *
+   * Deliberately delegates to logActivity rather than reimplementing rewards:
+   * a live session is a *manner of logging*, not a second economy. Everything
+   * quests, stats, streaks and achievements watch stays in one place. The only
+   * difference is the win bonus, applied as extra XP after the fact.
+   */
+  finishSession(s: GameState, sess: LiveSession, now: number, abandoned = false): {
+    ok: boolean; xp: number; gold: number; minutes: number; won: boolean; bonus: number;
+  } {
+    const out = endSession(sess, now, abandoned);
+    // Under a minute is not a workout; close it out with nothing owed.
+    if (out.minutes < 1) return { ok: false, xp: 0, gold: 0, minutes: 0, won: out.won, bonus: 0 };
+    const r = ENGINE.logActivity(s, sess.actId, out.minutes, sess.intensity);
+    if (!r.ok) return { ok: false, xp: 0, gold: 0, minutes: out.minutes, won: out.won, bonus: 0 };
+    let bonus = 0;
+    if (out.won && out.bonusMult > 1) {
+      bonus = addXP(s, Math.round(r.xp * (out.bonusMult - 1))).xp;
+      s.sessionWins = (s.sessionWins || 0) + 1;
+    }
+    s.sessionsRun = (s.sessionsRun || 0) + 1;
+    return { ok: true, xp: r.xp + bonus, gold: r.gold, minutes: out.minutes, won: out.won, bonus };
   },
 
   quickWater(s: GameState): number {

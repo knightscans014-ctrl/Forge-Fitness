@@ -95,6 +95,12 @@ export interface GameState {
 
   // ---- v5 max systems ----
   bossBattle: BossBattleState | null;
+
+  /** In-progress live workout session, survives app restarts. */
+  liveSession?: import('./session').LiveSession | null;
+  /** Lifetime live sessions started and won, for quests/achievements. */
+  sessionsRun?: number;
+  sessionWins?: number;
   bossesDefeated: number;
   suggestion: { id: string; icon: string; text: string; xp: number; gold: number; stat: string } | null;
   suggestionDone: boolean;

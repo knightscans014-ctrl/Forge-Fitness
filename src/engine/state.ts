@@ -98,6 +98,9 @@ export function defaultState(name: string, clsId: string): GameState {
     lastCrit: false,
     // v5 max systems
     bossBattle: null,
+    liveSession: null,
+    sessionsRun: 0,
+    sessionWins: 0,
     bossesDefeated: 0,
     suggestion: null,
     suggestionDone: false,
@@ -158,6 +161,9 @@ export function normalize(s: GameState): GameState {
   // v5 backfills
   if (!s.achievements) s.achievements = [];
   if (!s.bossBattle) s.bossBattle = null;
+  if (s.liveSession === undefined) s.liveSession = null;
+  s.sessionsRun = num(s.sessionsRun, 0);
+  s.sessionWins = num(s.sessionWins, 0);
   // Saves from before the multiplayer framing was removed carry `guildRaid`
   // and `duels`. Same mechanics, new names — carry the progress across.
   const legacy = s as unknown as {

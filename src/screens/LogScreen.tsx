@@ -5,9 +5,10 @@ import { Card, Screen, Pill, Btn, StatRow } from '../components/ui';
 import { ScreenHeader } from '../components/Header';
 import { DetailScreen } from '../components/DetailScreen';
 import { colors } from '../theme/colors';
-import { ENGINE, ACTIVITIES, energyCost, xpMultNow, goldMultNow } from '../engine';
+import { ENGINE, ACTIVITIES, energyCost, xpMultNow, goldMultNow, startSession } from '../engine';
+import { SystemWindow } from '../components/ui';
 
-export default function LogScreen() {
+export default function LogScreen({ navigation }: any) {
   const state = useGame(s => s.state)!;
   const { mutate } = useGame();
   const [act, setAct] = useState<typeof ACTIVITIES[0] | null>(null);
@@ -76,7 +77,20 @@ export default function LogScreen() {
               <View style={s.preview}>
                 <Text style={s.desc}>Reward: <Text style={{ color: colors.xpa }}>+{Math.round(dur * act.xpPerMin * int * xpMultNow(state))} XP</Text> · <Text style={{ color: colors.gold }}>+{Math.round(dur * act.goldPerMin * int * goldMultNow(state))}🪙</Text> · costs ⚡{energyCost(dur)}</Text>
               </View>
-              <Btn title="Forge This Workout 💪" onPress={submit} />
+              <Btn title="▶ Start Live Session" onPress={() => {
+                const a = act;
+                setAct(null);
+                mutate(st => {
+                  st.liveSession = startSession(st, a.id, a.stat as any, a.icon, a.name, int, Date.now());
+                });
+                navigation.navigate('SessionLive');
+              }} />
+              <View style={{ height: 8 }} />
+              <Text style={s.liveHint}>
+                Fight the enemy while you train. Or just log it after the fact:
+              </Text>
+              <View style={{ height: 8 }} />
+              <Btn kind="ghost" title="Log Without Fighting" onPress={submit} />
               <View style={{ height: 8 }} />
               <Btn kind="ghost" title="Cancel" onPress={() => setAct(null)} />
             </View>
@@ -94,6 +108,7 @@ const s = StyleSheet.create({
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   name: { color: colors.ink, fontWeight: '800', fontSize: 14 },
   desc: { color: colors.mut, fontSize: 12, marginVertical: 2 },
+  liveHint: { color: colors.mut, fontSize: 11.5, textAlign: 'center' },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
   modalBg: { flex: 1, backgroundColor: 'rgba(4,5,10,0.7)', justifyContent: 'flex-end' },
   sheet: { backgroundColor: colors.bg2, borderTopLeftRadius: 26, borderTopRightRadius: 26, padding: 22, paddingBottom: 32 },

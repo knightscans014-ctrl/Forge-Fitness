@@ -46,8 +46,24 @@ export default function HomeScreen() {
   const cmb = Math.round((comboMult(state) - 1) * 100);
   const suggestion = state.suggestion;
 
+  const live = state.liveSession;
+
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.pad} showsVerticalScrollIndicator={false}>
+      {/* A running session must never be losable behind a tab. */}
+      {live ? (
+        <Pressable onPress={() => navigation.navigate('SessionLive')} style={styles.liveBanner}>
+          <Text style={styles.liveDot}>●</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.liveTitle}>SESSION IN PROGRESS</Text>
+            <Text style={styles.liveSub}>
+              {live.icon} {live.name} · vs {live.foe.name}
+            </Text>
+          </View>
+          <Text style={styles.liveGo}>RESUME ›</Text>
+        </Pressable>
+      ) : null}
+
       {/* ===== Status window ===== */}
       <View style={[styles.hero, { borderColor: `${aura}55`, shadowColor: aura }]}>
         {/* scan lines + corner brackets: the "system panel" tell */}
@@ -247,6 +263,16 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 16, elevation: 6,
   },
+  liveBanner: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    borderWidth: 1, borderColor: 'rgba(255,45,85,0.55)', borderRadius: 5,
+    backgroundColor: 'rgba(255,45,85,0.10)',
+    paddingVertical: 12, paddingHorizontal: 14, marginBottom: 12,
+  },
+  liveDot: { color: colors.crimson, fontSize: 14 },
+  liveTitle: { color: colors.crimson, fontSize: 11, fontWeight: '900', letterSpacing: 2 },
+  liveSub: { color: colors.ink2, fontSize: 12.5, fontWeight: '700', marginTop: 2 },
+  liveGo: { color: colors.crimson, fontSize: 11, fontWeight: '900', letterSpacing: 1.4 },
   hCorner: { position: 'absolute', width: 14, height: 14 },
   statusTag: { position: 'absolute', top: 0, left: 16, paddingHorizontal: 8, paddingVertical: 3, backgroundColor: colors.bg2, borderBottomLeftRadius: 5, borderBottomRightRadius: 5 },
   statusTagText: { fontSize: 9, fontWeight: '800', letterSpacing: 2.5, textTransform: 'uppercase' },

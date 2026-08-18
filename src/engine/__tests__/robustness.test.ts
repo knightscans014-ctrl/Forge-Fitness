@@ -7,7 +7,7 @@
 import {
   ENGINE, defaultState, normalize, dayKey, weekKey, padDayKey, dayChallengeSeed,
   computePower, DAILY_CHALLENGES, MAX_ACTIVITY_MIN, MAX_INVENTORY,
-  forgeGear, autoEquipBest, totalAffixes,
+  forgeGear, autoEquipBest, totalAffixes, currentSeason, addSeasonXP,
 } from '../index';
 import { importSave, exportSave } from '../../services/saveFile';
 import { GameState } from '../types';
@@ -313,5 +313,34 @@ describe('importSave hardening', () => {
     expect(r.state.totalXP).toBe(s.totalXP);
     expect(r.state.gold).toBe(s.gold);
     expect(r.state.workouts).toBe(s.workouts);
+  });
+});
+
+describe('season rollover', () => {
+  // Regression: addSeasonXP used to check `Date.now() < s.season.end` and
+  // silently discard the XP when it failed. If the app sat open across a
+  // season boundary, every reward earned until the next currentSeason() call
+  // vanished. It now rolls the season over itself.
+  test('XP earned after a season expires is not lost', () => {
+    const s = defaultState('Hero', 'warrior');
+    currentSeason(s);
+    // Force the active season to have ended a minute ago.
+    s.season!.end = Date.now() - 60_000;
+    s.seasonXP = 500;
+
+    addSeasonXP(s, 100);
+
+    // A fresh season started, and the XP landed in it rather than being dropped.
+    expect(s.season!.end).toBeGreaterThan(Date.now());
+    expect(s.seasonXP).toBe(100);
+  });
+
+  test('XP inside a live season still accumulates', () => {
+    const s = defaultState('Hero', 'warrior');
+    currentSeason(s);
+    s.seasonXP = 0;
+    addSeasonXP(s, 40);
+    addSeasonXP(s, 60);
+    expect(s.seasonXP).toBe(100);
   });
 });

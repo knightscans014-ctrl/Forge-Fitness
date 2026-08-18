@@ -89,20 +89,3 @@ export function dropLoot(s: GameState, guaranteed: boolean): GearItem | null {
   return g;
 }
 
-/** @deprecated superseded by loot.ts; retained for reference. */
-export function dropLootLegacy(s: GameState, guaranteed: boolean): GearItem | null {
-  let rarity: GearItem['rarity'] = guaranteed ? 'legendary' : rollRarity();
-  if (!guaranteed && Math.random() < 0.03) rarity = 'epic';
-  // Lucky Charm booster: dramatically boost drop quality
-  if (boosterActive(s, 'b_luck')) {
-    if (!guaranteed) {
-      if (Math.random() < 0.4) rarity = 'epic';
-      if (Math.random() < 0.15) rarity = 'legendary';
-    }
-  }
-  const slots: GearItem['slot'][] = ['weapon', 'armor', 'accessory'];
-  const slot = slots[Math.floor(Math.random() * slots.length)];
-  const g = makeGear(slot, rarity);
-  s.inventory.push(g);
-  return g;
-}

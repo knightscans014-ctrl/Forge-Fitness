@@ -1,7 +1,6 @@
 // Seasons / ranked ladder. Each season resets seasonal XP with a theme.
 
 import { GameState, SeasonInfo } from './types';
-import { rankForLevel } from './levels';
 
 const SEASON_MS = 14 * 24 * 60 * 60 * 1000; // 2 weeks
 
@@ -19,7 +18,12 @@ export function seasonName(id: number): string {
   return `Season of ${names[((id % names.length) + names.length) % names.length]}`;
 }
 export function addSeasonXP(s: GameState, xp: number): void {
-  if (s.season && Date.now() < s.season.end) s.seasonXP += xp;
+  // Roll the season over first. This used to be a bare expiry check that
+  // silently dropped the XP when the season had ended but currentSeason()
+  // had not run yet -- e.g. the app left open across a season boundary, where
+  // every reward earned until the next mutate() was thrown away.
+  currentSeason(s);
+  s.seasonXP += xp;
 }
 export function seasonTier(s: GameState): { icon: string; label: string } {
   const xp = s.seasonXP || 0;

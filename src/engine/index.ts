@@ -3,7 +3,7 @@
 
 import { GameState } from './types';
 import {
-  dayKey, weekKey, dayChallenge, defaultState, normalize, isPremium, tierValue,
+  dayKey, yesterdayKey, weekKey, dayChallenge, defaultState, normalize, isPremium, tierValue,
   premiumXPBoost, premiumGoldBoost, boosterActive, boosterDef, xpMultNow, goldMultNow,
   comboNow, comboMult, critXP, energyCost, refillEnergy, SAVE_KEY,
   MAX_ACTIVITY_MIN, MAX_INTENSITY,
@@ -226,7 +226,7 @@ export const ENGINE = {
   claimDaily(s: GameState): { ok: boolean; gold: number; xp: number; energy: number; day: number } | null {
     if (!ENGINE.dailyClaimAvailable(s)) return null;
     // streak logic
-    const yesterday = dayKey(new Date(Date.now() - 86400000));
+    const yesterday = yesterdayKey();
     if (s.daily.lastClaim === yesterday) s.daily.claimStreak++;
     else if (s.daily.lastClaim) s.daily.claimStreak = 1;
     else s.daily.claimStreak = 1;

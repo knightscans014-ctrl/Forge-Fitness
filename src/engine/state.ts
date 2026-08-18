@@ -19,6 +19,20 @@ export function dayKey(d?: Date): string {
   const t = d || new Date();
   return `${t.getFullYear()}-${pad2(t.getMonth() + 1)}-${pad2(t.getDate())}`;
 }
+/**
+ * The calendar day before `d` (default today), as a dayKey.
+ *
+ * Deliberately not `Date.now() - 86400000`. Subtracting a fixed 24h crosses
+ * two calendar days on a spring-forward date and zero on a fall-back one: at
+ * 00:30 on 2026-03-09 in America/New_York, now-24h lands on Mar 7, so an
+ * active player's streak silently reset. setDate() steps calendar days and is
+ * DST-correct.
+ */
+export function yesterdayKey(d?: Date): string {
+  const y = new Date(d || new Date());
+  y.setDate(y.getDate() - 1);
+  return dayKey(y);
+}
 export function weekKey(d?: Date): string {
   const now = d || new Date();
   const day = (now.getDay() + 6) % 7;

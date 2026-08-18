@@ -4,7 +4,7 @@ import { GameState } from './types';
 import {
   WEEKLY_QUESTS, STORY_MISSIONS, TIERED_MISSIONS, MILESTONE_MISSIONS, DAILY_POOL, DAILY_CHALLENGES,
 } from './content';
-import { dayKey, weekKey } from './state';
+import { dayKey, yesterdayKey, weekKey } from './state';
 import { addXP, addGold } from './rewards';
 
 /** How many quests of each difficulty make up a day's slate. */
@@ -119,7 +119,7 @@ export function dayReset(s: GameState): void {
 export function bumpStreak(s: GameState): void {
   const today = dayKey();
   if (s.lastActiveDay === today) return;
-  if (dayKey(new Date(Date.now() - 86400000)) === s.lastActiveDay) s.streak++;
+  if (yesterdayKey() === s.lastActiveDay) s.streak++;
   else s.streak = 1;
   s.lastActiveDay = today;
   s.bestStreak = Math.max(s.bestStreak, s.streak);

@@ -23,8 +23,7 @@ export interface GameState {
   name: string;
   cls: string;
   created: number;
-  /** Epoch ms of the last local mutation. Used to pick the newer copy when
-   *  reconciling this device's save against the cloud save. */
+  /** Epoch ms of the last local mutation. */
   updatedAt?: number;
   /** Chosen difficulty path (see PREMIUM_TIERS). Free to change anytime. */
   tier: string | null;

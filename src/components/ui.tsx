@@ -86,26 +86,32 @@ export function Btn({
   icon?: string;
   fullWidth?: boolean;
 }) {
-  const bg = kind === 'gold' ? colors.gold 
-    : kind === 'green' ? colors.success 
-    : kind === 'danger' ? colors.danger 
-    : kind === 'mana' ? colors.mana 
-    : kind === 'ghost' ? colors.card2 
-    : colors.accent2;
-  
-  const fg = kind === 'gold' ? '#231500' 
-    : kind === 'green' ? '#06281a' 
+  const bg = kind === 'gold' ? colors.gold
+    : kind === 'green' ? colors.success
+    : kind === 'danger' ? colors.danger
+    : kind === 'mana' ? colors.mana
+    : kind === 'ghost' ? 'transparent'
+    : colors.sys;
+
+  const fg = kind === 'gold' ? '#231500'
+    : kind === 'green' ? '#06281a'
     : kind === 'mana' ? '#fff'
-    : kind === 'ghost' ? colors.ink 
-    : '#fff';
+    : kind === 'ghost' ? colors.sys
+    : '#04222b';
+
+  // Ghost reads as an empty system frame; solid kinds get a matching glow.
+  const extra = kind === 'ghost'
+    ? { borderWidth: 1, borderColor: colors.sysDim }
+    : { shadowColor: bg, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.45, shadowRadius: 10 };
     
   return (
     <Pressable 
       onPress={onPress} 
       disabled={disabled} 
       style={({ pressed }) => [
-        styles.btn, 
-        { backgroundColor: bg }, 
+        styles.btn,
+        { backgroundColor: bg },
+        extra,
         small && styles.btnSmall, 
         fullWidth && styles.btnFull,
         disabled && styles.btnDisabled,
@@ -237,7 +243,113 @@ export function Loader() {
   return (
     <View style={styles.loaderContainer}>
       <View style={styles.loaderGlow}>
-        <ActivityIndicator size="large" color={colors.gold} />
+        <ActivityIndicator size="large" color={colors.sys} />
+      </View>
+    </View>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Anime "system window" layer
+//
+// The look these build toward is the status panel from a levelling-system
+// anime: a translucent cyan-edged pane with clipped corners, a small tracked
+// label riding on the top edge, and a glow. Everything below is composed from
+// plain Views so there is no gradient/blur/SVG dependency.
+// ---------------------------------------------------------------------------
+
+/** The four clipped corner brackets that frame a system pane. */
+export function CornerBrackets({ color = colors.sys, size = 14, inset = -1 }: {
+  color?: string; size?: number; inset?: number;
+}) {
+  const base = { position: 'absolute' as const, width: size, height: size, borderColor: color };
+  return (
+    <>
+      <View pointerEvents="none" style={[base, { top: inset, left: inset, borderTopWidth: 2, borderLeftWidth: 2, borderTopLeftRadius: 4 }]} />
+      <View pointerEvents="none" style={[base, { top: inset, right: inset, borderTopWidth: 2, borderRightWidth: 2, borderTopRightRadius: 4 }]} />
+      <View pointerEvents="none" style={[base, { bottom: inset, left: inset, borderBottomWidth: 2, borderLeftWidth: 2, borderBottomLeftRadius: 4 }]} />
+      <View pointerEvents="none" style={[base, { bottom: inset, right: inset, borderBottomWidth: 2, borderRightWidth: 2, borderBottomRightRadius: 4 }]} />
+    </>
+  );
+}
+
+/** Faint horizontal scan lines. Purely decorative; never intercepts touches. */
+export function ScanLines({ rows = 9, opacity = 0.05, color = colors.sys }: {
+  rows?: number; opacity?: number; color?: string;
+}) {
+  return (
+    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+      {Array.from({ length: rows }, (_, i) => (
+        <View key={i} style={{ flex: 1, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: color, opacity }} />
+      ))}
+    </View>
+  );
+}
+
+/**
+ * A framed panel with a label on its top edge — the signature container.
+ * `accent` recolours the whole frame, so a rank aura or a danger red can drive
+ * it without a second component.
+ */
+export function SystemWindow({ label, accent = colors.sys, children, style, scan = true, glow }: {
+  label?: string;
+  accent?: string;
+  children: React.ReactNode;
+  style?: any;
+  scan?: boolean;
+  glow?: boolean;
+}) {
+  return (
+      <View style={[styles.sysWindow, { borderColor: `${accent}55` }, glow && { ...shadows.sysGlow, shadowColor: accent }, style]}>
+      {scan && <ScanLines color={accent} />}
+      <CornerBrackets color={accent} />
+      {label ? (
+        <View style={[styles.sysLabelWrap, { borderColor: `${accent}55` }]}>
+          <Text style={[styles.sysLabel, { color: accent }]}>{label}</Text>
+        </View>
+      ) : null}
+      <View style={label ? { marginTop: 6 } : undefined}>{children}</View>
+    </View>
+  );
+}
+
+/** Difficulty chip for a quest: light / core / elite. */
+export function TierBadge({ tier }: { tier: 'light' | 'core' | 'elite' }) {
+  const cfg = {
+    light: { c: colors.xpa, t: 'LIGHT' },
+    core: { c: colors.sys, t: 'CORE' },
+    elite: { c: colors.crimson, t: 'ELITE' },
+  }[tier];
+  return (
+    <View style={[styles.tierBadge, { borderColor: `${cfg.c}66`, backgroundColor: `${cfg.c}14` }]}>
+      <Text style={[styles.tierText, { color: cfg.c }]}>{cfg.t}</Text>
+    </View>
+  );
+}
+
+/** Wide-tracked all-caps line used above titles. */
+export function SystemLabel({ children, color = colors.sys, style }: {
+  children: React.ReactNode; color?: string; style?: any;
+}) {
+  return <Text style={[styles.sysLabel, { color }, style]}>{children}</Text>;
+}
+
+/** A bar that reads as an energy gauge: notched track, glowing fill, cap tick. */
+export function SystemBar({ pct, color = colors.sys, height = 10, label }: {
+  pct: number; color?: string; height?: number; label?: string;
+}) {
+  const w = Math.max(0, Math.min(100, pct));
+  return (
+    <View>
+      {label ? <Text style={[styles.sysBarLabel, { color }]}>{label}</Text> : null}
+      <View style={[styles.sysBarTrack, { height, borderColor: `${color}44` }]}>
+        <View style={[styles.sysBarFill, { width: `${w}%`, backgroundColor: color, shadowColor: color }]} />
+        {/* notches */}
+        <View pointerEvents="none" style={styles.sysBarNotches}>
+          {Array.from({ length: 9 }, (_, i) => (
+            <View key={i} style={{ width: StyleSheet.hairlineWidth, height: '100%', backgroundColor: colors.bg, opacity: 0.5 }} />
+          ))}
+        </View>
       </View>
     </View>
   );
@@ -286,7 +398,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   btn: { 
-    borderRadius: 16, 
+    borderRadius: 5, 
     paddingVertical: 14, 
     paddingHorizontal: 18, 
     alignItems: 'center', 
@@ -297,7 +409,7 @@ const styles = StyleSheet.create({
   btnSmall: { 
     paddingVertical: 9, 
     paddingHorizontal: 14, 
-    borderRadius: 12, 
+    borderRadius: 4, 
     alignSelf: 'flex-start',
     ...shadows.sm,
   },
@@ -314,8 +426,9 @@ const styles = StyleSheet.create({
   },
   btnText: { 
     fontWeight: '900', 
-    fontSize: 15,
-    letterSpacing: 0.3,
+    fontSize: 14,
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
   },
   statRow: { 
     flexDirection: 'row', 
@@ -415,6 +528,71 @@ const styles = StyleSheet.create({
     padding: 24,
     borderRadius: 60,
     backgroundColor: colors.card2,
-    ...shadows.glow,
+    ...shadows.sysGlow,
+  },
+
+  // ---- system window layer ----
+  sysWindow: {
+    backgroundColor: colors.glass,
+    borderWidth: 1,
+    borderRadius: 6,
+    padding: 14,
+    paddingTop: 16,
+    marginVertical: 8,
+    overflow: 'hidden',
+  },
+  sysLabelWrap: {
+    position: 'absolute',
+    top: -1,
+    left: 14,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderBottomLeftRadius: 6,
+    borderBottomRightRadius: 6,
+    backgroundColor: colors.bg2,
+  },
+  sysLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 2.5,
+    textTransform: 'uppercase',
+  },
+  tierBadge: {
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 3,
+    borderWidth: 1,
+  },
+  tierText: {
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1.5,
+  },
+  sysBarLabel: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 2,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  sysBarTrack: {
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  sysBarFill: {
+    height: '100%',
+    borderRadius: 2,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 6,
+  },
+  sysBarNotches: {
+    ...StyleSheet.absoluteFillObject,
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
   },
 });

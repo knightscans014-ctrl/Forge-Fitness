@@ -46,10 +46,17 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: colors.accent2,
+        tabBarActiveTintColor: colors.sys,
         tabBarInactiveTintColor: colors.mut2,
-        tabBarStyle: { backgroundColor: '#0d0f1b', borderTopColor: colors.line, height: 64, paddingBottom: 8 },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
+        tabBarStyle: {
+          backgroundColor: colors.bg2,
+          borderTopColor: colors.sysFaint,
+          borderTopWidth: 1,
+          height: 66,
+          paddingBottom: 8,
+          paddingTop: 6,
+        },
+        tabBarLabelStyle: { fontSize: 10, fontWeight: '800', letterSpacing: 1.2, textTransform: 'uppercase' },
         tabBarIcon: ({ focused, color }) => {
           const cfg = TAB_ICONS[route.name] || { active: 'help', inactive: 'help' };
           return <Icon name={focused ? cfg.active : (cfg.inactive || cfg.active)} size={22} color={color} family={cfg.family} />;

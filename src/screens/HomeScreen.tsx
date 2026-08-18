@@ -1,18 +1,36 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useGame } from '../context/GameContext';
 import { Icon } from '../theme/icons';
-import { colors } from '../theme/colors';
+import { colors, rankAura } from '../theme/colors';
 import { DAILY_REWARDS, rankForLevel, nextRank, rankProgressPct, xpForLevel, effectiveMaxHP, computePower, comboMult, boosterActive, boosterDef, dayChallenge, generateSuggestion } from '../engine';
+
+// The art pack ships four usable portraits for six classes, so they are
+// shared deliberately rather than left all-warrior: the two heavy//melee
+// classes take the warrior art, the agile pair the animated one, and the
+// two caster-ish classes the tall renders. Drop in per-class art later and
+// this map is the only thing that changes.
+const CLASS_PORTRAIT: Record<string, any> = {
+  warrior: require('../../assets/mc/av_warrior.png'),
+  paladin: require('../../assets/mc/av_warrior.png'),
+  ranger: require('../../assets/mc/av_anim.gif'),
+  assassin: require('../../assets/mc/av_anim.gif'),
+  monk: require('../../assets/mc/mc_tall1.png'),
+  mage: require('../../assets/mc/mc_tall2.png'),
+};
 
 export default function HomeScreen() {
   const state = useGame(s => s.state)!;
   const mutate = useGame(s => s.mutate);
   const navigation = useNavigation<any>();
 
-  ENGINE.dayReset(state);
+  // Day rollover + first suggestion happen in an effect so render stays pure.
+  useEffect(() => {
+    mutate(s => { if (!s.suggestion && !s.suggestionDone) generateSuggestion(s); });
+  }, []);
   const rk = rankForLevel(state.level);
+  const aura = rankAura[rk.id] || colors.sys;
   const nr = nextRank(state.level);
   const rkPct = rankProgressPct(state.level);
   const xpN = xpForLevel(state.level);
@@ -27,42 +45,56 @@ export default function HomeScreen() {
   const dc = dayChallenge(state);
   const cmb = Math.round((comboMult(state) - 1) * 100);
   const suggestion = state.suggestion;
-  if (!suggestion && !state.suggestionDone) generateSuggestion(state);
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.pad} showsVerticalScrollIndicator={false}>
-      {/* ===== Status hero (compact, professional) ===== */}
-      <View style={styles.hero}>
+      {/* ===== Status window ===== */}
+      <View style={[styles.hero, { borderColor: `${aura}55`, shadowColor: aura }]}>
+        {/* scan lines + corner brackets: the "system panel" tell */}
+        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+          {Array.from({ length: 10 }, (_, i) => (
+            <View key={i} style={{ flex: 1, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: aura, opacity: 0.045 }} />
+          ))}
+        </View>
+        <View style={[styles.hCorner, { top: -1, left: -1, borderTopWidth: 2, borderLeftWidth: 2, borderColor: aura }]} />
+        <View style={[styles.hCorner, { top: -1, right: -1, borderTopWidth: 2, borderRightWidth: 2, borderColor: aura }]} />
+        <View style={[styles.hCorner, { bottom: -1, left: -1, borderBottomWidth: 2, borderLeftWidth: 2, borderColor: aura }]} />
+        <View style={[styles.hCorner, { bottom: -1, right: -1, borderBottomWidth: 2, borderRightWidth: 2, borderColor: aura }]} />
+
+        <View style={styles.statusTag}>
+          <Text style={[styles.statusTagText, { color: aura }]}>Status</Text>
+        </View>
+
         <View style={styles.heroTop}>
-          <View style={styles.avatarWrap}>
-            <Image source={require('../../assets/mc/av_warrior.png')} style={styles.avatar} />
+          <View style={[styles.avatarWrap, { borderColor: aura }]}>
+            <Image source={CLASS_PORTRAIT[state.cls] || CLASS_PORTRAIT.warrior} style={styles.avatar} />
             <View style={[styles.rankChip, { backgroundColor: rk.color }]}>
               <Text style={styles.rankChipText}>{rk.id}</Text>
             </View>
           </View>
           <View style={styles.heroInfo}>
-            <Text style={styles.greeting}>Welcome back,</Text>
+            <Text style={[styles.greeting, { color: aura }]}>Hunter</Text>
             <Text style={styles.name}>{state.name}</Text>
             <Text style={styles.classLine}>{rk.title} · Level {state.level}</Text>
           </View>
-          <View style={styles.powerBadge}>
-            <Icon name="shield-checkmark" size={14} color={colors.gold} />
+          <View style={[styles.powerBadge, { borderColor: `${colors.gold}55` }]}>
+            <Icon name="shield-checkmark" size={13} color={colors.gold} />
             <Text style={styles.powerText}>{computePower(state)}</Text>
           </View>
         </View>
 
-        {/* XP bar */}
+        {/* XP / HP gauges */}
         <View style={styles.barRow}>
-          <Icon name="star" size={13} color={colors.xpa} />
-          <View style={styles.xpTrack}>
-            <View style={[styles.xpFill, { width: `${xpPct}%` }]} />
+          <Text style={[styles.barTag, { color: colors.xpa }]}>XP</Text>
+          <View style={[styles.xpTrack, { borderColor: `${colors.xpa}44` }]}>
+            <View style={[styles.xpFill, { width: `${xpPct}%`, shadowColor: colors.xpa }]} />
           </View>
           <Text style={styles.barNum}>{xpPct}%</Text>
         </View>
         <View style={styles.barRow}>
-          <Icon name="heart" size={13} color={colors.hp} />
-          <View style={styles.xpTrack}>
-            <View style={[styles.xpFill, { width: `${hpPct}%`, backgroundColor: colors.hp }]} />
+          <Text style={[styles.barTag, { color: colors.hp }]}>HP</Text>
+          <View style={[styles.xpTrack, { borderColor: `${colors.hp}44` }]}>
+            <View style={[styles.xpFill, { width: `${hpPct}%`, backgroundColor: colors.hp, shadowColor: colors.hp }]} />
           </View>
           <Text style={styles.barNum}>{state.hp}/{effectiveMaxHP(state)}</Text>
         </View>
@@ -210,21 +242,29 @@ import { ENGINE } from '../engine';
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   pad: { padding: 16, paddingBottom: 40 },
-  hero: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line, borderRadius: 20, padding: 16 },
+  hero: {
+    backgroundColor: colors.glass, borderWidth: 1, borderRadius: 8, padding: 16, paddingTop: 20,
+    overflow: 'hidden',
+    shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 16, elevation: 6,
+  },
+  hCorner: { position: 'absolute', width: 14, height: 14 },
+  statusTag: { position: 'absolute', top: 0, left: 16, paddingHorizontal: 8, paddingVertical: 3, backgroundColor: colors.bg2, borderBottomLeftRadius: 5, borderBottomRightRadius: 5 },
+  statusTagText: { fontSize: 9, fontWeight: '800', letterSpacing: 2.5, textTransform: 'uppercase' },
+  barTag: { fontSize: 9, fontWeight: '900', letterSpacing: 1.5, width: 20 },
   heroTop: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  avatarWrap: { width: 64, height: 64, borderRadius: 18, overflow: 'hidden', borderWidth: 2, borderColor: colors.card2 },
+  avatarWrap: { width: 64, height: 64, borderRadius: 6, overflow: 'hidden', borderWidth: 2 },
   avatar: { width: '100%', height: '100%' },
   rankChip: { position: 'absolute', bottom: -6, right: -6, width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   rankChipText: { color: '#231500', fontWeight: '900', fontSize: 12 },
   heroInfo: { flex: 1 },
-  greeting: { color: colors.mut, fontSize: 12 },
+  greeting: { fontSize: 9, fontWeight: '800', letterSpacing: 3, textTransform: 'uppercase' },
   name: { color: colors.ink, fontWeight: '900', fontSize: 20 },
   classLine: { color: colors.mut, fontSize: 12 },
-  powerBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.card2, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 },
+  powerBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,209,102,0.08)', borderWidth: 1, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 4 },
   powerText: { color: colors.gold, fontWeight: '900', fontSize: 13 },
   barRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
-  xpTrack: { flex: 1, height: 7, backgroundColor: '#1a1e36', borderRadius: 99, overflow: 'hidden' },
-  xpFill: { height: '100%', backgroundColor: colors.xpa, borderRadius: 99 },
+  xpTrack: { flex: 1, height: 9, backgroundColor: colors.bg, borderWidth: 1, borderRadius: 3, overflow: 'hidden' },
+  xpFill: { height: '100%', backgroundColor: colors.xpa, borderRadius: 2, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.9, shadowRadius: 5 },
   barNum: { color: colors.mut, fontSize: 11, fontWeight: '700', width: 52, textAlign: 'right' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 16 },
   gridItem: { flex: 1, minWidth: '46%', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line, borderRadius: 16, padding: 14, alignItems: 'center', gap: 4 },

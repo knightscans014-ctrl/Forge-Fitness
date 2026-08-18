@@ -7,13 +7,62 @@ import {
 import { dayKey, weekKey } from './state';
 import { addXP, addGold } from './rewards';
 
-// Deterministic daily quest subset (rotate by day)
-export function dailyQuests(s: GameState) {
-  const seed = dayKey().split('-').reduce((a, b) => a + +b, 0);
-  const pool = DAILY_POOL;
-  const start = seed % pool.length;
-  const out: typeof pool = [];
-  for (let i = 0; i < 6; i++) out.push(pool[(start + i) % pool.length]);
+/** How many quests of each difficulty make up a day's slate. */
+const SLATE = { light: 2, core: 3, elite: 1 } as const;
+export const DAILY_SLATE_SIZE = SLATE.light + SLATE.core + SLATE.elite;
+
+/** Small deterministic PRNG (mulberry32) so a given day always rolls the same slate. */
+function rng(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Turn a day key into a stable 32-bit seed. */
+function daySeed(key: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < key.length; i++) {
+    h ^= key.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+/**
+ * The quests offered today.
+ *
+ * The pool is large now, so a sliding window would show almost the same six
+ * quests two days running. Instead each day deterministically shuffles the
+ * pool and draws a fixed mix of difficulties: a couple of easy wins, three
+ * real ones, and one that is meant to be hard. Same day, same slate, on every
+ * device and every render — no state is stored.
+ */
+export function dailyQuests(s?: GameState, key: string = dayKey()) {
+  const rand = rng(daySeed(key));
+  const out: typeof DAILY_POOL = [];
+
+  (Object.keys(SLATE) as (keyof typeof SLATE)[]).forEach(tier => {
+    const bucket = DAILY_POOL.filter(q => q.tier === tier);
+    // Fisher-Yates on a copy, driven by the seeded PRNG.
+    for (let i = bucket.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [bucket[i], bucket[j]] = [bucket[j], bucket[i]];
+    }
+    out.push(...bucket.slice(0, SLATE[tier]));
+  });
+
+  // Backfill from anything unused if a bucket is ever too small to fill.
+  if (out.length < DAILY_SLATE_SIZE) {
+    for (const q of DAILY_POOL) {
+      if (out.length >= DAILY_SLATE_SIZE) break;
+      if (!out.includes(q)) out.push(q);
+    }
+  }
   return out;
 }
 export function questsToday(s: GameState): number {
@@ -35,6 +84,11 @@ export function weeklyVal(s: GameState, stat: 'workouts' | 'stepsWeekly' | 'minW
 export function dayReset(s: GameState): void {
   if (s.lastDay !== dayKey()) {
     s.lastDay = dayKey();
+    // Daily quests are *daily*. Without this the completed list grows forever
+    // and every quest a player has ever finished stays ticked off, so the
+    // slate is permanently exhausted.
+    s.questsDone = [];
+    s.dayDone = dayKey();
     s.workoutsToday = 0;
     s.strengthMinToday = 0;
     s.cardioMinToday = 0;
@@ -89,6 +143,10 @@ export function tieredVal(s: GameState, id: string): number {
   if (id === 'tm1') return s.cardioMinToday || 0;
   if (id === 'tm2') return s.stepsTodayAbs || s.stepsToday || 0;
   if (id === 'tm3') return s.waterToday || 0;
+  if (id === 'tm4') return s.strengthMinToday || 0;
+  if (id === 'tm5') return s.meditationMinToday || 0;
+  if (id === 'tm6') return s.workoutsToday || 0;
+  if (id === 'tm7') return Object.keys(s.statsTrainedToday || {}).length;
   return 0;
 }
 export function checkTiered(s: GameState): MissionResult[] {
@@ -107,12 +165,25 @@ export function checkTiered(s: GameState): MissionResult[] {
   });
   return out;
 }
+/** Current value of every counter a milestone can be measured against. */
+export function milestoneStats(s: GameState): Record<string, number> {
+  return {
+    workouts: s.workouts,
+    streak: s.bestStreak,
+    level: s.level,
+    bossCount: s.bosses.length,
+    minutes: s.totalWorkoutMin || 0,
+    water: s.totalWater || 0,
+    achievements: s.achievements?.length || 0,
+    xp: s.totalXP || 0,
+  };
+}
 export function checkMilestones(s: GameState): MissionResult[] {
   const out: MissionResult[] = [];
-  const ms = { workouts: s.workouts, streak: s.bestStreak, level: s.level, bossCount: s.bosses.length };
+  const ms = milestoneStats(s);
   MILESTONE_MISSIONS.forEach(m => {
     if (s.milestones.claimed.includes(m.id)) return;
-    if (ms[m.stat as keyof typeof ms] >= m.target) {
+    if ((ms[m.stat] || 0) >= m.target) {
       s.milestones.claimed.push(m.id);
       const xp = addXP(s, m.xp).xp;
       const gold = addGold(s, m.gold);

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { useGame } from '../context/GameContext';
-import { Card, Screen, Pill, Bar, Btn, StatRow } from '../components/ui';
+import { Card, Screen, Pill, Bar, Btn, StatRow, SystemWindow, SystemLabel } from '../components/ui';
 import { ScreenHeader } from '../components/Header';
 import { Icon } from '../theme/icons';
 import { SkillTreeModal, InventoryModal } from '../components/modals';
+import { SaveModal } from '../components/SaveModal';
 import { colors } from '../theme/colors';
 import { ENGINE, STATS, RANKS, rankForLevel, nextRank, rankProgressPct, statLevels, gearById, equippedCount } from '../engine';
 
@@ -13,6 +14,7 @@ export default function CharacterScreen() {
   const { mutate } = useGame();
   const [skillOpen, setSkillOpen] = useState(false);
   const [invOpen, setInvOpen] = useState(false);
+  const [saveOpen, setSaveOpen] = useState(false);
   const lvl = statLevels(state);
   const rk = rankForLevel(state.level);
   const nr = nextRank(state.level);
@@ -87,6 +89,17 @@ export default function CharacterScreen() {
         </View>
       </Card>
 
+      <SystemWindow label="Data" accent={colors.sys}>
+        <SystemLabel>Backup & Restore</SystemLabel>
+        <Text style={s.dataBody}>
+          Progress is saved on this device only. Export a backup so a new phone — or a
+          reinstall — does not cost you your rank.
+        </Text>
+        <View style={{ height: 12 }} />
+        <Btn kind="ghost" fullWidth title="Backup & Restore" icon="save-outline" onPress={() => setSaveOpen(true)} />
+      </SystemWindow>
+
+      <SaveModal visible={saveOpen} onClose={() => setSaveOpen(false)} />
       <SkillTreeModal visible={skillOpen} onClose={() => setSkillOpen(false)} />
       <InventoryModal visible={invOpen} onClose={() => setInvOpen(false)} />
     </Screen>
@@ -110,4 +123,5 @@ const s = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 8, marginTop: 10 },
   statBox: { flex: 1, backgroundColor: colors.card2, borderRadius: 14, padding: 10, alignItems: 'center' },
   statV: { color: colors.ink, fontSize: 18, fontWeight: '900' },
+  dataBody: { color: colors.mut, fontSize: 12.5, lineHeight: 18, marginTop: 6 },
 });

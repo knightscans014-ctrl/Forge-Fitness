@@ -3,6 +3,7 @@
 import { GameState, BossDef, BossBattleState } from './types';
 import { computePower, critChance, damageResist } from './levels';
 import { addXP, addGold, dropLoot } from './rewards';
+import { dayKey } from './state';
 
 export const BOSSES: BossDef[] = [
   { id: 'b1', icon: '🐉', name: 'The Couch Dragon', lvl: 3, hp: 90, atk: 6, xp: 150, gold: 60, unlock: 'Complete 3 daily quests' },
@@ -33,7 +34,9 @@ export function bossUnlocked(s: GameState, b: BossDef): boolean {
   return (n[b.id] || (() => false))();
 }
 function questsDoneToday(s: GameState): number {
-  return s.questsDone.length;
+  // questsDone is cleared by dayReset(), but a save that has not rolled over
+  // yet can still carry yesterday's list, so check the stamp too.
+  return s.dayDone === dayKey() ? s.questsDone.length : 0;
 }
 
 export function startBossBattle(s: GameState): BossBattleState | null {

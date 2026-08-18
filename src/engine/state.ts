@@ -112,6 +112,32 @@ export function defaultState(name: string, clsId: string): GameState {
 }
 
 export function normalize(s: GameState): GameState {
+  // Core fields. These used to be assumed present, which was safe while saves
+  // could only come from this app's own storage. Imported saves can be
+  // hand-edited or truncated, so anything the UI reads unconditionally has to
+  // be guaranteed here instead.
+  const base = defaultState(s.name || 'Hunter', s.cls || 'warrior');
+  if (!s.stats || typeof s.stats !== 'object') s.stats = base.stats;
+  else for (const k of Object.keys(base.stats) as (keyof typeof base.stats)[]) {
+    if (typeof s.stats[k] !== 'number' || !isFinite(s.stats[k])) s.stats[k] = base.stats[k];
+  }
+  if (!s.statGrowth || typeof s.statGrowth !== 'object') s.statGrowth = base.statGrowth;
+  if (!Array.isArray(s.questsDone)) s.questsDone = [];
+  if (!Array.isArray(s.bosses)) s.bosses = [];
+  if (!s.skills || typeof s.skills !== 'object') s.skills = {};
+  const num = (v: unknown, d: number) => (typeof v === 'number' && isFinite(v) ? v : d);
+  s.level = Math.max(1, Math.floor(num(s.level, 1)));
+  s.totalXP = Math.max(0, num(s.totalXP, 0));
+  s.gold = Math.max(0, num(s.gold, 0));
+  s.energy = num(s.energy, base.energy);
+  s.maxEnergy = Math.max(1, num(s.maxEnergy, base.maxEnergy));
+  s.streak = Math.max(0, num(s.streak, 0));
+  s.bestStreak = Math.max(s.streak, num(s.bestStreak, 0));
+  s.workouts = Math.max(0, num(s.workouts, 0));
+  s.skillPoints = Math.max(0, num(s.skillPoints, 0));
+  s.totalWorkoutMin = Math.max(0, num(s.totalWorkoutMin, 0));
+  s.totalWater = Math.max(0, num(s.totalWater, 0));
+
   // Backfill any fields missing from older saves.
   if (!s.inventory) s.inventory = [];
   if (!s.equipped) s.equipped = {};

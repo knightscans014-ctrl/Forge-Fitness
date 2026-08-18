@@ -11,6 +11,8 @@ interface GameStore {
   celebration: { title: string; big: string; subtitle?: string; accent?: string } | null;
   hydrate: () => Promise<void>;
   newGame: (name: string, clsId: string) => void;
+  /** Replace the entire save, e.g. from an imported backup. */
+  replaceState: (s: GameState) => void;
   mutate: (fn: (s: GameState) => void) => void;
   notify: (msg: string) => void;
   celebrate: (c: { title: string; big: string; subtitle?: string; accent?: string }) => void;
@@ -32,6 +34,17 @@ export const useGame = create<GameStore>((set, get) => ({
     const s = ENGINE.newGame(name, clsId);
     s.updatedAt = Date.now();
     set({ state: s });
+    saveGame(s);
+  },
+
+  replaceState(next) {
+    // Imported saves come from another device and possibly another version, so
+    // repair them before they become the live state, and stamp them as touched
+    // now so nothing downstream thinks the save is stale.
+    const s = ENGINE.normalize(next);
+    ENGINE.dayReset(s);
+    s.updatedAt = Date.now();
+    set({ state: { ...s }, celebration: null });
     saveGame(s);
   },
 

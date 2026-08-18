@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useGame } from '../context/GameContext';
-import { Card, Screen, Pill, Bar, StatRow } from '../components/ui';
+import { Card, Screen, Pill, Bar, StatRow, SystemWindow, TierBadge, SystemBar } from '../components/ui';
 import { ScreenHeader } from '../components/Header';
 import { Icon } from '../theme/icons';
 import { colors } from '../theme/colors';
@@ -11,7 +11,11 @@ import {
 
 export default function MissionsScreen() {
   const state = useGame(s => s.state)!;
-  ENGINE.dayReset(state);
+  const mutateFn = useGame(s => s.mutate);
+  // Roll the day over in an effect, not during render: dayReset() clears the
+  // per-day counters, and mutating state while rendering skips the save and
+  // can be run twice under StrictMode.
+  useEffect(() => { mutateFn(() => {}); }, []);
   const quests = ENGINE.dailyQuests(state);
   const done = quests.filter(q => state.questsDone.includes(q.id)).length;
 
@@ -19,23 +23,33 @@ export default function MissionsScreen() {
     <Screen>
       <ScreenHeader icon="list-circle" title="Missions" subtitle="Daily, weekly, story arcs & challenges" accent="#b18cff" />
 
-      <Card>
-        <View style={s.rowBetween}><Text style={s.cardTitle}><Icon name="list-circle" size={16} color={colors.xpa} family="mci" /> Daily Quests</Text><Pill color={colors.xpa}>{done}/{quests.length}</Pill></View>
+      <SystemWindow label="Daily Quests" accent={colors.sys} glow>
+        <View style={s.rowBetween}>
+          <Text style={s.cardTitle}>Today's Slate</Text>
+          <Pill color={colors.sys}>{done}/{quests.length}</Pill>
+        </View>
+        <View style={{ height: 10 }} />
+        <SystemBar pct={quests.length ? (done / quests.length) * 100 : 0} color={colors.sys} />
+        <Text style={s.hint}>Resets at midnight. A fresh slate is drawn every day.</Text>
         {quests.map(q => {
           const isDone = state.questsDone.includes(q.id);
           return (
-            <View key={q.id} style={[s.rowItem, isDone && { opacity: 0.5 }]}>
+            <View key={q.id} style={[s.rowItem, isDone && { opacity: 0.45 }]}>
               <View style={s.icon}><Text style={{ fontSize: 20 }}>{q.icon}</Text></View>
               <View style={{ flex: 1 }}>
-                <Text style={s.name}>{q.title}</Text>
-                <Text style={s.desc}>{q.desc} · +{q.xp} XP · +{q.gold}🪙</Text>
+                <View style={s.nameRow}>
+                  <Text style={s.name}>{q.title}</Text>
+                  <TierBadge tier={q.tier} />
+                </View>
+                <Text style={s.desc}>{q.desc}</Text>
+                <Text style={s.reward}>+{q.xp} XP  ·  +{q.gold} gold</Text>
               </View>
-              {isDone ? <Text style={{ color: colors.xpa, fontWeight: '900' }}>✓</Text> :
+              {isDone ? <Text style={{ color: colors.xpa, fontWeight: '900', fontSize: 16 }}>✓</Text> :
                 <Btn small title="Complete" onPress={() => useGame.getState().mutate(s => ENGINE.completeQuest(s, q.id))} />}
             </View>
           );
         })}
-      </Card>
+      </SystemWindow>
 
       <Card border={colors.gold}>
         <View style={s.rowBetween}><Text style={s.cardTitle}><Icon name="calendar" size={16} color={colors.gold} /> Weekly Quests</Text></View>
@@ -143,6 +157,9 @@ const s = StyleSheet.create({
   rowItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.line },
   icon: { width: 42, height: 42, borderRadius: 12, backgroundColor: colors.card2, alignItems: 'center', justifyContent: 'center' },
   name: { color: colors.ink, fontWeight: '800', fontSize: 14 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  reward: { color: colors.gold, fontSize: 11, fontWeight: '700', marginTop: 3, letterSpacing: 0.4 },
+  hint: { color: colors.mut2, fontSize: 11, marginTop: 6, marginBottom: 2 },
   desc: { color: colors.mut, fontSize: 11.5 },
   tierRow: { flexDirection: 'row', gap: 4 },
   tag: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, borderWidth: 1, borderColor: colors.line, color: colors.mut, fontSize: 10 },

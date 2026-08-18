@@ -107,8 +107,12 @@ describe('FORGE engine', () => {
     expect(s.energy).toBeLessThan(100);
   });
   test('stacking awards bonus when chain completes', () => {
+    // Drive this through the real logging path. The old version hand-wrote
+    // activity ids into statsTrainedToday, a state the engine never produces
+    // (it stores STAT ids there), so the test passed while the feature was
+    // completely unreachable in the app.
     const s = defaultState('Hero', 'warrior');
-    ['steps', 'water', 'meditation'].forEach(a => s.statsTrainedToday[a] = 1);
+    s.activitiesToday = { steps: 1, water: 1, meditation: 1 };
     const res = recordStackActivity(s, 'steps');
     expect(res.length).toBe(1); // Morning Rising completed -> 1 reward
     expect(res[0].xp).toBeGreaterThan(0);

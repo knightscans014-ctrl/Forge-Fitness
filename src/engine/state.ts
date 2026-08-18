@@ -162,6 +162,8 @@ export function defaultState(name: string, clsId: string): GameState {
     seasonXP: 0,
     history: [],
     stackProgress: {},
+    activitiesToday: {},
+    stackClaimed: {},
     bouts: [],
     boutStreak: 0,
   };
@@ -307,6 +309,8 @@ export function normalize(s: GameState): GameState {
   if (!Array.isArray(s.history)) s.history = [];
   if (s.history.length > MAX_HISTORY) s.history = s.history.slice(-MAX_HISTORY);
   if (!s.stackProgress || typeof s.stackProgress !== 'object') s.stackProgress = {};
+  if (!s.activitiesToday || typeof s.activitiesToday !== 'object') s.activitiesToday = {};
+  if (!s.stackClaimed || typeof s.stackClaimed !== 'object') s.stackClaimed = {};
   if (!Array.isArray(s.bouts)) s.bouts = [];
   if (s.boutStreak === undefined) s.boutStreak = 0;
   if (!s.suggestion || typeof s.suggestion !== 'object') s.suggestion = null;

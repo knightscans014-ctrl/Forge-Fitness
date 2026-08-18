@@ -1,7 +1,7 @@
 import {
   ENGINE, defaultState, dailyQuests, dayReset, dayKey, DAILY_SLATE_SIZE,
   DAILY_POOL, WEEKLY_QUESTS, STORY_MISSIONS, DAILY_CHALLENGES, MILESTONE_MISSIONS,
-  TIERED_MISSIONS, tieredVal, milestoneStats, bossUnlocked,
+  TIERED_MISSIONS, tieredVal, milestoneStats, bossUnlocked, checkTiered,
 } from '../index';
 
 describe('daily quest pool', () => {
@@ -134,6 +134,66 @@ describe('day rollover', () => {
     // Yesterday's three should not count toward today's unlock.
     s.dayDone = '2000-1-1';
     expect(bossUnlocked(s, { id: 'b1' } as any)).toBe(false);
+  });
+});
+
+describe('daily counters reset', () => {
+  // Regression: dayReset cleared workoutsToday but not waterToday/stepsToday/
+  // sleepHours/stepsTodayAbs, so they accumulated forever. The Log screen read
+  // "Water 10/2L" after five days and challenges c2/c3/c9/c13/c19/c21/c22
+  // auto-completed off stale carry-over.
+  test('per-day counters do not carry into the next day', () => {
+    const s = defaultState('Hero', 'warrior');
+    s.energy = 99999;
+    ENGINE.quickWater(s);
+    ENGINE.quickWater(s);
+    ENGINE.quickSteps(s);
+    ENGINE.quickSleep(s);
+    expect(s.waterToday).toBe(2);
+    expect(s.stepsToday).toBeGreaterThan(0);
+    expect(s.sleepHours).toBe(8);
+
+    s.lastDay = '2000-1-1';
+    dayReset(s);
+
+    expect(s.waterToday).toBe(0);
+    expect(s.stepsToday).toBe(0);
+    expect(s.stepsTodayAbs).toBe(0);
+    expect(s.sleepHours).toBe(0);
+  });
+
+  test('lifetime totals survive the daily reset', () => {
+    const s = defaultState('Hero', 'warrior');
+    s.energy = 99999;
+    ENGINE.quickWater(s);
+    const water = s.totalWater;
+    expect(water).toBeGreaterThan(0);
+
+    s.lastDay = '2000-1-1';
+    dayReset(s);
+
+    expect(s.totalWater).toBe(water);
+  });
+
+  // Regression: s.tiered was never cleared, so each of the 7 tiered missions
+  // paid its 3 tiers once per save and was dead content forever after.
+  test('tiered missions pay out again the next day', () => {
+    const s = defaultState('Hero', 'warrior');
+    s.energy = 99999;
+    ENGINE.quickWater(s);
+    ENGINE.quickWater(s);
+    const first = checkTiered(s).map(r => r.name);
+    expect(first).toContain('Hydration Easy');
+    // Already claimed today.
+    expect(checkTiered(s)).toHaveLength(0);
+
+    s.lastDay = '2000-1-1';
+    dayReset(s);
+    s.energy = 99999;
+    ENGINE.quickWater(s);
+    ENGINE.quickWater(s);
+
+    expect(checkTiered(s).map(r => r.name)).toContain('Hydration Easy');
   });
 });
 

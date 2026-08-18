@@ -103,7 +103,12 @@ export const ENGINE = {
     return true;
   },
 
-  logActivity(s: GameState, actId: string, dur: number, intensity: number): { ok: boolean; xp: number; gold: number } {
+  logActivity(s: GameState, actId: string, dur: number, intensity: number): {
+    ok: boolean; xp: number; gold: number;
+    // Completed habit stacks, so the caller can actually tell the player. The
+    // reward used to be computed and thrown away.
+    stacks?: { id: string; name: string; xp: number; gold: number }[];
+  } {
     const a = ACTIVITIES.find(x => x.id === actId);
     if (!a) return { ok: false, xp: 0, gold: 0 };
     // Validate before anything touches the save. A NaN or negative duration
@@ -127,6 +132,7 @@ export const ENGINE = {
     s.totalWorkoutMin += dur;
     s.workoutsToday++;
     s.statsTrainedToday[a.stat] = 1;
+    s.activitiesToday[a.id] = 1;
     if (a.id === 'steps') s.stepsToday += Math.round(dur * 110);
     if (a.stat === 'str') s.strengthMinToday += dur;
     if (a.stat === 'vig') s.cardioMinToday += dur;
@@ -139,11 +145,11 @@ export const ENGINE = {
     s.bossDamage += xp;
     bumpStreak(s);
     runAllChecks(s);
-    recordStackActivity(s, actId);
+    const stacks = recordStackActivity(s, actId);
     checkAchievements(s);
     addSeasonXP(s, xp);
     if (Math.random() < a.drop) dropLoot(s, false);
-    return { ok: true, xp, gold };
+    return { ok: true, xp, gold, stacks };
   },
 
   /**
@@ -177,8 +183,12 @@ export const ENGINE = {
     s.stats.vit += 0.2;
     s.statGrowth.vit += 0.05;
     s.statsTrainedToday.vit = 1;
+    // Hydration is a stack link ('water') but is not a loggable ACTIVITY, so
+    // without this the Morning Rising and Gain Day chains could never close.
+    s.activitiesToday.water = 1;
     trackWeekly(s, 'waterWeekly', 1);
     const g = addGold(s, 8);
+    recordStackActivity(s, 'water');
     checkDailyChallenge(s);
     return g;
   },
@@ -187,8 +197,10 @@ export const ENGINE = {
     s.stats.vit += 0.5;
     s.statGrowth.vit += 0.1;
     s.statsTrainedToday.vit = 1;
+    s.activitiesToday.recovery = 1;
     addXP(s, 40);
     const g = addGold(s, 15);
+    recordStackActivity(s, 'recovery');
     s.bossDamage += 40;
     return g;
   },
@@ -198,9 +210,11 @@ export const ENGINE = {
     s.stats.vig += 0.3;
     s.statGrowth.vig += 0.08;
     s.statsTrainedToday.vig = 1;
+    s.activitiesToday.steps = 1;
     trackWeekly(s, 'stepsWeekly', 2000);
     addXP(s, 30);
     const g = addGold(s, 10);
+    recordStackActivity(s, 'steps');
     checkDailyChallenge(s);
     return g;
   },

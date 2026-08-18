@@ -94,6 +94,23 @@ export function dayReset(s: GameState): void {
     s.cardioMinToday = 0;
     s.meditationMinToday = 0;
     s.statsTrainedToday = {};
+    s.activitiesToday = {};
+    s.stackClaimed = {};
+    s.stackProgress = {};
+    // These are per-day counters and were never being cleared, so they grew
+    // without bound: a player drinking 2L a day read "Water 10/2L" by day five
+    // and daily challenges c2/c3/c9/c13/c19/c21/c22 silently auto-completed
+    // from carry-over. The lifetime totals (totalWater, stepsTodayAbs) are
+    // deliberately NOT reset here.
+    s.waterToday = 0;
+    s.stepsToday = 0;
+    s.stepsTodayAbs = 0;
+    s.sleepHours = 0;
+    // Tiered missions are measured against today-counters (cardioMinToday,
+    // waterToday, workoutsToday...), so they are daily content. Without this
+    // reset each of the 7 missions paid out its 3 tiers exactly once in the
+    // lifetime of a save and was dead thereafter.
+    s.tiered = {};
     s.dailyChallengeDone = false;
     if (s.weekKey !== weekKey()) resetWeekly(s);
     if (s.combo.date !== dayKey()) s.combo = { n: 0, date: dayKey() };

@@ -12,28 +12,37 @@ export const STACKS: StackDef[] = [
 ];
 
 // Call after logging any activity. Returns any stacking rewards awarded.
+//
+// This reads `activitiesToday` (activity ids: `steps`, `water`, `meditation`)
+// and NOT `statsTrainedToday`, which keys on stat ids (`vig`, `foc`, `vit`).
+// Chains are written in activity ids, so matching them against stat ids meant
+// no chain could ever complete: a player could do cardio + mobility + recovery
+// -- exactly the Heart Builder chain -- and the screen still read 0/3 with no
+// reward. The whole feature was unreachable.
 export function recordStackActivity(s: GameState, actId: string): { id: string; name: string; xp: number; gold: number }[] {
   const awarded: { id: string; name: string; xp: number; gold: number }[] = [];
+  const today = s.activitiesToday || {};
   STACKS.forEach(stk => {
     if (!stk.chain.includes(actId)) return;
-    // mark this step as done today
-    s.stackProgress[stk.id] = (s.stackProgress[stk.id] || 0) + 1;
-    // count unique chain activities done today
-    const doneSet = new Set(stk.chain.filter(id => s.statsTrainedToday[id] || id === actId || stk.chain.indexOf(id) >= 0 && id !== actId && s.statsTrainedToday[id]));
-    // simpler: compute distinct chain items done
-    const distinctDone = stk.chain.filter(id => s.statsTrainedToday[id] || id === actId).length;
-    const complete = distinctDone >= stk.chain.length;
-    if (complete && !s.statsTrainedToday['stack_' + stk.id]) {
-      s.statsTrainedToday['stack_' + stk.id] = 1;
-      const xp = addXP(s, 100).xp;
-      const gold = addGold(s, 40);
-      awarded.push({ id: stk.id, name: stk.name, xp, gold });
-    }
+    const distinctDone = stk.chain.filter(id => today[id]).length;
+    // stackProgress mirrors the distinct count so the UI and the completion
+    // test can never disagree; it used to increment once per logged activity,
+    // so repeating one activity three times "progressed" a three-step chain.
+    s.stackProgress[stk.id] = distinctDone;
+    if (distinctDone < stk.chain.length) return;
+    const claimed = 'stack_' + stk.id;
+    if (s.stackClaimed?.[claimed]) return;
+    if (!s.stackClaimed) s.stackClaimed = {};
+    s.stackClaimed[claimed] = 1;
+    const xp = addXP(s, 100).xp;
+    const gold = addGold(s, 40);
+    awarded.push({ id: stk.id, name: stk.name, xp, gold });
   });
   return awarded;
 }
 
 export function stackProgress(s: GameState, stk: StackDef): { done: number; total: number } {
-  const done = stk.chain.filter(id => s.statsTrainedToday[id]).length;
+  const today = s.activitiesToday || {};
+  const done = stk.chain.filter(id => today[id]).length;
   return { done, total: stk.chain.length };
 }

@@ -109,6 +109,13 @@ export interface GameState {
   seasonXP: number;
   history: DailyRecord[]; // capped rolling history for analytics
   stackProgress: Record<string, number>; // stackId -> steps completed today
+  // Activity ids performed today (`steps`, `water`, `meditation`, ...).
+  // Distinct from statsTrainedToday, which keys on STAT ids (`vig`, `foc`).
+  // Habit stacks chain activities, so they need this one.
+  activitiesToday: Record<string, number>;
+  // Stacks already paid out today. Kept apart from activitiesToday so a
+  // completed stack cannot be re-claimed by logging a chain activity again.
+  stackClaimed: Record<string, number>;
   bouts: { opponent: string; wins: number }[];
   boutStreak: number;
 }

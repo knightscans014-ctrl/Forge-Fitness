@@ -197,13 +197,10 @@ export const ENGINE = {
     return true;
   },
 
+  // Tiers are free to switch between: they are a play-style choice, not a
+  // purchase. Kept as a mutator so the Shop UI has something to call.
   activateTier(s: GameState, id: string): void {
-    s.premium = true;
     s.tier = id;
-  },
-  unlockCreator(s: GameState): void {
-    s.creatorCode = true;
-    s.tier = 't1';
   },
 
   // ---- v5 max systems ----

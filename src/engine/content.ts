@@ -1,4 +1,4 @@
-// Static content: classes, quest pools, missions, boosters, subscription tiers.
+// Static content: classes, quest pools, missions, boosters, difficulty paths.
 
 import { ClassDef, BoosterDef, GameState } from './types';
 
@@ -163,9 +163,11 @@ export const DAILY_REWARDS = [
   { gold: 150, xp: 100 },
 ];
 
-export interface Tier { id: string; name: string; per: string; price: string; tag: string; value: number; perks: string[]; }
+export interface Tier { id: string; name: string; tag: string; value: number; perks: string[]; }
+// Difficulty paths, not products. Every one is free and switchable at any time
+// from the Shop; they only change your XP and gold rates.
 export const PREMIUM_TIERS: Tier[] = [
-  { id: 't1', name: 'Ranger', per: '/year', price: '₹99', tag: '', value: 1, perks: ['+10% XP boost', '+15% gold boost', 'Extra daily quest slot', 'Ad-free experience'] },
-  { id: 't2', name: 'Elite', per: '/year', price: '₹199', tag: 'MOST POPULAR', value: 2, perks: ['Everything in Ranger', '+25% XP boost', 'Weekly loot crate', 'Unlock all stat presets', 'Priority support'] },
-  { id: 't3', name: 'Monarch', per: '/year', price: '₹299', tag: 'BEST VALUE', value: 3, perks: ['Everything in Elite', '+40% XP boost', 'Exclusive Monarch avatar + aura', 'Early boss raids', 'Advanced progress analytics', 'Founder badge'] },
+  { id: 't1', name: 'Ranger', tag: '', value: 1, perks: ['+10% XP', '+15% gold', 'Steady pace'] },
+  { id: 't2', name: 'Elite', tag: 'BALANCED', value: 2, perks: ['+25% XP', '+25% gold', 'Faster progression'] },
+  { id: 't3', name: 'Monarch', tag: 'FASTEST', value: 3, perks: ['+40% XP', '+30% gold', 'Maximum momentum'] },
 ];

@@ -1,33 +1,16 @@
 # FORGE
 
 A fitness RPG for Android. Log a workout, earn XP, level your stats, climb the
-ranks, and fight weekly bosses with a guild.
+ranks, and fight bosses.
 
 Built with Expo / React Native. The game engine is pure TypeScript with no React
-dependency, so the rules are testable in isolation. The backend is Supabase, and
-the security model assumes the client is hostile.
+dependency, so the rules are testable in isolation.
 
-**License: AGPL-3.0.** See [Licensing](#licensing) before you fork.
+**FORGE runs entirely on your device.** No account, no server, no network calls,
+no analytics, no ads, no in-app purchases. Your save file never leaves your
+phone. Every feature is unlocked for everyone.
 
----
-
-## Running it costs nothing
-
-Every service this project uses has a free tier that a solo developer will not
-outgrow quickly. There are no paid SDKs and no billing-enabled dependencies.
-
-| Need | Service | Free tier |
-|---|---|---|
-| Auth + Postgres | Supabase | 500 MB database, 50k monthly active users |
-| Transactional email | Brevo SMTP | 300/day |
-| Landing page, privacy policy, `latest.json` | Firebase Hosting or Cloudflare Pages | free, HTTPS included |
-| APK distribution | GitHub Releases | free, unmetered |
-| Payments | UPI direct to your handle | no processor fee |
-
-Deliberately **not** used: RevenueCat, Stripe, Sentry, Firebase Analytics,
-OneSignal, or any object storage. Avatars are URLs, not uploads, so there is no
-storage bill and no bucket to secure. Supabase's own free tier pauses rather
-than charging you, so there is no path to a surprise invoice.
+Licensed under [AGPL-3.0](#license).
 
 ---
 
@@ -37,32 +20,17 @@ than charging you, so there is no path to a surprise invoice.
 git clone https://github.com/knightscans014-ctrl/Forge-Fitness
 cd Forge-Fitness
 npm install
-cp .env.example .env      # then fill it in
 ```
 
-### 1. Supabase
-
-Create a project, then in the SQL Editor run, in order:
-
-1. `supabase/schema.sql` — tables, RLS, and the security-definer functions
-2. `supabase/migrations/0001_security_hardening.sql` — idempotent, safe to re-run
-
-Before running the schema, uncomment the seed block near the `admins` table and
-put your own email in it. Then set the same address as `EXPO_PUBLIC_OWNER_EMAILS`.
-
-**Authentication → URL Configuration:** add `forge://auth/callback` to Redirect URLs.
-
-Email confirmation needs real SMTP — Supabase's built-in sender allows only two
-messages per hour. See [`docs/EMAIL-SETUP.md`](docs/EMAIL-SETUP.md).
-
-### 2. Run
+There is nothing to configure — no `.env`, no API keys, no backend project to
+create. Clone and run.
 
 ```bash
-npm run web      # fastest loop; no UPI deep links, no Play Integrity
-npm start        # Expo Go on a device
+npm run web      # fastest dev loop, runs in a browser
+npm start        # Expo Go on a physical device
 ```
 
-### 3. Checks
+### Checks
 
 ```bash
 npx tsc --noEmit
@@ -71,74 +39,63 @@ npx jest
 
 ---
 
-## Security model
+## How it works
 
-The client is assumed to be compromised. Anything shipped in the APK — including
-the Supabase anon key and the admin panel code — is treated as public.
+Your entire game state is one JSON object persisted to `AsyncStorage` through
+`src/services/storage.ts`. That is the whole persistence layer.
 
-- **Row-level security on all 11 tables.** The `admins` table has RLS enabled with
-  *zero* policies, so it is unreadable and unwritable through the REST API by
-  anyone. Only `SECURITY DEFINER` functions can see it.
-- **Entitlements are server-granted.** Editing local storage to set
-  `premium: true` does nothing; `state.ts` lets a server verdict override any
-  local value.
-- **Leaderboard scores are validated** against your stored `save_state.xp` by a
-  trigger. A claimed score of 999999999 is written as your real XP.
-- **Payment approval is atomic and admin-only**, and double-approval raises.
-- **The hidden admin panel is obfuscation, not security.** Extracting the code
-  reveals the UI; every button behind it still fails server-side unless
-  `is_admin()` passes.
+All game rules live in `src/engine/` as plain functions over that state object.
+The engine imports nothing from React or React Native, which is why it can be
+unit-tested directly — see `src/engine/__tests__/`.
 
-Verified against a live project using only the public anon key — self-inserting
-into `admins`, reading others' payments, `grant_premium`, `approve_payment`,
-`reject_payment`, `admin_list_payments`, `revoke_premium`, and writing another
-user's save all fail with `permission denied` or `not authorized`.
+Every mutation goes through `mutate()` in `src/context/GameContext.ts`, which
+runs the change, re-checks achievements and daily resets, fires any
+level-up/rank-up celebration, and writes to disk. Adding a feature usually means
+adding a function in `src/engine/` and calling it inside `mutate()`.
 
-Reproduce it yourself: `supabase/tests/` contains a Postgres harness and a
-seven-step attack script.
+### Difficulty paths
 
-### Known limitations
+`PREMIUM_TIERS` in `src/engine/content.ts` — Ranger, Elite, Monarch — is a
+leftover name from when this was a paid app. They are now free difficulty paths
+that only change XP and gold rates, switchable anytime from the Shop. The
+constant keeps its old name because it is threaded through the engine and
+renaming it is a wide, mechanical change nobody has needed yet.
 
-- `save_state.xp` is still written by the client. The trigger stops leaderboard
-  inflation, but a determined user can still inflate their own save. Real fix is
-  server-side workout validation.
-- Play Integrity requires deploying `supabase/functions/verify-integrity` and
-  setting `GOOGLE_PLAY_INTEGRITY_SERVICE_ACCOUNT`. Until then the app treats
-  integrity as unknown and does not block.
-- No APK has been built yet, so ProGuard rules are unverified in practice.
+### No anti-cheat
+
+There is deliberately none. The save file is plain JSON on your own device and
+you are welcome to edit it. There is no leaderboard to protect and no purchase
+to defend, so integrity checks would only punish honest users on rooted phones.
+The leaderboard screen shows fixed local benchmarks, not other players.
 
 ---
 
 ## Layout
 
 ```
-src/engine/      pure TypeScript game rules, no React — unit tested
-src/services/    supabase client, auth, payments, sync, integrity
+src/engine/      game rules, pure TypeScript, no React — unit tested
+src/services/    AsyncStorage persistence
 src/screens/     UI
-src/context/     auth, game, and security providers
-supabase/        schema, migration, edge function, attack tests
-site/            landing page, privacy policy, version manifest
-docs/            email setup
+src/context/     the Zustand game store
+src/components/  shared UI primitives
+src/theme/       colors and icons
 ```
 
 ---
 
-## Licensing
+## Contributing
 
-FORGE is licensed under the **GNU Affero General Public License v3.0**.
+Issues and pull requests are welcome. Keep `npx tsc --noEmit` and `npx jest`
+green, and prefer putting logic in `src/engine/` with a test over putting it in
+a screen.
 
-In plain terms:
+---
 
-- Use it, study it, modify it, self-host it — yes, freely.
-- Distribute a modified version, or **run one as a network service**, and you must
-  publish your source under the same license.
+## License
 
-The network clause is the point. A plain GPL app can be reskinned and shipped as
-a closed-source competitor; AGPL closes that. You keep the freedom to build on
-this, and nobody gets to take it private.
+GNU Affero General Public License v3.0. Use it, modify it, self-host it. If you
+distribute a modified version or run one as a network service, you must publish
+your source under the same license.
 
-If you self-host, you must change: the seeded admin email, `EXPO_PUBLIC_ADMIN_CODE`,
-and `EXPO_PUBLIC_FAMPAY_UPI_ID` — otherwise payments go to the upstream author.
-
-The name "FORGE" and the project's artwork are not covered by the AGPL. Fork the
-code, but ship it under your own name.
+The name "FORGE" and the artwork in `assets/` are not covered by the AGPL — fork
+the code, but ship it under your own name.

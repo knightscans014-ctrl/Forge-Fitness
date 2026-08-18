@@ -32,9 +32,7 @@ export function defaultState(name: string, clsId: string): GameState {
     name,
     cls: cls.id,
     created: Date.now(),
-    premium: false,
-    tier: null,
-    creatorCode: false,
+    tier: 't1',
     level: 1,
     totalXP: 0,
     gold: 80,
@@ -123,6 +121,10 @@ export function normalize(s: GameState): GameState {
   if (!s.story) s.story = { sm1: [], sm2: [], sm3: [] };
   if (!s.milestones) s.milestones = { workouts: 0, streak: 0, level: 1, bossCount: 0, claimed: [] };
   if (!s.tiered) s.tiered = {};
+  // Saves written before the paywall was removed may carry no tier, or a tier
+  // that was locked behind a purchase. Everything is free now, so just ensure
+  // a valid one is set.
+  if (!s.tier || !PREMIUM_TIERS.some(t => t.id === s.tier)) s.tier = 't1';
   if (!s.boosters) s.boosters = [];
   if (!s.combo) s.combo = { n: 0, date: dayKey() };
   if (!s.statsTrainedToday) s.statsTrainedToday = {};
@@ -141,59 +143,19 @@ export function normalize(s: GameState): GameState {
   return s;
 }
 
-// ---- Server-authority entitlement -------------------------------------------
-// The save file is attacker-controlled: anyone can flip `premium: true` in
-// AsyncStorage and get the boosts. So when the backend is reachable, the engine
-// trusts ONLY the entitlement the server reported (via my_premium()).
-//
-//   setServerEntitlement({...})  -> authoritative, overrides local state
-//   setServerEntitlement(null)   -> signed out: no premium
-//   never called (offline/dev)   -> fall back to local state
-//
-// SecurityContext pushes the value in after every refresh.
-
-export interface ServerEntitlement {
-  isPremium: boolean;
-  tier: string | null;
-}
-
-let serverEntitlement: ServerEntitlement | null = null;
-let serverAuthority = false;
-
-/** Called by the app once the server verdict is known. */
-export function setServerEntitlement(e: ServerEntitlement | null): void {
-  serverEntitlement = e;
-  serverAuthority = true;
-}
-
-/** Drop back to local state (e.g. backend not configured). */
-export function clearServerAuthority(): void {
-  serverEntitlement = null;
-  serverAuthority = false;
-}
-
-export function hasServerAuthority(): boolean {
-  return serverAuthority;
-}
-
-// ---- Multipliers / premium ----
-export function isPremium(s: GameState): boolean {
-  if (serverAuthority) return !!serverEntitlement?.isPremium;
-  return !!s.premium || !!s.creatorCode;
+// ---- Multipliers / difficulty path ----
+// This build has no paywall: every feature is unlocked for everyone.
+// `isPremium` is kept because boosts and perks are expressed in terms of it,
+// and the tier system is now a purely cosmetic progression flavour.
+export function isPremium(_s: GameState): boolean {
+  return true;
 }
 export function tierValue(s: GameState): number {
-  if (serverAuthority) {
-    const ent = serverEntitlement;
-    if (!ent?.isPremium) return 0;
-    const t = PREMIUM_TIERS.find(x => x.id === ent.tier);
-    return t ? t.value : 1;
-  }
-  if (s.premium) {
-    const t = PREMIUM_TIERS.find(x => x.id === s.tier) || PREMIUM_TIERS[0];
-    return t ? t.value : 1;
-  }
-  return s.creatorCode ? 1 : 0;
+  // normalize() guarantees a valid tier, so the fallback is just belt-and-braces.
+  const t = PREMIUM_TIERS.find(x => x.id === s.tier);
+  return t ? t.value : PREMIUM_TIERS.length;
 }
+
 export function premiumXPBoost(s: GameState): number {
   return ({ 0: 0, 1: 0.1, 2: 0.25, 3: 0.4 } as Record<number, number>)[tierValue(s)] || 0;
 }

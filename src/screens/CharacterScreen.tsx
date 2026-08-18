@@ -5,7 +5,6 @@ import { Card, Screen, Pill, Bar, Btn, StatRow } from '../components/ui';
 import { ScreenHeader } from '../components/Header';
 import { Icon } from '../theme/icons';
 import { SkillTreeModal, InventoryModal } from '../components/modals';
-import { ProfileMenu } from '../components/ProfileMenu';
 import { colors } from '../theme/colors';
 import { ENGINE, STATS, RANKS, rankForLevel, nextRank, rankProgressPct, statLevels, gearById, equippedCount } from '../engine';
 
@@ -98,7 +97,6 @@ export default function CharacterScreen() {
 
       <SkillTreeModal visible={skillOpen} onClose={() => setSkillOpen(false)} />
       <InventoryModal visible={invOpen} onClose={() => setInvOpen(false)} />
-      <ProfileMenu visible={profileOpen} onClose={() => setProfileOpen(false)} />
     </Screen>
   );
 }

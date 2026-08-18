@@ -1,7 +1,6 @@
-# Secrets — never commit these
+# Secrets — the app needs none, but never commit these anyway
 .env
 .env.*
-!.env.example
 *.pem
 *.p8
 *.p12

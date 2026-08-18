@@ -3,7 +3,6 @@
     "name": "Forge",
     "slug": "forge",
     "version": "0.1.0",
-    "scheme": "forge",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -27,17 +26,7 @@
       "supportsTablet": false
     },
     "plugins": [
-      "expo-font",
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "enableProguardInReleaseBuilds": true,
-            "enableShrinkResourcesInReleaseBuilds": true,
-            "extraProguardRules": "-keep class com.forge.fitness.** { *; }\n-keepclassmembers class * { @com.facebook.proguard.annotations.DoNotStrip *; }\n-keep,allowobfuscation @interface com.facebook.proguard.annotations.DoNotStrip\n-dontwarn okhttp3.**\n-dontwarn okio.**"
-          }
-        }
-      ]
+      "expo-font"
     ],
     "jsEngine": "hermes"
   }

@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useGame } from '../context/GameContext';
-import { AdminGate } from '../components/AdminGate';
 import { Icon } from '../theme/icons';
 import { colors } from '../theme/colors';
 import { DAILY_REWARDS, rankForLevel, nextRank, rankProgressPct, xpForLevel, effectiveMaxHP, computePower, comboMult, boosterActive, boosterDef, dayChallenge, generateSuggestion } from '../engine';
@@ -35,12 +34,12 @@ export default function HomeScreen() {
       {/* ===== Status hero (compact, professional) ===== */}
       <View style={styles.hero}>
         <View style={styles.heroTop}>
-          <AdminGate style={styles.avatarWrap}>
+          <View style={styles.avatarWrap}>
             <Image source={require('../../assets/mc/av_warrior.png')} style={styles.avatar} />
             <View style={[styles.rankChip, { backgroundColor: rk.color }]}>
               <Text style={styles.rankChipText}>{rk.id}</Text>
             </View>
-          </AdminGate>
+          </View>
           <View style={styles.heroInfo}>
             <Text style={styles.greeting}>Welcome back,</Text>
             <Text style={styles.name}>{state.name}</Text>

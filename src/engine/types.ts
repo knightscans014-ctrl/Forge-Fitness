@@ -26,9 +26,8 @@ export interface GameState {
   /** Epoch ms of the last local mutation. Used to pick the newer copy when
    *  reconciling this device's save against the cloud save. */
   updatedAt?: number;
-  premium: boolean;
+  /** Chosen difficulty path (see PREMIUM_TIERS). Free to change anytime. */
   tier: string | null;
-  creatorCode: boolean;
 
   level: number;
   totalXP: number;

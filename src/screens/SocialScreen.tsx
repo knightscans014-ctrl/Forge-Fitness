@@ -1,17 +1,15 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { useGame } from '../context/GameContext';
-import { useAuth } from '../context/AuthContext';
-import { Card, Pill, StatRow } from '../components/ui';
+import { Card, Pill } from '../components/ui';
 import { DetailScreen } from '../components/DetailScreen';
 import { ScreenHeader } from '../components/Header';
 import { colors } from '../theme/colors';
-import { CLASSES, computePower, levelFromXP } from '../engine';
-import { fetchLeaderboard, LeaderboardEntry } from '../services/sync';
+import { CLASSES, computePower } from '../engine';
 
-// Shown only when the player is offline / signed out, so the board is never
-// blank. Real rows come from the server.
-const DEMO_RIVALS = [
+// FORGE is fully offline, so there is no live leaderboard. These are local
+// pace-setters to measure yourself against.
+const RIVALS = [
   { name: 'Atlas', icon: '🦾', lvl: 9, xp: 1840 },
   { name: 'Nyx', icon: '🌙', lvl: 7, xp: 1320 },
   { name: 'Rook', icon: '🐺', lvl: 6, xp: 1110 },
@@ -23,33 +21,10 @@ interface Row { name: string; icon: string; lvl: number; xp: number; isMe: boole
 
 export default function SocialScreen() {
   const state = useGame(s => s.state)!;
-  const signedIn = useAuth(s => s.auth.status === 'signedIn');
   const cls = CLASSES.find(c => c.id === state.cls)!;
   const me = { name: state.name, icon: cls.icon, lvl: state.level, xp: state.totalXP, isMe: true };
 
-  const [live, setLive] = useState<LeaderboardEntry[] | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const load = useCallback(async () => {
-    if (!signedIn) { setLive(null); return; }
-    setLoading(true);
-    const data = await fetchLeaderboard(50);
-    setLive(data.length ? data : null);
-    setLoading(false);
-  }, [signedIn]);
-
-  useEffect(() => { load(); }, [load]);
-
-  // Real board when the server gave us rows; otherwise the demo list.
-  const rows: Row[] = live
-    ? live.map(e => ({
-        name: e.name,
-        icon: e.isMe ? cls.icon : '🗡️',
-        lvl: levelFromXP(e.xp),
-        xp: e.xp,
-        isMe: e.isMe,
-      }))
-    : [...DEMO_RIVALS.map(r => ({ ...r, isMe: false })), me].sort((a, b) => b.xp - a.xp);
+  const rows: Row[] = [...RIVALS.map(r => ({ ...r, isMe: false })), me].sort((a, b) => b.xp - a.xp);
 
   const myIdx = rows.findIndex(r => r.isMe);
   const myRank = myIdx >= 0 ? myIdx + 1 : rows.length + 1;
@@ -63,26 +38,20 @@ export default function SocialScreen() {
           <Text style={s.cardTitle}>Season 1</Text>
           <Pill>⚔️ {computePower(state)} power</Pill>
         </View>
-        {loading && !live ? (
-          <ActivityIndicator color={colors.gold} style={{ marginVertical: 16 }} />
-        ) : (
-          rows.map((r, i) => (
-            <View key={`${r.name}-${i}`} style={[s.row, r.isMe && s.meRow]}>
-              <Text style={[s.rank, i === 0 && { color: colors.gold }, i === 1 && { color: '#cfd6ff' }, i === 2 && { color: colors.accent2 }]}>{i + 1}</Text>
-              <View style={s.av}><Text style={{ fontSize: 17 }}>{r.icon}</Text></View>
-              <View style={{ flex: 1 }}>
-                <Text style={s.name}>{r.name}{r.isMe ? ' (you)' : ''}</Text>
-                <Text style={s.desc}>Lv {r.lvl}</Text>
-              </View>
-              <Text style={s.xp}>{r.xp} XP</Text>
+        {rows.map((r, i) => (
+          <View key={`${r.name}-${i}`} style={[s.row, r.isMe && s.meRow]}>
+            <Text style={[s.rank, i === 0 && { color: colors.gold }, i === 1 && { color: '#cfd6ff' }, i === 2 && { color: colors.accent2 }]}>{i + 1}</Text>
+            <View style={s.av}><Text style={{ fontSize: 17 }}>{r.icon}</Text></View>
+            <View style={{ flex: 1 }}>
+              <Text style={s.name}>{r.name}{r.isMe ? ' (you)' : ''}</Text>
+              <Text style={s.desc}>Lv {r.lvl}</Text>
             </View>
-          ))
-        )}
-        {!live && (
-          <Text style={[s.desc, { textAlign: 'center', marginTop: 10 }]}>
-            {signedIn ? 'Showing sample rivals — log a workout to join the live board.' : 'Sign in to see the live leaderboard.'}
-          </Text>
-        )}
+            <Text style={s.xp}>{r.xp} XP</Text>
+          </View>
+        ))}
+        <Text style={[s.desc, { textAlign: 'center', marginTop: 10 }]}>
+          Offline board — beat these benchmarks to climb.
+        </Text>
       </Card>
 
       <Card>
@@ -92,7 +61,7 @@ export default function SocialScreen() {
           <Text style={s.desc}>💬 Nyx: "Just beat Zero-Drop Titan! 🐉"</Text>
           <Text style={s.desc}>💬 Rook: "Leg day. Wish me luck, heroes."</Text>
         </View>
-        <Text style={[s.desc, { textAlign: 'center', marginTop: 8 }]}>Guild chat unlocks with Premium 👑</Text>
+        <Text style={[s.desc, { textAlign: 'center', marginTop: 8 }]}>Sample guild banter — chat is not implemented.</Text>
       </Card>
     </DetailScreen>
   );

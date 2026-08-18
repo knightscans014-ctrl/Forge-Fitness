@@ -18,17 +18,15 @@ import MissionsScreen from './src/screens/MissionsScreen';
 import BattleScreen from './src/screens/BattleScreen';
 import CharacterScreen from './src/screens/CharacterScreen';
 import LogScreen from './src/screens/LogScreen';
-import GuildScreen from './src/screens/GuildScreen';
-import SocialScreen from './src/screens/SocialScreen';
+import TrialsScreen from './src/screens/TrialsScreen';
 import ShopScreen from './src/screens/ShopScreen';
 import ProgressScreen from './src/screens/ProgressScreen';
 
 export type RootStackParamList = {
   Main: undefined;
   LogDetail: undefined;
-  GuildDetail: undefined;
+  TrialsDetail: undefined;
   ProgressDetail: undefined;
-  SocialDetail: undefined;
 };
 
 const Tab = createBottomTabNavigator();
@@ -75,9 +73,8 @@ function RootNavigator() {
     >
       <Stack.Screen name="Main" component={MainTabs} />
       <Stack.Screen name="LogDetail" component={LogScreen} />
-      <Stack.Screen name="GuildDetail" component={GuildScreen} />
+      <Stack.Screen name="TrialsDetail" component={TrialsScreen} />
       <Stack.Screen name="ProgressDetail" component={ProgressScreen} />
-      <Stack.Screen name="SocialDetail" component={SocialScreen} />
     </Stack.Navigator>
   );
 }

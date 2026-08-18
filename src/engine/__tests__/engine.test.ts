@@ -2,7 +2,7 @@ import {
   ENGINE, levelFromXP, rankForLevel, energyCost, addXP,
   defaultState, xpMultNow, goldMultNow, xpForLevel, computePower,
   startBossBattle, bossStrike, bossUnlocked, checkAchievements, buySkill, equipGear,
-  generateSuggestion, completeSuggestion, duel, nextRival, startRaid, raidStrike,
+  generateSuggestion, completeSuggestion, bout, nextOpponent, startTrial, trialStrike,
   recordStackActivity, dropLoot,
 } from '../index';
 
@@ -89,18 +89,18 @@ describe('FORGE engine', () => {
     expect(completeSuggestion(s)).toBe(true);
     expect(s.suggestionDone).toBe(true);
   });
-  test('pvp duel resolves with a winner', () => {
+  test('training bout resolves with a winner', () => {
     const s = defaultState('Hero', 'warrior');
-    const rival = nextRival(s);
-    const r = duel(s, rival);
+    const opponent = nextOpponent(s);
+    const r = bout(s, opponent);
     expect(r.win === true || r.win === false).toBe(true);
   });
-  test('raid deals damage and can be won', () => {
+  test('weekly trial deals damage and can be won', () => {
     const s = defaultState('Hero', 'warrior');
     s.energy = 100;
-    startRaid(s);
-    expect(s.guildRaid).not.toBeNull();
-    raidStrike(s);
+    startTrial(s);
+    expect(s.weeklyTrial).not.toBeNull();
+    trialStrike(s);
     expect(s.energy).toBeLessThan(100);
   });
   test('stacking awards bonus when chain completes', () => {
@@ -110,15 +110,15 @@ describe('FORGE engine', () => {
     expect(res.length).toBe(1); // Morning Rising completed -> 1 reward
     expect(res[0].xp).toBeGreaterThan(0);
   });
-  test('duel win increments record and awards XP', () => {
+  test('bout win increments record and awards XP', () => {
     const s = defaultState('Hero', 'warrior');
-    const rival = nextRival(s);
+    const opponent = nextOpponent(s);
     // force a win by giving huge power
     s.totalXP = 100000; s.level = 30;
-    const r = duel(s, rival);
+    const r = bout(s, opponent);
     expect(r.win).toBe(true);
-    expect(s.duelStreak).toBe(1);
-    expect(s.duels.length).toBe(1);
+    expect(s.boutStreak).toBe(1);
+    expect(s.bouts.length).toBe(1);
   });
   test('skill tree cannot exceed max rank', () => {
     const s = defaultState('Hero', 'warrior');

@@ -98,14 +98,13 @@ export interface GameState {
   bossesDefeated: number;
   suggestion: { id: string; icon: string; text: string; xp: number; gold: number; stat: string } | null;
   suggestionDone: boolean;
-  guild: { name: string; icon: string };
-  guildRaid: GuildRaidState | null;
+  weeklyTrial: WeeklyTrialState | null;
   season: SeasonInfo | null;
   seasonXP: number;
   history: DailyRecord[]; // capped rolling history for analytics
   stackProgress: Record<string, number>; // stackId -> steps completed today
-  duels: { rival: string; wins: number }[];
-  duelStreak: number;
+  bouts: { opponent: string; wins: number }[];
+  boutStreak: number;
 }
 
 export interface WeeklyProgress {
@@ -178,14 +177,13 @@ export interface SkillDef {
   de: string;
 }
 
-// ---- Guild / raid ----
-export interface GuildRaidState {
+// ---- Weekly Trial ----
+export interface WeeklyTrialState {
   startedAt: number;
   bossName: string;
   bossMaxHp: number;
   bossHp: number;
-  contributed: number;
-  players: { name: string; icon: string; dmg: number }[];
+  damageDealt: number;
   defeated: boolean;
 }
 

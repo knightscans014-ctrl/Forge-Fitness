@@ -26,9 +26,8 @@ export const TAB_ICONS: Record<string, { active: string; inactive: string; famil
   Battle: { active: 'sword', inactive: 'sword', family: 'mci' },
   Character: { active: 'shield-checkmark', inactive: 'shield-checkmark-outline' },
   Log: { active: 'flash', inactive: 'flash-outline' },
-  Guild: { active: 'account-group', inactive: 'account-group-outline' },
+  Trials: { active: 'sword', inactive: 'sword' , family: 'mci' },
   Progress: { active: 'chart-box', inactive: 'chart-box-outline' },
-  Social: { active: 'trophy', inactive: 'trophy-outline' },
   Shop: { active: 'store', inactive: 'store-outline' },
 };
 
@@ -67,8 +66,8 @@ export const ICONS: Record<string, { name: string; family?: 'ion' | 'mci' }> = {
   gear: { name: 'shield-half-full', family: 'mci' },
   streak: { name: 'flame' },
   rank: { name: 'trophy' },
-  duel: { name: 'sword' },
-  raid: { name: 'account-multiple', family: 'mci' },
+  bout: { name: 'sword' },
+  trial: { name: 'sword', family: 'mci' },
   season: { name: 'calendar-star', family: 'mci' },
   crown: { name: 'crown', family: 'mci' },
   lock: { name: 'lock-closed' },

@@ -39,7 +39,7 @@ export default function OnboardingScreen() {
               {[
                 { icon: 'sword', label: 'Real workouts, real XP — earn power by training' },
                 { icon: 'trophy', label: 'Climb from F-rank to Monarch of Iron' },
-                { icon: 'rocket', label: 'Aura moments, loot, duels & raids' },
+                { icon: 'rocket', label: 'Aura moments, loot, weekly trials & bouts' },
               ].map((f, i) => (
                 <View key={i} style={styles.featureRow}>
                   <View style={[styles.featureIcon, { backgroundColor: colors.gold + '1f' }]}>

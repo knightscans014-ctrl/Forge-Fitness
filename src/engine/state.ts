@@ -101,14 +101,13 @@ export function defaultState(name: string, clsId: string): GameState {
     bossesDefeated: 0,
     suggestion: null,
     suggestionDone: false,
-    guild: { name: 'Shadow Guild', icon: '🗡️' },
-    guildRaid: null,
+    weeklyTrial: null,
     season: null,
     seasonXP: 0,
     history: [],
     stackProgress: {},
-    duels: [],
-    duelStreak: 0,
+    bouts: [],
+    boutStreak: 0,
   };
 }
 
@@ -133,12 +132,30 @@ export function normalize(s: GameState): GameState {
   // v5 backfills
   if (!s.achievements) s.achievements = [];
   if (!s.bossBattle) s.bossBattle = null;
-  if (!s.guild) s.guild = { name: 'Shadow Guild', icon: '🗡️' };
-  if (!s.guildRaid) s.guildRaid = null;
+  // Saves from before the multiplayer framing was removed carry `guildRaid`
+  // and `duels`. Same mechanics, new names — carry the progress across.
+  const legacy = s as unknown as {
+    guildRaid?: { startedAt: number; bossName: string; bossMaxHp: number; bossHp: number; contributed?: number; defeated: boolean } | null;
+    duels?: { rival: string; wins: number }[];
+    duelStreak?: number;
+    guild?: unknown;
+  };
+  if (!s.weeklyTrial && legacy.guildRaid) {
+    const g = legacy.guildRaid;
+    s.weeklyTrial = {
+      startedAt: g.startedAt, bossName: g.bossName, bossMaxHp: g.bossMaxHp,
+      bossHp: g.bossHp, damageDealt: g.contributed || 0, defeated: g.defeated,
+    };
+  }
+  if (!s.bouts && legacy.duels) s.bouts = legacy.duels.map(d => ({ opponent: d.rival, wins: d.wins }));
+  if (s.boutStreak === undefined && legacy.duelStreak !== undefined) s.boutStreak = legacy.duelStreak;
+  delete legacy.guild; delete legacy.guildRaid; delete legacy.duels; delete legacy.duelStreak;
+  if (!s.weeklyTrial) s.weeklyTrial = null;
   if (!s.season) s.season = null;
   if (!s.history) s.history = [];
   if (!s.stackProgress) s.stackProgress = {};
-  if (!s.duels) s.duels = [];
+  if (!s.bouts) s.bouts = [];
+  if (s.boutStreak === undefined) s.boutStreak = 0;
   if (!s.suggestion) s.suggestion = null;
   return s;
 }

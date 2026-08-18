@@ -15,9 +15,9 @@ import { buySkill } from './skills';
 import { equipGear } from './inventory';
 import { generateSuggestion, completeSuggestion } from './suggestions';
 import { recordStackActivity } from './stacking';
-import { startRaid, raidStrike, raidStatus, raidRank } from './guilds';
+import { startTrial, trialStrike, trialStatus, trialProgress } from './trials';
 import { currentSeason, addSeasonXP, seasonTier } from './seasons';
-import { duel, nextRival } from './pvp';
+import { bout, nextOpponent } from './bouts';
 import { recordDay } from './analytics';
 import { computePower, rankForLevel } from './levels';
 import { CLASSES, ACTIVITIES, BOOSTERS, PREMIUM_TIERS, DAILY_REWARDS, DAILY_POOL } from './content';
@@ -35,9 +35,9 @@ export * from './skills';
 export * from './inventory';
 export * from './suggestions';
 export * from './stacking';
-export * from './guilds';
+export * from './trials';
 export * from './seasons';
-export * from './pvp';
+export * from './bouts';
 export * from './analytics';
 
 export const ENGINE = {
@@ -219,16 +219,16 @@ export const ENGINE = {
   completeSuggestion,
   // stacking
   recordStackActivity,
-  // guild raid
-  startRaid,
-  raidStrike,
-  raidStatus,
-  raidRank,
+  // weekly trial
+  startTrial,
+  trialStrike,
+  trialStatus,
+  trialProgress,
   // seasons
   currentSeason,
   addSeasonXP,
   seasonTier,
-  // pvp
-  duel,
-  nextRival,
+  // training bouts
+  bout,
+  nextOpponent,
 };

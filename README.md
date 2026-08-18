@@ -64,9 +64,16 @@ renaming it is a wide, mechanical change nobody has needed yet.
 ### No anti-cheat
 
 There is deliberately none. The save file is plain JSON on your own device and
-you are welcome to edit it. There is no leaderboard to protect and no purchase
+you are welcome to edit it. There is nobody to cheat against and no purchase
 to defend, so integrity checks would only punish honest users on rooted phones.
-The leaderboard screen shows fixed local benchmarks, not other players.
+
+### Single-player only
+
+FORGE has no multiplayer, and no part of it pretends otherwise. The Weekly
+Trial is a solo endurance boss with a large HP pool you chip away at across the
+week. Training Bouts are scripted sparring partners at fixed power levels —
+benchmarks for your own progress, not other people. There is no leaderboard,
+no guild, and no chat.
 
 ---
 

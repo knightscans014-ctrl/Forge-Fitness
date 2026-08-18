@@ -98,12 +98,12 @@ export default function HomeScreen() {
           <Text style={styles.gridLabel}>Character</Text>
           <Text style={styles.gridSub}>Status & gear</Text>
         </Pressable>
-        <Pressable style={styles.gridItem} onPress={() => navigation.navigate('GuildDetail')}>
+        <Pressable style={styles.gridItem} onPress={() => navigation.navigate('TrialsDetail')}>
           <View style={[styles.gridIcon, { backgroundColor: colors.en + '22' }]}>
-            <Icon name="account-group" size={24} color={colors.en} family="mci" />
+            <Icon name="sword" size={24} color={colors.en} family="mci" />
           </View>
-          <Text style={styles.gridLabel}>Guild</Text>
-          <Text style={styles.gridSub}>Raids & duels</Text>
+          <Text style={styles.gridLabel}>Trials</Text>
+          <Text style={styles.gridSub}>Weekly boss & bouts</Text>
         </Pressable>
         <Pressable style={styles.gridItem} onPress={() => navigation.navigate('ProgressDetail')}>
           <View style={[styles.gridIcon, { backgroundColor: colors.xpa + '22' }]}>
@@ -111,13 +111,6 @@ export default function HomeScreen() {
           </View>
           <Text style={styles.gridLabel}>Progress</Text>
           <Text style={styles.gridSub}>Analytics</Text>
-        </Pressable>
-        <Pressable style={styles.gridItem} onPress={() => navigation.navigate('SocialDetail')}>
-          <View style={[styles.gridIcon, { backgroundColor: colors.gold + '22' }]}>
-            <Icon name="trophy" size={24} color={colors.gold} />
-          </View>
-          <Text style={styles.gridLabel}>Leaderboard</Text>
-          <Text style={styles.gridSub}>Compete</Text>
         </Pressable>
       </View>
 

@@ -34,6 +34,7 @@ export * from './bosses';
 export * from './achievements';
 export * from './skills';
 export * from './inventory';
+export * from './loot';
 export * from './suggestions';
 export * from './stacking';
 export * from './trials';

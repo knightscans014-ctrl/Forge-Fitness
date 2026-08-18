@@ -55,18 +55,26 @@ export function statLevels(s: GameState) {
 export function effectiveMaxHP(s: GameState): number {
   let h = s.maxHP + s.stats.vit * 2;
   if (s.cls === 'paladin') h += 15;
+  const { totalAffixes } = require('./loot');
+  h += totalAffixes(s).hpBonus || 0;
   return h;
 }
 import { gearPower as inventoryGearPower } from './inventory';
 export function computePower(s: GameState): number {
+  const { totalAffixes } = require('./loot');
+  const t = totalAffixes(s);
   return Math.round(
-    s.totalXP / 10 + s.stats.str * 3 + s.stats.vig * 3 + s.stats.vit * 2 + s.stats.foc * 2 + inventoryGearPower(s)
+    s.totalXP / 10 + s.stats.str * 3 + s.stats.vig * 3 + s.stats.vit * 2 + s.stats.foc * 2
+    + inventoryGearPower(s) + (t.power || 0)
+    + (t.statStr || 0) * 3 + (t.statVig || 0) * 3 + (t.statVit || 0) * 2 + (t.statFoc || 0) * 2
   );
 }
 export function critChance(s: GameState): number {
   let c = 0.05 + (s.cls === 'assassin' ? 0.12 : 0);
   c += (s.skills.s_crit || 0) * 0.03;
-  return Math.min(c, 0.55);
+  const { totalAffixes } = require('./loot');
+  c += (totalAffixes(s).critBonus || 0) / 100;
+  return Math.min(c, 0.75);
 }
 export function damageResist(s: GameState): number {
   let r = (s.skills.s_guardian || 0) * 0.05;

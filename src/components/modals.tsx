@@ -1,11 +1,12 @@
-// Skill Tree + Inventory modals (in-app modals, not full screens).
+// Skill Tree modal. The inventory lives in InventoryModal.tsx, which needs
+// far more surface area (affixes, sets, salvage) than a shared file allows.
 
 import React from 'react';
 import { View, Text, StyleSheet, Modal, ScrollView } from 'react-native';
 import { useGame } from '../context/GameContext';
 import { Btn } from './ui';
 import { colors } from '../theme/colors';
-import { SKILLS, gearById, SLOTS, equipGear } from '../engine';
+import { SKILLS } from '../engine';
 
 export function SkillTreeModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const state = useGame(s => s.state)!;
@@ -37,42 +38,6 @@ export function SkillTreeModal({ visible, onClose }: { visible: boolean; onClose
                 </View>
               );
             })}
-          </ScrollView>
-          <View style={{ height: 8 }} />
-          <Btn kind="ghost" title="Close" onPress={onClose} />
-        </View>
-      </View>
-    </Modal>
-  );
-}
-
-export function InventoryModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
-  const state = useGame(s => s.state)!;
-  const mutate = useGame(s => s.mutate);
-  return (
-    <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View style={s.bg}>
-        <View style={s.sheet}>
-          <Text style={s.title}>⚔️ Inventory</Text>
-          <Text style={s.sub}>{state.inventory.length} item(s) · equip to boost combat power</Text>
-          <ScrollView>
-            {state.inventory.length === 0 ? <Text style={s.desc}>No gear yet. Slay bosses & train for loot!</Text> :
-              state.inventory.map(g => {
-                const equipped = state.equipped[g.slot] === g.id;
-                return (
-                  <View key={g.id} style={[s.card, equipped && { borderColor: colors.gold }]}>
-                    <Text style={{ fontSize: 22 }}>{g.icon}</Text>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[s.name, { color: ({ common: colors.common, rare: colors.rare, epic: colors.epic, legendary: colors.legendary } as any)[g.rarity] }]}>
-                        {g.name} · {g.rarity}
-                      </Text>
-                      <Text style={s.desc}>{g.slot} · +{g.power} power</Text>
-                    </View>
-                    {equipped ? <Text style={{ color: colors.gold, fontWeight: '900' }}>✓ Equipped</Text> :
-                      <Btn small title="Equip" onPress={() => mutate(s => { equipGear(s, g.id); })} />}
-                  </View>
-                );
-              })}
           </ScrollView>
           <View style={{ height: 8 }} />
           <Btn kind="ghost" title="Close" onPress={onClose} />

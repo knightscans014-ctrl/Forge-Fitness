@@ -74,6 +74,23 @@ export function makeGear(slot: GearItem['slot'], rarity: GearItem['rarity']): Ge
   };
 }
 export function dropLoot(s: GameState, guaranteed: boolean): GearItem | null {
+  // Route through the affix-aware loot table. Kept behind the original
+  // signature so every existing caller (quests, bosses, activities) benefits
+  // without being touched.
+  const { rollDrop, forgeGear } = require('./loot');
+  const g: GearItem = guaranteed
+    ? forgeGear(
+        (['weapon', 'armor', 'accessory'] as const)[Math.floor(Math.random() * 3)],
+        Math.random() < 0.25 ? 'mythic' : 'legendary',
+        Math.max(1, s.level),
+      )
+    : rollDrop(s);
+  s.inventory.push(g);
+  return g;
+}
+
+/** @deprecated superseded by loot.ts; retained for reference. */
+export function dropLootLegacy(s: GameState, guaranteed: boolean): GearItem | null {
   let rarity: GearItem['rarity'] = guaranteed ? 'legendary' : rollRarity();
   if (!guaranteed && Math.random() < 0.03) rarity = 'epic';
   // Lucky Charm booster: dramatically boost drop quality

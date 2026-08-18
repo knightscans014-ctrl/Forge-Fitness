@@ -134,9 +134,15 @@ export interface MilestoneProgress {
 export interface GearItem {
   id: string;
   slot: 'weapon' | 'armor' | 'accessory';
-  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  rarity: 'common' | 'rare' | 'epic' | 'legendary' | 'mythic';
   name: string;
   power: number;
+  /** Item level; drives affix magnitude. Optional for pre-loot-update saves. */
+  ilvl?: number;
+  /** Rolled modifiers. Absent on legacy items, which is a valid empty state. */
+  affixes?: import('./loot').Affix[];
+  /** Set membership, if any. */
+  setId?: string;
   icon: string;
 }
 

@@ -161,6 +161,15 @@ export function normalize(s: GameState): GameState {
   // v5 backfills
   if (!s.achievements) s.achievements = [];
   if (!s.bossBattle) s.bossBattle = null;
+  // Legacy gear predates affixes/ilvl. Backfill rather than discard: a player's
+  // existing loadout must survive the update intact.
+  if (Array.isArray(s.inventory)) {
+    s.inventory.forEach(g => {
+      if (!g) return;
+      if (typeof g.ilvl !== 'number') g.ilvl = Math.max(1, Math.round((g.power || 4) / 1.4));
+      if (!Array.isArray(g.affixes)) g.affixes = [];
+    });
+  }
   if (s.liveSession === undefined) s.liveSession = null;
   s.sessionsRun = num(s.sessionsRun, 0);
   s.sessionWins = num(s.sessionWins, 0);
@@ -221,11 +230,17 @@ export function boosterActive(s: GameState, id: string) {
 export function xpMultNow(s: GameState): number {
   let m = s.xpMult * (1 + premiumXPBoost(s));
   if (boosterActive(s, 'b_xp')) m *= 2;
+  // Gear/set affixes. Required lazily: loot.ts imports from stacking.ts, and a
+  // static import here would close a cycle through state.ts.
+  const { totalAffixes } = require('./loot');
+  m *= 1 + (totalAffixes(s).xpBonus || 0) / 100;
   return m;
 }
 export function goldMultNow(s: GameState): number {
   let m = s.goldMult * (1 + premiumGoldBoost(s));
   if (boosterActive(s, 'b_gold')) m *= 2;
+  const { totalAffixes } = require('./loot');
+  m *= 1 + (totalAffixes(s).goldBonus || 0) / 100;
   return m;
 }
 export function comboNow(s: GameState): { n: number; date: string } {

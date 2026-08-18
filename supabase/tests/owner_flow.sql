@@ -4,6 +4,11 @@
 \set ON_ERROR_STOP 1
 \pset pager off
 
+-- schema.sql no longer seeds an admin (it ships public, so it must not hardcode
+-- one). Seed the test owner here, as superuser, before dropping to a role.
+insert into public.admins (email) values ('owner@example.com')
+on conflict (email) do nothing;
+
 -- ---- Buyer submits their own pending payment -------------------------------
 set role authenticated;
 select set_config('request.jwt.claim.sub',  '33333333-3333-3333-3333-333333333333', false);
@@ -23,7 +28,7 @@ select count(*) as entitlements from public.premium_entitlements where user_id='
 
 -- ---- Owner signs in and approves ------------------------------------------
 select set_config('request.jwt.claim.sub',  '11111111-1111-1111-1111-111111111111', false);
-select set_config('request.jwt.claims', '{"sub":"11111111-1111-1111-1111-111111111111","email":"knightscans014@gmail.com","role":"authenticated"}', false);
+select set_config('request.jwt.claims', '{"sub":"11111111-1111-1111-1111-111111111111","email":"owner@example.com","role":"authenticated"}', false);
 
 \echo ''
 \echo '>>> Owner is recognised as admin'
@@ -62,7 +67,7 @@ select count(*) as admin_rows_visible from public.admins;
 
 -- ---- Owner revokes ---------------------------------------------------------
 select set_config('request.jwt.claim.sub',  '11111111-1111-1111-1111-111111111111', false);
-select set_config('request.jwt.claims', '{"sub":"11111111-1111-1111-1111-111111111111","email":"knightscans014@gmail.com","role":"authenticated"}', false);
+select set_config('request.jwt.claims', '{"sub":"11111111-1111-1111-1111-111111111111","email":"owner@example.com","role":"authenticated"}', false);
 \echo ''
 \echo '>>> Owner revokes premium'
 select public.revoke_premium('33333333-3333-3333-3333-333333333333');

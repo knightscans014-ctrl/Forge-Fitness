@@ -34,10 +34,12 @@ end $$;
 
 revoke all on public.admins from anon, authenticated;
 
--- Make sure your owner account is actually in there.
-insert into public.admins (email)
-values ('knightscans014@gmail.com')
-on conflict (email) do nothing;
+-- Make sure your owner account is actually in there. Uncomment and set your
+-- own address — it must match EXPO_PUBLIC_OWNER_EMAILS in .env.
+--
+--   insert into public.admins (email)
+--   values ('you@example.com')
+--   on conflict (email) do nothing;
 
 -- ---------------------------------------------------------------------------
 -- 2. Admin check helper (SECURITY DEFINER so it can read the locked table).

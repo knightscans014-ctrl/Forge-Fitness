@@ -12,7 +12,11 @@
 // Owner email allowlist. Overridable at build time via
 // EXPO_PUBLIC_OWNER_EMAILS (comma-separated) so the value isn't a source-code
 // constant. Must match the seeded row in supabase/schema.sql.
-const DEFAULT_OWNER_EMAILS = ['knightscans014@gmail.com'];
+// Empty by default. Set EXPO_PUBLIC_OWNER_EMAILS in your .env — if you fork
+// this project and leave it unset, isOwnerEmail() fails closed for everyone,
+// which is the safe outcome. It deliberately does NOT default to the upstream
+// author's address.
+const DEFAULT_OWNER_EMAILS: string[] = [];
 
 export const OWNER_EMAILS: string[] = (
   process.env.EXPO_PUBLIC_OWNER_EMAILS
@@ -25,8 +29,12 @@ export const OWNER_EMAILS: string[] = (
 // The stealth code that reveals the panel. Override with EXPO_PUBLIC_ADMIN_CODE
 // at build time. Changing this does NOT change who can actually approve
 // payments -- that is enforced by the server.
+// No usable default: this repository is public, so a hardcoded fallback would
+// be a globally known code. An unset value yields a random per-launch string
+// that nobody can type, keeping the panel hidden until you configure it.
 export const ADMIN_SECRET: string =
-  process.env.EXPO_PUBLIC_ADMIN_CODE || 'REDACTED-OLD-ADMIN-CODE';
+  process.env.EXPO_PUBLIC_ADMIN_CODE ||
+  `unset-${Math.random().toString(36).slice(2)}`;
 
 export function isOwnerEmail(email?: string | null): boolean {
   // Fail CLOSED. An empty allowlist previously returned true for everyone,

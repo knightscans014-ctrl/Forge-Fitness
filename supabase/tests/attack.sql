@@ -9,7 +9,7 @@
 
 -- Seed two users: the real owner, and an attacker.
 insert into auth.users (id, email) values
-  ('11111111-1111-1111-1111-111111111111', 'knightscans014@gmail.com'),
+  ('11111111-1111-1111-1111-111111111111', 'owner@example.com'),
   ('22222222-2222-2222-2222-222222222222', 'attacker@evil.com')
 on conflict do nothing;
 

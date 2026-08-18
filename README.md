@@ -1,149 +1,144 @@
-# ⚔️ FORGE — Native App (Expo / React Native)
+# FORGE
 
-The **real native Android + iOS app** build. The game engine is pure TypeScript (tested), the UI is React Native.
+A fitness RPG for Android. Log a workout, earn XP, level your stats, climb the
+ranks, and fight weekly bosses with a guild.
 
-> **Why native?** Real performance, App Store + Play Store ready, native subscriptions via RevenueCat, push notifications, and no HTML-file bloat. The web prototype (`../fit-rpg/index.html`) becomes a design reference; this is the shippable product.
+Built with Expo / React Native. The game engine is pure TypeScript with no React
+dependency, so the rules are testable in isolation. The backend is Supabase, and
+the security model assumes the client is hostile.
+
+**License: AGPL-3.0.** See [Licensing](#licensing) before you fork.
 
 ---
 
-## 🚀 Run it
+## Running it costs nothing
+
+Every service this project uses has a free tier that a solo developer will not
+outgrow quickly. There are no paid SDKs and no billing-enabled dependencies.
+
+| Need | Service | Free tier |
+|---|---|---|
+| Auth + Postgres | Supabase | 500 MB database, 50k monthly active users |
+| Transactional email | Brevo SMTP | 300/day |
+| Landing page, privacy policy, `latest.json` | Firebase Hosting or Cloudflare Pages | free, HTTPS included |
+| APK distribution | GitHub Releases | free, unmetered |
+| Payments | UPI direct to your handle | no processor fee |
+
+Deliberately **not** used: RevenueCat, Stripe, Sentry, Firebase Analytics,
+OneSignal, or any object storage. Avatars are URLs, not uploads, so there is no
+storage bill and no bucket to secure. Supabase's own free tier pauses rather
+than charging you, so there is no path to a surprise invoice.
+
+---
+
+## Setup
 
 ```bash
-cd forge-native
+git clone https://github.com/knightscans014-ctrl/Forge-Fitness
+cd Forge-Fitness
 npm install
-npx expo start          # scan QR with Expo Go, or press a / i for emulator
+cp .env.example .env      # then fill it in
 ```
 
-Build a store binary:
+### 1. Supabase
+
+Create a project, then in the SQL Editor run, in order:
+
+1. `supabase/schema.sql` — tables, RLS, and the security-definer functions
+2. `supabase/migrations/0001_security_hardening.sql` — idempotent, safe to re-run
+
+Before running the schema, uncomment the seed block near the `admins` table and
+put your own email in it. Then set the same address as `EXPO_PUBLIC_OWNER_EMAILS`.
+
+**Authentication → URL Configuration:** add `forge://auth/callback` to Redirect URLs.
+
+Email confirmation needs real SMTP — Supabase's built-in sender allows only two
+messages per hour. See [`docs/EMAIL-SETUP.md`](docs/EMAIL-SETUP.md).
+
+### 2. Run
+
 ```bash
-npx expo run:android     # or: eas build -p android
-npx expo run:ios         # requires macOS + Xcode; or: eas build -p ios
+npm run web      # fastest loop; no UPI deep links, no Play Integrity
+npm start        # Expo Go on a device
 ```
 
----
+### 3. Checks
 
-## 📁 Architecture
-
-```
-forge-native/
-├── App.tsx                      # tab navigator + hydration gate
-├── app.json                     # Expo config (id: com.forge.fitness)
-├── assets/                      # REAL media files (not base64)
-│   ├── icon.png                 # app icon (from your MC art)
-│   └── mc/                      # your GIFs + portraits
-└── src/
-    ├── engine/                  # ★ Pure TS game logic (tested)
-    │   ├── types.ts             #   domain types
-    │   ├── levels.ts            #   XP curve, ranks, combat values
-    │   ├── content.ts           #   classes, quests, missions, boosters, tiers
-    │   ├── state.ts             #   save schema, multipliers, premium math
-    │   ├── rewards.ts           #   addXP/addGold, gear/loot
-    │   ├── missions.ts          #   weekly/story/tiered/milestone/challenge
-    │   ├── index.ts             #   public API (ENGINE)
-    │   └── __tests__/           #   unit tests (7 passing)
-    ├── context/GameContext.ts   # Zustand store + persistence
-    ├── services/
-    │   ├── storage.ts           #   AsyncStorage persistence
-    │   └── revenuecat.ts        #   ★ subscription SDK wrapper (stub)
-    ├── screens/                 # Home, Missions, Character, Log, Social, Shop
-    ├── components/ui.tsx        # Card, Btn, Pill, Bar, StatRow
-    └── theme/colors.ts
-```
-
-## 🧠 Engine tests
 ```bash
-npm run test
+npx tsc --noEmit
+npx jest
 ```
-The engine is framework-free — same logic powers web, iOS, and Android. **Test the game math, not the UI.**
-
-## 🎮 Full game systems (v5 "max" pass)
-- **Levels, F→S Hunter Ranks** — XP curve, rank ladders, rank-up auras
-- **Stats from real habits** — STR/VIG/VIT/FLX/FOC grow by training
-- **Daily quests (rotating pool)**, **Daily Challenge**, **Weekly quests**, **Story arcs**, **Tiered missions**, **Milestones**
-- **Missions tab** — all of the above with progress bars
-- **Dopamine loop** — critical XP, streak combos, timed boosters (XP Rush, Gold Fever, Energy Elixir, Combo Master)
-- **Boss battles** — active turn-based combat vs personal milestone bosses, guaranteed loot
-- **Battle tab** — raid bosses, boss ladder, combat stats
-- **Guilds + weekly raid** — shared raid boss your guild whittles down
-- **PvP duels** — beat AI rivals, build a duel streak
-- **Seasons** — 2-week ranked seasons (Bronze → Monarch), seasonal XP
-- **Skill tree** — 6 skills, rank 1–5, permanent passive buffs
-- **Gear/loot** — weapon/armor/trinket drops (4 rarities), equip for combat power
-- **Habit stacking** — chain related activities for combo bonuses
-- **Achievements** — 15 unlockables, auto-awarded
-- **Progress analytics** — workout trends, streaks, stacks, achievement gallery
-- **Subscriptions** — generous free tier + 3 INR tiers (Ranger ₹99/Elite ₹199/Monarch ₹299) + content-creator unlock
 
 ---
 
-## 🤖 CI + Backend
-- **`.github/workflows/build.yml`** — auto type-checks + runs all engine tests on every push to `main`.
-- **`supabase/schema.sql`** — Postgres schema for multi-user: profiles, save_state, leaderboard, guilds + raids, subscriptions, creator-video review queue (with RLS).
-- **`src/services/sync.ts`** — Supabase sync stub (wire real calls with `EXPO_PUBLIC_SUPABASE_*` env vars).
+## Security model
 
-## 🚀 Recent additions
-- Daily reward claim streak (7-day calendar) with a Home card
-- Aura GIF celebrations (level-up / rank-up / boss) wired into the overlay with haptics
-- Skill Tree + Inventory modals (were dead buttons, now functional)
-- 3 new bosses (7 total), 6 new achievements (21 total), Lucky Charm loot booster
-- Toast notification system for all rewards/events
-- Duel-win & boss-victory celebration feedback
+The client is assumed to be compromised. Anything shipped in the APK — including
+the Supabase anon key and the admin panel code — is treated as public.
 
----
+- **Row-level security on all 11 tables.** The `admins` table has RLS enabled with
+  *zero* policies, so it is unreadable and unwritable through the REST API by
+  anyone. Only `SECURITY DEFINER` functions can see it.
+- **Entitlements are server-granted.** Editing local storage to set
+  `premium: true` does nothing; `state.ts` lets a server verdict override any
+  local value.
+- **Leaderboard scores are validated** against your stored `save_state.xp` by a
+  trigger. A claimed score of 999999999 is written as your real XP.
+- **Payment approval is atomic and admin-only**, and double-approval raises.
+- **The hidden admin panel is obfuscation, not security.** Extracting the code
+  reveals the UI; every button behind it still fails server-side unless
+  `is_admin()` passes.
 
-## 🔒 Anti-crack / server-authority (Layer 1)
-The app **never trusts local state for premium or admin**. All security-sensitive checks go to the Supabase server:
-- **`premium_entitlements`** table — server is the source of truth. A modded APK editing local save files **cannot** self-grant premium.
-- **`grant_premium` / `revoke_premium`** — SECURITY DEFINER functions callable **only by an admin** (email allowlist). The client has no direct write access.
-- **`has_premium`** — server-side check used to gate premium features.
-- **`src/services/secureAuth.ts`** + **`SecurityContext`** — the app fetches premium/admin status from the server; components use this, not local state.
-- **Admin is server-verified** — `isAdmin()` checks the `admins` table via auth email. No secret shipped in the APK.
+Verified against a live project using only the public anon key — self-inserting
+into `admins`, reading others' payments, `grant_premium`, `approve_payment`,
+`reject_payment`, `admin_list_payments`, `revoke_premium`, and writing another
+user's save all fail with `permission denied` or `not authorized`.
 
-> A modded APK is effectively a "read-only" client: it can display anything, but it cannot grant itself premium or admin because those live on the server and are admin-gated.
+Reproduce it yourself: `supabase/tests/` contains a Postgres harness and a
+seven-step attack script.
 
-## 🧱 Anti-tamper (Layer 2 — free tools)
-Two free Android build tools harden the app against reverse-engineering and tampering:
+### Known limitations
 
-- **ProGuard + R8** (`android/app/proguard-rules.pro` + `enableProguardInReleaseBuilds`) — obfuscates and shrinks the native Java/Kotlin in the release build, renaming classes/methods to obscure logic.
-- **Hermes bytecode** (`hermesBytecode: true`) — compiles the JS to bytecode so your logic isn't plaintext in the APK.
-- **Play Integrity API** (`src/services/integrity.ts` + `supabase/functions/verify-integrity`) — Google's free service (10k req/day free) that verifies device + app integrity **server-side**. Blocks rooted devices and modified APKs. The verdict is only trusted from the backend, never the client.
-- **Root/emulator/signature detection** (`src/services/hardening.ts`) + **TamperedScreen** — refuses to run on re-signed/repackaged APKs.
-
-### To enable Play Integrity
-1. Enable **Play Integrity API** in Google Cloud Console (free).
-2. Add the native module + `com.google.android.play:integrity:1.4.0` to `build.gradle`.
-3. Deploy `supabase/functions/verify-integrity` with your service-account key as a backend env var.
-4. App startup calls `isDeviceGenuine()` — blocks if not genuine.
-
-## 🔐 Authentication (Supabase Auth)
-Email/password + Google OAuth. `src/services/auth.ts` + `AuthContext.ts`.
-- **Login/Signup screen** gating the whole app.
-- **Google Sign-In** via Supabase OAuth (needs callback URL configured).
-- Sessions persist via AsyncStorage.
-- To go live: create a Supabase project, enable Email + Google providers, set `EXPO_PUBLIC_SUPABASE_URL` + `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
-
-## 💳 Payments — Fampay UPI (for an 18yo, no merchant KYC)
-`src/services/fampay.ts` lets you **receive money via your Fampay UPI ID / QR** using the universal `upi://pay` deep link — no payment gateway, no business registration, no GST. The payer's UPI app (GPay/PhonePe/Paytm) opens and sends money straight to your Fampay ID.
-- Prices: **Ranger ₹99 / Elite ₹199 / Monarch ₹299** (yearly).
-- **Verification:** since there's no gateway to auto-confirm, it's a **semi-automated** flow:
-  1. User pays → opens their UPI app to your Fampay ID.
-  2. User **types the UPI transaction reference (UTR)** + their details.
-  3. The app **auto-checks** the UTR format and amount-vs-tier and flags problems.
-  4. You review all pending payments in the **Payment Admin panel** (Profile → Payment Admin), one-tap **Approve/Reject**.
-  5. On approve, premium is granted automatically + the user is notified.
-  - Admin is gated behind an email allowlist in Supabase (`supabase/schema.sql`).
-- To go live: set `EXPO_PUBLIC_FAMPAY_UPI_ID` to your real Fampay ID.
-
-### Pricing (your model)
-- **Free tier:** 100% playable, no paywalls.
-- **Ranger ₹99** / **Elite ₹199** / **Monarch ₹299** — yearly, tier-scaled XP/gold boosts, paid via UPI.
-- **Content-Creator unlock:** submit a video link + email → you review → unlock Ranger free (`submitCreatorUnlock`).
+- `save_state.xp` is still written by the client. The trigger stops leaderboard
+  inflation, but a determined user can still inflate their own save. Real fix is
+  server-side workout validation.
+- Play Integrity requires deploying `supabase/functions/verify-integrity` and
+  setting `GOOGLE_PLAY_INTEGRITY_SERVICE_ACCOUNT`. Until then the app treats
+  integrity as unknown and does not block.
+- No APK has been built yet, so ProGuard rules are unverified in practice.
 
 ---
 
-## 📱 Native features to add next
-- **Push notifications** (daily quests, streak reminders) — `expo-notifications`
-- **Apple Health / Google Fit** sync — `expo-health`
-- **Haptics** on level-ups/auras — `expo-haptics` (already a dependency)
-- **RevenueCat** live payments
-- **Backend** (Supabase) for leaderboards + save sync + creator-video review endpoint
+## Layout
+
+```
+src/engine/      pure TypeScript game rules, no React — unit tested
+src/services/    supabase client, auth, payments, sync, integrity
+src/screens/     UI
+src/context/     auth, game, and security providers
+supabase/        schema, migration, edge function, attack tests
+site/            landing page, privacy policy, version manifest
+docs/            email setup
+```
+
+---
+
+## Licensing
+
+FORGE is licensed under the **GNU Affero General Public License v3.0**.
+
+In plain terms:
+
+- Use it, study it, modify it, self-host it — yes, freely.
+- Distribute a modified version, or **run one as a network service**, and you must
+  publish your source under the same license.
+
+The network clause is the point. A plain GPL app can be reskinned and shipped as
+a closed-source competitor; AGPL closes that. You keep the freedom to build on
+this, and nobody gets to take it private.
+
+If you self-host, you must change: the seeded admin email, `EXPO_PUBLIC_ADMIN_CODE`,
+and `EXPO_PUBLIC_FAMPAY_UPI_ID` — otherwise payments go to the upstream author.
+
+The name "FORGE" and the project's artwork are not covered by the AGPL. Fork the
+code, but ship it under your own name.

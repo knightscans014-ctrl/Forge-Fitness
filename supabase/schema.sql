@@ -82,7 +82,9 @@ create table if not exists public.subscriptions (
   tier text,
   status text,
   current_period_end timestamptz,
-  provider text default 'revenuecat',
+  -- 'upi' is the only flow this project implements. The table is kept so a
+  -- fork can wire up a real subscription provider without a migration.
+  provider text default 'upi',
   updated_at timestamptz not null default now()
 );
 
@@ -141,9 +143,13 @@ create table if not exists public.admins (
   email text primary key
 );
 
-insert into public.admins (email)
-values ('knightscans014@gmail.com')
-on conflict (email) do nothing;
+-- Seed your own owner account here before running this file, and make sure it
+-- matches EXPO_PUBLIC_OWNER_EMAILS in .env. Left commented out deliberately:
+-- a public repo should not ship a schema that makes someone else your admin.
+--
+--   insert into public.admins (email)
+--   values ('you@example.com')
+--   on conflict (email) do nothing;
 
 -- ============================================================================
 -- ROW LEVEL SECURITY

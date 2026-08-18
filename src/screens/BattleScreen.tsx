@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Modal } from 'react-native';
 import { useGame } from '../context/GameContext';
-import { Card, Screen, Pill, Bar, Btn } from '../components/ui';
+import { Screen, Pill, Btn, SystemWindow, SystemBar, CornerBrackets, ScanLines } from '../components/ui';
 import { ScreenHeader } from '../components/Header';
 import { colors } from '../theme/colors';
 import {
@@ -21,7 +21,7 @@ export default function BattleScreen() {
       <ScreenHeader icon="sword" title="Battle" subtitle="Slay personal milestone bosses for big rewards + loot" accent="#ff5d73" />
 
       {boss ? (
-        <Card border={colors.mana}>
+        <SystemWindow label={unlocked ? 'Target Acquired' : 'Target Locked'} accent={unlocked ? colors.crimson : colors.mut2} glow={unlocked}>
           <View style={s.bossRow}>
             <View style={s.bossSprite}><Text style={{ fontSize: 40 }}>{boss.icon}</Text></View>
             <View style={{ flex: 1 }}>
@@ -39,13 +39,13 @@ export default function BattleScreen() {
           ) : (
             <Text style={[s.desc, { textAlign: 'center' }]}>🔒 Locked — {boss.unlock}</Text>
           )}
-        </Card>
+        </SystemWindow>
       ) : (
-        <Card border={colors.xpa}><Text style={s.name}>🏆 All bosses defeated!</Text></Card>
+        <SystemWindow label="Clear" accent={colors.xpa} glow><Text style={s.name}>🏆 All bosses defeated!</Text></SystemWindow>
       )}
 
-      <Card>
-        <View style={s.rowBetween}><Text style={s.cardTitle}>📜 Boss Ladder</Text><Pill>{state.bosses.length}/{BOSSES.length}</Pill></View>
+      <SystemWindow label="Boss Ladder" accent={colors.sys}>
+        <View style={s.rowBetween}><View /><Pill>{state.bosses.length}/{BOSSES.length}</Pill></View>
         {BOSSES.map(b => {
           const dead = state.bosses.includes(b.id);
           const un = bossUnlocked(state, b);
@@ -62,27 +62,30 @@ export default function BattleScreen() {
             </View>
           );
         })}
-      </Card>
+      </SystemWindow>
 
-      <Card>
-        <Text style={s.cardTitle}>⚔️ Combat Stats</Text>
+      <SystemWindow label="Combat Analysis" accent={colors.violet}>
         <View style={s.statLine}><Text style={s.name}>Combat Power</Text><Text style={s.desc}>{computePower(state)}</Text></View>
         <View style={s.statLine}><Text style={s.name}>Crit Chance</Text><Text style={s.desc}>{Math.round(critChance(state) * 100)}%</Text></View>
         <View style={s.statLine}><Text style={s.name}>Damage Resist</Text><Text style={s.desc}>{Math.round(damageResist(state) * 100)}%</Text></View>
-      </Card>
+      </SystemWindow>
 
       {/* Active boss battle modal */}
       {battle && (
         <Modal transparent animationType="slide">
           <View style={s.modalBg}>
             <View style={s.sheet}>
-              <Text style={s.sheetTitle}>⚔️ BOSS BATTLE</Text>
-              <Text style={s.desc}>Strike costs ⚡4. Survive & win!</Text>
+              <ScanLines color={colors.crimson} rows={14} opacity={0.06} />
+              <CornerBrackets color={colors.crimson} size={18} inset={6} />
+              <Text style={s.sysKicker}>ENGAGEMENT</Text>
+              <Text style={s.sheetTitle}>{boss?.name ?? 'BOSS BATTLE'}</Text>
               <View style={s.bossSprite}><Text style={{ fontSize: 48 }}>{boss?.icon}</Text></View>
-              <Bar pct={(battle.bossHp / battle.bossMaxHp) * 100} color={colors.hp} />
-              <Text style={s.desc}>{battle.bossHp}/{battle.bossMaxHp}</Text>
-              <Bar pct={(state.hp / (state.maxHP + state.stats.vit * 2)) * 100} color={colors.xpa} />
-              <Text style={s.desc}>You: ⚔️{computePower(state)} · HP {state.hp} · ⚡{state.energy}</Text>
+              <SystemBar pct={(battle.bossHp / battle.bossMaxHp) * 100} color={colors.crimson} height={12}
+                label={`ENEMY HP  ${battle.bossHp}/${battle.bossMaxHp}`} />
+              <View style={{ height: 10 }} />
+              <SystemBar pct={(state.hp / (state.maxHP + state.stats.vit * 2)) * 100} color={colors.xpa} height={12}
+                label={`YOUR HP  ${state.hp}`} />
+              <Text style={s.readout}>PWR {computePower(state)}   ·   EN {state.energy}   ·   STRIKE COST 4</Text>
               <View style={s.log}>
                 {battle.log.slice(-5).map((l, i) => (
                   <Text key={i} style={{ color: l.c === 'crit' ? colors.gold : l.c === 'you' ? colors.xpa : colors.mut, fontSize: 12 }}>
@@ -110,15 +113,17 @@ const s = StyleSheet.create({
   cardTitle: { color: colors.ink, fontWeight: '800', fontSize: 15 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   bossRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  bossSprite: { width: 76, height: 76, borderRadius: 18, backgroundColor: '#1d1233', alignItems: 'center', justifyContent: 'center' },
+  bossSprite: { width: 76, height: 76, borderRadius: 6, backgroundColor: '#1d1233', borderWidth: 1, borderColor: 'rgba(255,45,85,0.35)', alignItems: 'center', justifyContent: 'center', alignSelf: 'center', marginVertical: 12 },
   name: { color: colors.ink, fontWeight: '900', fontSize: 15 },
   desc: { color: colors.mut, fontSize: 12 },
   tagRow: { flexDirection: 'row', gap: 8, marginTop: 6 },
   rowItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.line },
   statLine: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 },
-  modalBg: { flex: 1, backgroundColor: 'rgba(4,5,10,0.7)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: colors.bg2, borderTopLeftRadius: 26, borderTopRightRadius: 26, padding: 22, paddingBottom: 32 },
-  sheetTitle: { color: colors.ink, fontWeight: '900', fontSize: 20, textAlign: 'center' },
+  modalBg: { flex: 1, backgroundColor: 'rgba(4,5,10,0.82)', justifyContent: 'flex-end' },
+  sheet: { backgroundColor: colors.bg2, borderTopLeftRadius: 8, borderTopRightRadius: 8, borderTopWidth: 1, borderLeftWidth: 1, borderRightWidth: 1, borderColor: 'rgba(255,45,85,0.45)', padding: 22, paddingBottom: 32, overflow: 'hidden' },
+  sheetTitle: { color: colors.ink, fontWeight: '900', fontSize: 22, textAlign: 'center', letterSpacing: 1 },
+  sysKicker: { color: colors.crimson, fontSize: 11, fontWeight: '800', letterSpacing: 3, textTransform: 'uppercase', textAlign: 'center' },
+  readout: { color: colors.mut, fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textAlign: 'center', marginTop: 12 },
   log: { minHeight: 40, marginVertical: 10 },
   row: { flexDirection: 'row', gap: 8 },
 });

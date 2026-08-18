@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useGame } from '../context/GameContext';
-import { Card, Pill, Bar, Btn } from '../components/ui';
+import { Pill, Btn, SystemWindow, SystemBar } from '../components/ui';
 import { ScreenHeader } from '../components/Header';
 import { DetailScreen } from '../components/DetailScreen';
 import { colors } from '../theme/colors';
@@ -20,22 +20,23 @@ export default function TrialsScreen() {
     <DetailScreen title="Trials">
       <ScreenHeader icon="sword" title="Trials" subtitle="Weekly endurance boss and training bouts" accent="#4dc3ff" />
 
-      <Card border={colors.en}>
+      <SystemWindow label="Season" accent={colors.en}>
         <View style={s.rowBetween}>
-          <Text style={s.cardTitle}>🎭 Season</Text>
+          <View />
           <Pill color={colors.mana}>{stier.icon} {stier.label}</Pill>
         </View>
         <Text style={s.name}>{season.name}</Text>
         <Text style={s.desc}>Season XP: {state.seasonXP} · Your own 2-week ladder</Text>
-      </Card>
+      </SystemWindow>
 
-      <Card border={colors.mana}>
-        <View style={s.rowBetween}><Text style={s.cardTitle}>🐲 Weekly Trial</Text>{trial ? <Pill>{trialProgress(state)}% cleared</Pill> : null}</View>
+      <SystemWindow label="Weekly Trial" accent={colors.mana} glow={!!trial}>
+        <View style={s.rowBetween}><View />{trial ? <Pill>{trialProgress(state)}% cleared</Pill> : null}</View>
         {trial ? (
           <>
             <Text style={s.name}>{trial.name}</Text>
-            <Bar pct={(trial.hp / trial.maxHp) * 100} color={colors.mana} />
-            <Text style={s.desc}>{trial.hp}/{trial.maxHp} HP remaining</Text>
+            <SystemBar pct={(trial.hp / trial.maxHp) * 100} color={colors.mana} height={12}
+              label={`BOSS HP  ${trial.hp}/${trial.maxHp}`} />
+            <View style={{ height: 10 }} />
             <Btn title="⚔️ Strike Boss (⚡10)" onPress={() => mutate(s => { ENGINE.trialStrike(s); })} />
           </>
         ) : (
@@ -44,10 +45,9 @@ export default function TrialsScreen() {
             <Btn title="Start Weekly Trial" onPress={() => mutate(s => { ENGINE.startTrial(s); })} />
           </>
         )}
-      </Card>
+      </SystemWindow>
 
-      <Card border={colors.accent2}>
-        <Text style={s.cardTitle}>⚔️ Training Bouts</Text>
+      <SystemWindow label="Training Bouts" accent={colors.accent2}>
         <Text style={s.desc}>Scripted sparring partners at fixed power levels — benchmarks for your own progress.</Text>
         <Text style={s.name}>{opponent.icon} {opponent.name}</Text>
         <Text style={s.desc}>Lv {opponent.lvl} · Power {opponent.power} · {opponent.desc}</Text>
@@ -65,15 +65,14 @@ export default function TrialsScreen() {
             }
           });
         }} />
-      </Card>
+      </SystemWindow>
 
-      <Card>
-        <Text style={s.cardTitle}>🎖️ Bout Record</Text>
+      <SystemWindow label="Bout Record" accent={colors.sys}>
         {state.bouts.length === 0 ? <Text style={s.desc}>No bouts yet. Work up the ladder!</Text> :
           state.bouts.map((d, i) => (
             <View key={i} style={s.rowItem}><Text style={s.name}>{d.opponent}</Text><Text style={s.desc}>{d.wins} win(s)</Text></View>
           ))}
-      </Card>
+      </SystemWindow>
     </DetailScreen>
   );
 }

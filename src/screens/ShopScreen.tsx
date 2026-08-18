@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from 'react-native';
 import { useGame } from '../context/GameContext';
-import { Card, Screen, Pill, Btn, StatRow } from '../components/ui';
+import { Screen, Pill, Btn, StatRow, SystemWindow } from '../components/ui';
 import { ScreenHeader } from '../components/Header';
 import { colors } from '../theme/colors';
 import { ENGINE, BOOSTERS, PREMIUM_TIERS } from '../engine';
@@ -21,8 +21,7 @@ export default function ShopScreen() {
     <Screen>
       <ScreenHeader icon="store" title="Forge Shop" subtitle="Spend gold on upgrades & boosters" accent="#ffd166" />
 
-      <Card>
-        <Text style={s.cardTitle}>🚀 Boosters</Text>
+      <SystemWindow label="Boosters" accent={colors.gold} glow>
         {BOOSTERS.map(b => {
           const active = ENGINE.boosterActive(state, b.id);
           return (
@@ -31,10 +30,9 @@ export default function ShopScreen() {
                 <Btn small kind="gold" title={`${b.cost}🪙`} onPress={() => mutate(s => ENGINE.buyBooster(s, b.id))} />} />
           );
         })}
-      </Card>
+      </SystemWindow>
 
-      <Card>
-        <Text style={s.cardTitle}>⚙️ Upgrades</Text>
+      <SystemWindow label="Permanent Upgrades" accent={colors.sys}>
         {UPGRADES.map(g => {
           const owned = state.owned[g.id];
           return (
@@ -54,10 +52,9 @@ export default function ShopScreen() {
                 }} />} />
           );
         })}
-      </Card>
+      </SystemWindow>
 
-      <Card>
-        <Text style={s.cardTitle}>👑 Path</Text>
+      <SystemWindow label="Difficulty Path" accent={colors.violet}>
         <Text style={s.desc}>
           Everything in FORGE is unlocked. Pick the path that matches how hard you
           want the grind to feel — it changes your XP and gold rates.
@@ -77,7 +74,7 @@ export default function ShopScreen() {
             />
           );
         })}
-      </Card>
+      </SystemWindow>
     </Screen>
   );
 }

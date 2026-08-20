@@ -4,7 +4,7 @@ import type { ImageSourcePropType } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigation } from '../types/navigation';
 import { useGame } from '../context/GameContext';
-import { Icon } from '../theme/icons';
+import { Icon, icon } from '../theme/icons';
 import { colors, rankAura } from '../theme/colors';
 import { ENGINE, DAILY_REWARDS, rankForLevel, xpForLevel, effectiveMaxHP, computePower, boosterActive, generateSuggestion, migrationFields } from '../engine';
 
@@ -317,7 +317,12 @@ export default function HomeScreen() {
         return (
           <View key={q.id} style={[styles.questRow, isDone && { opacity: 0.45 }]}>
             <View style={[styles.questIcon, { backgroundColor: colors.card2 }]}>
-              <Icon name={q.stat === 'str' ? 'barbell' : q.stat === 'vig' ? 'run' : q.stat === 'vit' ? 'heart' : q.stat === 'flx' ? 'accessibility' : 'brain'} size={20} color={colors.en} family={q.stat === 'str' ? 'mci' : q.stat === 'foc' ? 'mci' : 'ion'} />
+              {/* Two parallel ternaries used to pick the name and the family
+                  independently, and they disagreed: str got barbell+mci and
+                  vig got run+ion, but barbell is Ionicons-only and run is
+                  MCI-only, so both drew nothing. The shared ICONS table keeps
+                  the pair together and is checked by icons.test.ts. */}
+              <Icon {...icon(q.stat)} size={20} color={colors.en} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.questTitle}>{q.title}</Text>

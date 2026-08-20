@@ -116,6 +116,43 @@ describe('icon tables resolve to real glyphs', () => {
     expect(bad).toEqual([]);
   });
 
+  // The JSX scan above only sees literal attributes. Icon names also get
+  // declared in object literals and fed in as <Icon name={f.icon} />, which
+  // no tag-level regex can follow. The onboarding feature list shipped
+  // { icon: 'sword' } with family={f.icon === 'trophy' ? 'ion' : 'ion'} --
+  // both branches identical -- so the very first screen of the app drew a
+  // blank box where the sword should be.
+  it('icon names declared in object literals resolve against their family', () => {
+    const srcDir = join(__dirname, '../../');
+    const files: string[] = [];
+    (function walk(dir: string) {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = join(dir, entry.name);
+        if (entry.isDirectory()) walk(full);
+        else if (entry.name.endsWith('.tsx') || entry.name.endsWith('.ts')) files.push(full);
+      }
+    })(srcDir);
+
+    const bad: string[] = [];
+    for (const file of files) {
+      if (file.includes('__tests__')) continue;
+      const text = readFileSync(file, 'utf8');
+      // `{ icon: 'x', family: 'mci', ... }` / `{ name: 'x', family: 'ion' }`
+      for (const m of text.matchAll(/\{[^{}]*?\b(?:icon|name):\s*'([a-z0-9-]+)'[^{}]*?\}/g)) {
+        const obj = m[0];
+        const nm = m[1];
+        // Only judge strings that are recognisably icon glyphs.
+        if (!(nm in GLYPHS.ion) && !(nm in GLYPHS.mci)) continue;
+        const fam = obj.match(/\bfamily:\s*'(ion|mci)'/);
+        const resolved = (fam ? fam[1] : 'ion') as 'ion' | 'mci';
+        if (!exists(nm, resolved)) {
+          bad.push(`${file.replace(srcDir, 'src/')}: "${nm}" is not in ${resolved}`);
+        }
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+
   it('rejects a name from the wrong family', () => {
     // 'sword' is MaterialCommunityIcons-only; 'list-circle' is Ionicons-only.
     // Both of these were real mismatches in the shipped tables.

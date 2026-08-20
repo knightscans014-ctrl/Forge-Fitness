@@ -8,9 +8,9 @@ import { CLASSES } from '../engine';
 // Class icon mapping (vector, not emoji)
 const CLASS_ICON: Record<string, { name: string; family: 'ion' | 'mci' }> = {
   warrior: { name: 'shield', family: 'mci' },
-  ranger: { name: 'bow-arrow', family: 'ion' },
+  ranger: { name: 'bow-arrow', family: 'mci' },
   monk: { name: 'meditation', family: 'mci' },
-  mage: { name: 'auto-fix', family: 'ion' },
+  mage: { name: 'auto-fix', family: 'mci' },
   assassin: { name: 'knife', family: 'mci' },
   paladin: { name: 'sword-cross', family: 'mci' },
 };
@@ -36,14 +36,17 @@ export default function OnboardingScreen() {
             <Text style={styles.tagline}>Turn your training into a legend.</Text>
 
             <View style={styles.featureList}>
-              {[
-                { icon: 'sword', label: 'Real workouts, real XP — earn power by training' },
-                { icon: 'trophy', label: 'Climb from F-rank to Monarch of Iron' },
-                { icon: 'rocket', label: 'Aura moments, loot, weekly trials & bouts' },
-              ].map((f, i) => (
+              {([
+                // Each row carries its own family: "sword" only exists in
+                // MaterialCommunityIcons, and the Ionicons default renders a
+                // blank box for it.
+                { icon: 'sword', family: 'mci', label: 'Real workouts, real XP — earn power by training' },
+                { icon: 'trophy', family: 'ion', label: 'Climb from F-rank to Monarch of Iron' },
+                { icon: 'rocket', family: 'ion', label: 'Aura moments, loot, weekly trials & bouts' },
+              ] as const).map((f, i) => (
                 <View key={i} style={styles.featureRow}>
                   <View style={[styles.featureIcon, { backgroundColor: colors.gold + '1f' }]}>
-                    <Icon name={f.icon} size={18} color={colors.gold} family={f.icon === 'trophy' ? 'ion' : 'ion'} />
+                    <Icon name={f.icon} size={18} color={colors.gold} family={f.family} />
                   </View>
                   <Text style={styles.featureText}>{f.label}</Text>
                 </View>

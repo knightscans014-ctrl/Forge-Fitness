@@ -1,5 +1,7 @@
 // Core domain types for the FORGE game engine.
 
+import type { QuestTimer } from './questTimer';
+
 export type StatId = 'str' | 'vig' | 'vit' | 'flx' | 'foc';
 
 export interface PlayerStats {
@@ -43,6 +45,11 @@ export interface GameState {
   skills: Record<string, number>;
 
   questsDone: string[];
+  /**
+   * The one running quest timer, or null. Lives on the save so a workout in
+   * progress survives the app being closed; cleared by dayReset.
+   */
+  questTimer: QuestTimer | null;
   dayDone: string;
 
   activities: { icon: string; name: string; xp: number; time: string }[];

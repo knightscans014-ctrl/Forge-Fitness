@@ -5,7 +5,8 @@ import { Card, Screen, Pill, Bar, SystemWindow, TierBadge, SystemBar } from '../
 import { ScreenHeader } from '../components/Header';
 import { Icon } from '../theme/icons';
 import { colors } from '../theme/colors';
-import { ENGINE, WEEKLY_QUESTS, STORY_MISSIONS, TIERED_MISSIONS, MILESTONE_MISSIONS, milestoneStats } from '../engine';
+import { ENGINE, WEEKLY_QUESTS, STORY_MISSIONS, TIERED_MISSIONS, MILESTONE_MISSIONS, milestoneStats, timedQuest } from '../engine';
+import QuestTimerRow from '../components/QuestTimer';
 
 export default function MissionsScreen() {
   const state = useGame(s => s.state)!;
@@ -43,7 +44,12 @@ export default function MissionsScreen() {
                 <Text style={s.reward}>+{q.xp} XP  ·  +{q.gold} gold</Text>
               </View>
               {isDone ? <Text style={{ color: colors.xpa, fontWeight: '900', fontSize: 16 }}>✓</Text> :
-                <Btn small title="Complete" onPress={() => useGame.getState().mutate(s => ENGINE.completeQuest(s, q.id))} />}
+                timedQuest(q)
+                  // Workout quests have to be run, so the only way to complete
+                  // one is to let its clock finish. Counters and flags keep the
+                  // plain button -- no clock could verify those anyway.
+                  ? <QuestTimerRow quest={q} timer={state.questTimer} />
+                  : <Btn small title="Complete" onPress={() => useGame.getState().mutate(s => ENGINE.completeQuest(s, q.id))} />}
             </View>
           );
         })}

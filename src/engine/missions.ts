@@ -88,6 +88,9 @@ export function dayReset(s: GameState): void {
     // and every quest a player has ever finished stays ticked off, so the
     // slate is permanently exhausted.
     s.questsDone = [];
+    // A timer left running overnight is not a 14-hour workout; it's a phone
+    // left on the counter. Drop it with the rest of the day.
+    s.questTimer = null;
     s.dayDone = dayKey();
     s.workoutsToday = 0;
     s.strengthMinToday = 0;

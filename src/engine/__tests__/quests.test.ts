@@ -1,7 +1,7 @@
 import {
   ENGINE, defaultState, dailyQuests, dayReset, dayKey, DAILY_SLATE_SIZE,
   DAILY_POOL, WEEKLY_QUESTS, STORY_MISSIONS, DAILY_CHALLENGES, MILESTONE_MISSIONS,
-  TIERED_MISSIONS, tieredVal, milestoneStats, bossUnlocked, checkTiered,
+  TIERED_MISSIONS, tieredVal, milestoneStats, bossUnlocked, checkTiered, timedQuest,
 } from '../index';
 
 describe('daily quest pool', () => {
@@ -120,7 +120,9 @@ describe('day rollover', () => {
   test('a quest cannot be completed twice in the same day', () => {
     const s = defaultState('Hero', 'warrior');
     s.energy = 999;
-    const q = dailyQuests(s)[0];
+    // Pick an untimed quest: timed ones are gated on a finished countdown, and
+    // which slate slots are timed depends on the day's draw.
+    const q = dailyQuests(s).find(x => !timedQuest(x))!;
     expect(ENGINE.completeQuest(s, q.id)).toBe(true);
     expect(ENGINE.completeQuest(s, q.id)).toBe(false);
   });
@@ -128,7 +130,10 @@ describe('day rollover', () => {
   test('the first boss needs three quests today, not three ever', () => {
     const s = defaultState('Hero', 'warrior');
     s.energy = 999;
-    dailyQuests(s).slice(0, 3).forEach(q => ENGINE.completeQuest(s, q.id));
+    // Untimed quests only -- this test is about the boss gate, not the timer.
+    dailyQuests(s).filter(q => !timedQuest(q)).slice(0, 3)
+      .forEach(q => ENGINE.completeQuest(s, q.id));
+    expect(s.questsDone.length).toBe(3);
     expect(bossUnlocked(s, { id: 'b1' } as any)).toBe(true);
 
     // Yesterday's three should not count toward today's unlock.

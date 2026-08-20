@@ -5,6 +5,7 @@ import { GameState } from './types';
 import { dayKey, yesterdayKey, weekKey, dayChallenge, defaultState, normalize, isPremium, tierValue, premiumXPBoost, premiumGoldBoost, boosterActive, boosterDef, xpMultNow, goldMultNow, comboNow, comboMult, critXP, energyCost, SAVE_KEY, MAX_ACTIVITY_MIN, MAX_INTENSITY } from './state';
 import { addXP, addGold, dropLoot } from './rewards';
 import { runAllChecks, trackWeekly, bumpStreak, dayReset, questsToday, dailyQuests, checkDailyChallenge, weeklyVal, tieredVal } from './missions';
+import { timedQuest, timerDone } from './questTimer';
 import { startBossBattle, bossStrike, bossHeal, retreatBoss, currentBoss, bossUnlocked } from './bosses';
 import { checkAchievements } from './achievements';
 import { buySkill, statGainMult } from './skills';
@@ -26,6 +27,7 @@ export * from './content';
 export * from './state';
 export * from './rewards';
 export * from './missions';
+export * from './questTimer';
 export * from './bosses';
 export * from './achievements';
 export * from './skills';
@@ -89,11 +91,22 @@ export const ENGINE = {
   rankForLevel,
 
   // ---- actions ----
-  completeQuest(s: GameState, qid: string): boolean {
+  completeQuest(s: GameState, qid: string, now = Date.now()): boolean {
     const q = DAILY_POOL.find(x => x.id === qid);
     if (!q || s.questsDone.includes(qid)) return false;
+    // A workout quest has to be *run*. "Lift for 20+ min" is only worth
+    // anything if the 20 minutes actually happened, so a timed quest needs a
+    // finished timer for this exact quest. Untimed quests -- counts like
+    // "8,000 steps" and flags like "End your shower cold" -- keep the instant
+    // button, because there is no clock that could verify them anyway.
+    if (timedQuest(q)) {
+      const t = s.questTimer;
+      if (!t || t.questId !== qid || !timerDone(t, now)) return false;
+    }
     if (s.energy < energyCost(10)) return false;
     s.energy -= energyCost(10);
+    // Consume the timer so its slot frees up for the next quest.
+    if (s.questTimer && s.questTimer.questId === qid) s.questTimer = null;
     s.questsDone.push(qid);
     s.dayDone = dayKey();
     trackWeekly(s, 'questsWeekly', 1);

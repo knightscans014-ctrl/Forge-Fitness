@@ -1,6 +1,7 @@
 // State creation, persistence hooks, day/week keys, and multiplier math.
 
 import { GameState } from './types';
+import type { QuestTimer } from './questTimer';
 import { CLASSES, DAILY_CHALLENGES, BOOSTERS, PREMIUM_TIERS } from './content';
 
 export const SAVE_KEY = 'forge_save_v4';
@@ -118,6 +119,7 @@ export function defaultState(name: string, clsId: string): GameState {
     skillPoints: 1,
     skills: {},
     questsDone: [],
+    questTimer: null,
     dayDone: today,
     activities: [],
     workouts: 0,
@@ -248,6 +250,16 @@ export function normalize(s: GameState): GameState {
     // Only worth explaining if the change is actually visible.
     if (s.level - derived >= 2) mig.prevCurveLevel = s.level;
     s.level = derived;
+  }
+  // A save from before quest timers, or one hand-edited via export/import,
+  // can carry a malformed timer. A bad timer would render a NaN clock and
+  // could never complete, so drop anything that isn't structurally sound.
+  const qt = s.questTimer as unknown;
+  if (!qt || typeof qt !== 'object'
+      || typeof (qt as QuestTimer).questId !== 'string'
+      || !Number.isFinite((qt as QuestTimer).started)
+      || !Number.isFinite((qt as QuestTimer).goalMin)) {
+    s.questTimer = null;
   }
   s.gold = Math.max(0, keep(s.gold, lg.gold, 0));
   s.energy = num(s.energy, base.energy);

@@ -14,10 +14,11 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated, Easing, AppState } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useGame } from '../context/GameContext';
+import type { StackScreenProps } from '../types/navigation';
 import { Btn, SystemWindow, SystemBar } from '../components/ui';
 import { DetailScreen } from '../components/DetailScreen';
 import { colors } from '../theme/colors';
-import { ENGINE, ABILITIES, tickSession, useAbility, sessionMinutes, type LiveSession } from '../engine';
+import { ENGINE, ABILITIES, tickSession, useAbility, sessionMinutes, type LiveSession, type AbilityResult, type SessionOutcome } from '../engine';
 
 function mmss(ms: number) {
   const t = Math.max(0, Math.floor(ms / 1000));
@@ -26,7 +27,7 @@ function mmss(ms: number) {
   return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
 }
 
-export default function SessionScreen({ navigation }: any) {
+export default function SessionScreen({ navigation }: StackScreenProps<'SessionLive'>) {
   const state = useGame(s => s.state)!;
   const { mutate, notify, celebrate } = useGame();
   const sess = state.liveSession as LiveSession | null;
@@ -72,6 +73,10 @@ export default function SessionScreen({ navigation }: any) {
       force(n => n + 1);
     }, 1000);
     return () => clearInterval(id);
+    // Intentionally keyed on sess?.phase, not sess: the session object is
+    // mutated in place by tickSession every second, so depending on it would
+    // tear down and recreate this interval on every tick.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sess?.phase, mutate]);
 
   /* -- resolve the fight after the app was backgrounded --------------- */
@@ -95,6 +100,9 @@ export default function SessionScreen({ navigation }: any) {
       }
     }
     lastPhase.current = sess.phase;
+    // Same reason as above: only the phase transition should re-run this, and
+    // `sess` changes identity-free on every tick.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sess?.phase, hit]);
 
   if (!sess) {
@@ -120,16 +128,20 @@ export default function SessionScreen({ navigation }: any) {
   const tx = shake.interpolate({ inputRange: [-1, 1], outputRange: [-9, 9] });
 
   function fire(abId: string) {
-    let res: any = null;
+    // Held in an object, not a plain `let`: TypeScript's control-flow analysis
+    // cannot see that `mutate` invokes the callback synchronously, so a `let`
+    // stays narrowed to `null` at every use below.
+    const box: { res: AbilityResult | null } = { res: null };
     mutate(st => {
       if (!st.liveSession) return;
       tickSession(st, st.liveSession, Date.now());
       // Not a React hook -- useAbility is an engine function that happens to
       // start with "use". The rule matches on the name alone.
       // eslint-disable-next-line react-hooks/rules-of-hooks
-      res = useAbility(st, st.liveSession, abId, Date.now());
+      box.res = useAbility(st, st.liveSession, abId, Date.now());
     });
     force(n => n + 1);
+    const res = box.res;
     if (res?.ok) {
       hit(res.crit || res.dmg > 0);
       if (res.healed) notify(`🌬️ Second Wind — +${res.healed} HP`);
@@ -140,13 +152,14 @@ export default function SessionScreen({ navigation }: any) {
   }
 
   function finish(abandoned: boolean) {
-    let out: any = null;
+    const box: { out: SessionOutcome | null } = { out: null };
     mutate(st => {
       if (!st.liveSession) return;
       tickSession(st, st.liveSession, Date.now());
-      out = ENGINE.finishSession(st, st.liveSession, Date.now(), abandoned);
+      box.out = ENGINE.finishSession(st, st.liveSession, Date.now(), abandoned);
       st.liveSession = null;
     });
+    const out = box.out;
     if (out?.ok) {
       if (out.won) {
         celebrate({

@@ -236,3 +236,30 @@ describe('expanded missions', () => {
     DAILY_CHALLENGES.forEach(c => expect(typeof c.check(s)).toBe('boolean'));
   });
 });
+
+describe('milestone progress is displayable', () => {
+  // The Missions screen renders `min(target, milestoneStats(s)[m.stat])` for
+  // every milestone. It used to build its own stats map with only four of the
+  // eight keys, so five milestones rendered NaN progress bars while the engine
+  // awarded them normally. Any milestone whose stat key has no value here is
+  // broken in the UI, silently.
+  it('milestoneStats covers every stat key used by MILESTONE_MISSIONS', () => {
+    const stats = milestoneStats(defaultState('Hero', 'warrior'));
+    const missing = MILESTONE_MISSIONS
+      .filter(m => typeof stats[m.stat] !== 'number')
+      .map(m => `${m.id} needs "${m.stat}"`);
+    expect(missing).toEqual([]);
+  });
+
+  it('every milestone reports finite progress on a played save', () => {
+    const s = defaultState('Hero', 'warrior');
+    ENGINE.logActivity(s, 'strength', 45, 2);
+    ENGINE.quickWater(s);
+    const stats = milestoneStats(s);
+    for (const m of MILESTONE_MISSIONS) {
+      const cur = Math.min(m.target, stats[m.stat]);
+      expect(Number.isFinite(cur)).toBe(true);
+      expect(cur).toBeGreaterThanOrEqual(0);
+    }
+  });
+});

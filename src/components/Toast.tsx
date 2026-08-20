@@ -1,6 +1,6 @@
 // Toast notification component — displays the latest message.
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Text, StyleSheet } from 'react-native';
 import { colors } from '../theme/colors';
 import { useGame } from '../context/GameContext';
@@ -8,7 +8,10 @@ import { useGame } from '../context/GameContext';
 export function ToastHost() {
   const notifications = useGame(s => s.notifications);
   const [msg, setMsg] = useState<string | null>(null);
-  const opacity = new Animated.Value(0);
+  // useRef, not a bare `new Animated.Value(0)`: a fresh value on every render
+  // means the animation drives one instance while the rendered view is bound
+  // to another, so the toast never actually fades.
+  const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (notifications.length === 0) return;
@@ -19,7 +22,10 @@ export function ToastHost() {
       Animated.delay(1800),
       Animated.timing(opacity, { toValue: 0, duration: 300, useNativeDriver: true }),
     ]).start(() => setMsg(null));
-  }, [notifications.length]);
+    // Depends on the count, not the array: `notify` pushes onto the list, so a
+    // new message always changes the length, and re-running on identity alone
+    // would restart the fade on unrelated store updates.
+  }, [notifications.length, notifications, opacity]);
 
   if (!msg) return null;
   return (

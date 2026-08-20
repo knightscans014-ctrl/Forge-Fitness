@@ -6,11 +6,12 @@
 
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Modal, Easing, Image, Pressable } from 'react-native';
+import type { ImageSourcePropType } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { colors } from '../theme/colors';
 
 // Aura backgrounds per celebration type.
-const AURA_BG: Record<string, any> = {
+const AURA_BG: Record<string, ImageSourcePropType> = {
   LEVEL: require('../../assets/mc/a_levelup.gif'),
   RANK: require('../../assets/mc/a_rankup.gif'),
   BOSS: require('../../assets/mc/a_boss.gif'),
@@ -45,7 +46,9 @@ export function AuraOverlay({ visible, title, subtitle, big, accent, onClose }: 
     loop.start();
     if (Haptics.notificationAsync) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     return () => loop.stop();
-  }, [visible]);
+    // The Animated values are useRef handles, so they never change identity;
+    // `visible` is the only trigger that matters.
+  }, [visible, fade, pulse, sweep, zoom]);
 
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>

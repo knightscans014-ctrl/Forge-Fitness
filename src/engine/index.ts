@@ -39,6 +39,16 @@ export * from './bouts';
 export * from './analytics';
 export * from './session';
 
+/** What a finished live session paid out. Named so screens can hold it. */
+export interface SessionOutcome {
+  ok: boolean;
+  xp: number;
+  gold: number;
+  minutes: number;
+  won: boolean;
+  bonus: number;
+}
+
 export const ENGINE = {
   constants: {
     SAVE_KEY,
@@ -151,9 +161,7 @@ export const ENGINE = {
    * quests, stats, streaks and achievements watch stays in one place. The only
    * difference is the win bonus, applied as extra XP after the fact.
    */
-  finishSession(s: GameState, sess: LiveSession, now: number, abandoned = false): {
-    ok: boolean; xp: number; gold: number; minutes: number; won: boolean; bonus: number;
-  } {
+  finishSession(s: GameState, sess: LiveSession, now: number, abandoned = false): SessionOutcome {
     const out = endSession(sess, now, abandoned);
     // Under a minute is not a workout; close it out with nothing owed.
     if (out.minutes < 1) return { ok: false, xp: 0, gold: 0, minutes: 0, won: out.won, bonus: 0 };

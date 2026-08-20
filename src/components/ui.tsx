@@ -1,12 +1,13 @@
 // Premium reusable UI primitives with modern design
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, ActivityIndicator, ScrollView } from 'react-native';
+import type { StyleProp, ViewStyle, TextStyle } from 'react-native';
 import { colors, shadows } from '../theme/colors';
 import { Icon, type IconFamily } from '../theme/icons';
 
 export function Card({ children, style, border, glow, onPress, accessibilityLabel }: { 
   children: React.ReactNode; 
-  style?: any; 
+  style?: StyleProp<ViewStyle>; 
   border?: string; 
   glow?: boolean;
   onPress?: () => void;
@@ -295,7 +296,7 @@ export function SystemWindow({ label, accent = colors.sys, children, style, scan
   label?: string;
   accent?: string;
   children: React.ReactNode;
-  style?: any;
+  style?: StyleProp<ViewStyle>;
   scan?: boolean;
   glow?: boolean;
 }) {
@@ -329,7 +330,7 @@ export function TierBadge({ tier }: { tier: 'light' | 'core' | 'elite' }) {
 
 /** Wide-tracked all-caps line used above titles. */
 export function SystemLabel({ children, color = colors.sys, style }: {
-  children: React.ReactNode; color?: string; style?: any;
+  children: React.ReactNode; color?: string; style?: StyleProp<TextStyle>;
 }) {
   return <Text style={[styles.sysLabel, { color }, style]}>{children}</Text>;
 }

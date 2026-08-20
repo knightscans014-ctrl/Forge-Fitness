@@ -1,6 +1,6 @@
 // Static content: classes, quest pools, missions, boosters, difficulty paths.
 
-import { ClassDef, BoosterDef, GameState } from './types';
+import { ClassDef, BoosterDef, GameState, StatId } from './types';
 
 export const CLASSES: ClassDef[] = [
   { id: 'warrior', icon: '🛡️', name: 'Warrior', color: '#ff8a5c', desc: 'Strength & power. +STR growth, +gold from heavy lifts.', bonus: { str: 3, vig: 1 } },
@@ -15,7 +15,7 @@ export interface Activity {
   id: string;
   icon: string;
   name: string;
-  stat: 'str' | 'vig' | 'vit' | 'flx' | 'foc';
+  stat: StatId;
   xpPerMin: number;
   goldPerMin: number;
   drop: number;

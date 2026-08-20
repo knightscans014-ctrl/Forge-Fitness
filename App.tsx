@@ -24,15 +24,11 @@ import TrialsScreen from './src/screens/TrialsScreen';
 import ShopScreen from './src/screens/ShopScreen';
 import ProgressScreen from './src/screens/ProgressScreen';
 
-export type RootStackParamList = {
-  Main: undefined;
-  LogDetail: undefined;
-  SessionLive: undefined;
-  TrialsDetail: undefined;
-  ProgressDetail: undefined;
-};
+import type { RootStackParamList, MainTabParamList } from './src/types/navigation';
 
-const Tab = createBottomTabNavigator();
+export type { RootStackParamList, MainTabParamList } from './src/types/navigation';
+
+const Tab = createBottomTabNavigator<MainTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 // Consolidated tab set (5 tabs, everything else is a detail screen).
@@ -101,7 +97,9 @@ export default function App() {
   const state = useGame(s => s.state);
   const hydrate = useGame(s => s.hydrate);
 
-  useEffect(() => { hydrate(); }, []);
+  // `hydrate` is a Zustand action from create(), so its identity is stable for
+  // the store's lifetime -- listing it satisfies the linter without re-running.
+  useEffect(() => { hydrate(); }, [hydrate]);
 
   // Everything lives on this device, so the only thing to wait for is the
   // local save being read back off disk.

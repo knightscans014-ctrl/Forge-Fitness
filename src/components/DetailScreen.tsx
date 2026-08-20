@@ -2,11 +2,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigation } from '../types/navigation';
 import { Icon } from '../theme/icons';
 import { colors } from '../theme/colors';
 
 export function DetailScreen({ children, title }: { children: React.ReactNode; title: string }) {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<AppNavigation>();
   return (
     <View style={styles.screen}>
       <View style={styles.bar}>

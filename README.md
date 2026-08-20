@@ -46,9 +46,14 @@ npm start        # Expo Go on a physical device
 ### Checks
 
 ```bash
-npx tsc --noEmit
-npx jest
+npm run typecheck
+npm test
+npm run lint
 ```
+
+Use the `npm run` scripts rather than `npx tsc` / `npx eslint` directly — `npx`
+will silently download an unrelated package (`tsc@2.0.4`) or a major version
+the config doesn't match, instead of using the pinned local binary.
 
 ---
 
@@ -106,7 +111,7 @@ tools/           dev scripts (README screenshots) — not part of the app
 
 ## Contributing
 
-Issues and pull requests are welcome. Keep `npx tsc --noEmit` and `npx jest`
+Issues and pull requests are welcome. Keep `npm run typecheck` and `npm test`
 green, and prefer putting logic in `src/engine/` with a test over putting it in
 a screen.
 

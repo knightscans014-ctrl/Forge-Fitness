@@ -5,7 +5,7 @@ import { Card, Screen, Pill, Bar, SystemWindow, TierBadge, SystemBar } from '../
 import { ScreenHeader } from '../components/Header';
 import { Icon } from '../theme/icons';
 import { colors } from '../theme/colors';
-import { ENGINE, WEEKLY_QUESTS, STORY_MISSIONS, TIERED_MISSIONS, MILESTONE_MISSIONS } from '../engine';
+import { ENGINE, WEEKLY_QUESTS, STORY_MISSIONS, TIERED_MISSIONS, MILESTONE_MISSIONS, milestoneStats } from '../engine';
 
 export default function MissionsScreen() {
   const state = useGame(s => s.state)!;
@@ -13,7 +13,7 @@ export default function MissionsScreen() {
   // Roll the day over in an effect, not during render: dayReset() clears the
   // per-day counters, and mutating state while rendering skips the save and
   // can be run twice under StrictMode.
-  useEffect(() => { mutateFn(() => {}); }, []);
+  useEffect(() => { mutateFn(() => {}); }, [mutateFn]); // stable Zustand action
   const quests = ENGINE.dailyQuests(state);
   const done = quests.filter(q => state.questsDone.includes(q.id)).length;
 
@@ -120,8 +120,11 @@ export default function MissionsScreen() {
       <Card>
         <Text style={s.cardTitle}><Icon name="trophy" size={16} color={colors.gold} /> Milestones</Text>
         {MILESTONE_MISSIONS.map(m => {
-          const ms: any = { workouts: state.workouts, streak: state.bestStreak, level: state.level, bossCount: state.bosses.length };
-          const cur = Math.min(m.target, ms[m.stat]);
+          // Use the engine's map rather than rebuilding it here. The local copy
+          // only had four of the eight keys, so milestones tracking minutes,
+          // water, achievements or total XP read undefined and rendered a NaN
+          // progress bar while the engine was awarding them correctly.
+          const cur = Math.min(m.target, milestoneStats(state)[m.stat] ?? 0);
           const claimed = state.milestones.claimed.includes(m.id);
           return (
             <View key={m.id} style={s.rowItem}>

@@ -175,6 +175,20 @@ export function defaultState(name: string, clsId: string): GameState {
   };
 }
 
+/**
+ * Migration bookkeeping that lives on the save but is deliberately not part of
+ * `GameState`: these keys are transient, written by a migration and cleared by
+ * the UI once the player has seen the explanation. Casting through this named
+ * type keeps them out of the public state shape without scattering `any`.
+ */
+export interface MigrationFields {
+  levelCurveV2?: number;
+  prevCurveLevel?: number;
+}
+export function migrationFields(s: GameState): MigrationFields {
+  return s as unknown as MigrationFields;
+}
+
 export function normalize(s: GameState): GameState {
   // Core fields. These used to be assumed present, which was safe while saves
   // could only come from this app's own storage. Imported saves can be
@@ -223,7 +237,7 @@ export function normalize(s: GameState): GameState {
   // fields, so nothing is revoked — only the badge changes. We stamp the old
   // level once so the UI can tell the player why, rather than letting them
   // discover it as an apparent rollback.
-  const mig = s as unknown as { levelCurveV2?: number; prevCurveLevel?: number };
+  const mig = migrationFields(s);
   if (!mig.levelCurveV2) {
     mig.levelCurveV2 = 1;
     // Required lazily: levels.ts pulls in inventory.ts and loot.ts, and

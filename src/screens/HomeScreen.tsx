@@ -1,17 +1,19 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, Pressable } from 'react-native';
+import type { ImageSourcePropType } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigation } from '../types/navigation';
 import { useGame } from '../context/GameContext';
 import { Icon } from '../theme/icons';
 import { colors, rankAura } from '../theme/colors';
-import { DAILY_REWARDS, rankForLevel, xpForLevel, effectiveMaxHP, computePower, boosterActive, generateSuggestion } from '../engine';
+import { ENGINE, DAILY_REWARDS, rankForLevel, xpForLevel, effectiveMaxHP, computePower, boosterActive, generateSuggestion, migrationFields } from '../engine';
 
 // The art pack ships four usable portraits for six classes, so they are
 // shared deliberately rather than left all-warrior: the two heavy//melee
 // classes take the warrior art, the agile pair the animated one, and the
 // two caster-ish classes the tall renders. Drop in per-class art later and
 // this map is the only thing that changes.
-const CLASS_PORTRAIT: Record<string, any> = {
+const CLASS_PORTRAIT: Record<string, ImageSourcePropType> = {
   warrior: require('../../assets/mc/av_warrior.png'),
   paladin: require('../../assets/mc/av_warrior.png'),
   ranger: require('../../assets/mc/av_anim.gif'),
@@ -23,12 +25,12 @@ const CLASS_PORTRAIT: Record<string, any> = {
 export default function HomeScreen() {
   const state = useGame(s => s.state)!;
   const mutate = useGame(s => s.mutate);
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<AppNavigation>();
 
   // Day rollover + first suggestion happen in an effect so render stays pure.
   useEffect(() => {
     mutate(s => { if (!s.suggestion && !s.suggestionDone) generateSuggestion(s); });
-  }, []);
+  }, [mutate]); // stable Zustand action -- still runs once
   const rk = rankForLevel(state.level);
   const aura = rankAura[rk.id] || colors.sys;
   const xpN = xpForLevel(state.level);
@@ -44,7 +46,7 @@ export default function HomeScreen() {
   const done = quests.filter(q => state.questsDone.includes(q.id)).length;
   const suggestion = state.suggestion;
   // Stamped once by normalize() when a pre-retune save is repriced.
-  const prevCurveLevel = (state as unknown as { prevCurveLevel?: number }).prevCurveLevel;
+  const prevCurveLevel = migrationFields(state).prevCurveLevel;
 
   const live = state.liveSession;
 
@@ -74,7 +76,7 @@ export default function HomeScreen() {
           Explain it once, then let them dismiss it for good. */}
       {prevCurveLevel ? (
         <Pressable
-          onPress={() => mutate(s => { delete (s as any).prevCurveLevel; })}
+          onPress={() => mutate(s => { delete migrationFields(s).prevCurveLevel; })}
           style={styles.curveNotice}
           accessibilityRole="button"
           accessibilityLabel={`Level scale updated. You were level ${prevCurveLevel}, now level ${state.level}. Tap to dismiss.`}
@@ -329,7 +331,6 @@ export default function HomeScreen() {
   );
 }
 
-import { ENGINE } from '../engine';
 
 const styles = StyleSheet.create({
   curveNotice: {

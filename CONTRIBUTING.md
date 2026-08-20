@@ -18,13 +18,18 @@ behaviour or real fonts.
 ## The checks that must pass
 
 ```bash
-npx tsc --noEmit     # types, app + engine
-npx jest             # ~250 tests
-npx eslint . --ext .ts,.tsx
+npm run typecheck    # types, app + engine
+npm test             # ~250 tests
+npm run lint
 ```
 
 CI runs the first two on every push. ESLint currently reports warnings but zero
 errors; please don't add new ones.
+
+Always go through the `npm run` scripts. `npx tsc` fetches an unrelated
+`tsc@2.0.4` package from the registry, and `npx eslint` pulls ESLint 10, which
+rejects this project's `.eslintrc.js` outright. Both look like real failures and
+neither uses the versions pinned in `package.json`.
 
 ## Where code goes
 

@@ -39,7 +39,6 @@ export interface GameState {
   energyRegenAt: string;
 
   stats: PlayerStats;
-  statGrowth: PlayerStats;
   skillPoints: number;
   skills: Record<string, number>;
 
@@ -65,7 +64,6 @@ export interface GameState {
   bonusSlots: number;
   xpMult: number;
   goldMult: number;
-  bossDamage: number;
 
   inventory: GearItem[];
   equipped: { weapon?: string; armor?: string; accessory?: string };

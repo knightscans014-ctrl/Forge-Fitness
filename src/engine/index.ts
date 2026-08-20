@@ -95,8 +95,6 @@ export const ENGINE = {
     addXP(s, q.xp);
     addGold(s, q.gold);
     s.stats[q.stat as keyof typeof s.stats] += 0.4 * statGainMult(s);
-    s.statGrowth[q.stat as keyof typeof s.statGrowth] += 0.1;
-    s.bossDamage += q.xp;
     bumpStreak(s);
     runAllChecks(s);
     checkAchievements(s);
@@ -127,7 +125,6 @@ export const ENGINE = {
     const xp = addXP(s, raw).xp;
     const gold = addGold(s, Math.round(dur * a.goldPerMin * intensity));
     s.stats[a.stat as keyof typeof s.stats] += dur * 0.12 * statGainMult(s);
-    s.statGrowth[a.stat as keyof typeof s.statGrowth] += dur * 0.02;
     s.workouts++;
     s.totalWorkoutMin += dur;
     s.workoutsToday++;
@@ -142,7 +139,6 @@ export const ENGINE = {
     trackWeekly(s, 'minWeekly', dur);
     if (a.id === 'steps') trackWeekly(s, 'stepsWeekly', Math.round(dur * 110));
     s.activities.push({ icon: a.icon, name: a.name, xp, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
-    s.bossDamage += xp;
     bumpStreak(s);
     runAllChecks(s);
     const stacks = recordStackActivity(s, actId);
@@ -181,7 +177,6 @@ export const ENGINE = {
     s.waterToday += 1;
     s.totalWater += 1;
     s.stats.vit += 0.2;
-    s.statGrowth.vit += 0.05;
     s.statsTrainedToday.vit = 1;
     // Hydration is a stack link ('water') but is not a loggable ACTIVITY, so
     // without this the Morning Rising and Gain Day chains could never close.
@@ -195,20 +190,17 @@ export const ENGINE = {
   quickSleep(s: GameState): number {
     s.sleepHours = Math.max(s.sleepHours, 8);
     s.stats.vit += 0.5;
-    s.statGrowth.vit += 0.1;
     s.statsTrainedToday.vit = 1;
     s.activitiesToday.recovery = 1;
     addXP(s, 40);
     const g = addGold(s, 15);
     recordStackActivity(s, 'recovery');
-    s.bossDamage += 40;
     return g;
   },
   quickSteps(s: GameState): number {
     s.stepsToday += 2000;
     s.stepsTodayAbs += 2000;
     s.stats.vig += 0.3;
-    s.statGrowth.vig += 0.08;
     s.statsTrainedToday.vig = 1;
     s.activitiesToday.steps = 1;
     trackWeekly(s, 'stepsWeekly', 2000);

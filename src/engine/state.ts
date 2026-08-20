@@ -115,13 +115,6 @@ export function defaultState(name: string, clsId: string): GameState {
       flx: 5 + (b.flx || 0),
       foc: 5 + (b.foc || 0),
     },
-    statGrowth: {
-      str: 1 + (b.str || 0) * 0.1,
-      vig: 1 + (b.vig || 0) * 0.1,
-      vit: 1 + (b.vit || 0) * 0.1,
-      flx: 1 + (b.flx || 0) * 0.1,
-      foc: 1 + (b.foc || 0) * 0.1,
-    },
     skillPoints: 1,
     skills: {},
     questsDone: [],
@@ -142,7 +135,6 @@ export function defaultState(name: string, clsId: string): GameState {
     bonusSlots: 0,
     xpMult: 1,
     goldMult: 1,
-    bossDamage: 0,
     inventory: [],
     equipped: {},
     daily: { lastClaim: null, claimStreak: 0 },
@@ -193,7 +185,6 @@ export function normalize(s: GameState): GameState {
   else for (const k of Object.keys(base.stats) as (keyof typeof base.stats)[]) {
     if (typeof s.stats[k] !== 'number' || !isFinite(s.stats[k])) s.stats[k] = base.stats[k];
   }
-  if (!s.statGrowth || typeof s.statGrowth !== 'object') s.statGrowth = base.statGrowth;
   if (!Array.isArray(s.questsDone)) s.questsDone = [];
   if (!Array.isArray(s.bosses)) s.bosses = [];
   if (!s.skills || typeof s.skills !== 'object') s.skills = {};

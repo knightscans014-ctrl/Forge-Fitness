@@ -61,8 +61,14 @@ function MainTabs() {
         },
         tabBarLabelStyle: { fontSize: 10, fontWeight: '800', letterSpacing: 1.2, textTransform: 'uppercase' },
         tabBarIcon: ({ focused, color }) => {
-          const cfg = TAB_ICONS[route.name] || { active: 'help', inactive: 'help' };
-          return <Icon name={focused ? cfg.active : (cfg.inactive || cfg.active)} size={22} color={color} family={cfg.family} />;
+          const cfg = TAB_ICONS[route.name];
+          if (!cfg) {
+            // A missing entry used to render a silent '?' box. Shout in dev so a
+            // renamed route can't quietly lose its icon again.
+            if (__DEV__) console.warn(`[icons] no TAB_ICONS entry for route "${route.name}"`);
+          }
+          const def = cfg || { active: 'help-circle', inactive: 'help-circle', family: 'ion' as const };
+          return <Icon name={focused ? def.active : (def.inactive || def.active)} size={22} color={color} family={def.family} />;
         },
       })}
     >

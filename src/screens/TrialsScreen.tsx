@@ -18,7 +18,7 @@ export default function TrialsScreen() {
 
   return (
     <DetailScreen title="Trials">
-      <ScreenHeader icon="sword" title="Trials" subtitle="Weekly endurance boss and training bouts" accent="#4dc3ff" />
+      <ScreenHeader icon="sword" iconFamily="mci" title="Trials" subtitle="Weekly endurance boss and training bouts" accent="#4dc3ff" />
 
       <SystemWindow label="Season" accent={colors.en}>
         <View style={s.rowBetween}>

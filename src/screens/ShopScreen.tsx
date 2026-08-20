@@ -19,7 +19,7 @@ export default function ShopScreen() {
 
   return (
     <Screen>
-      <ScreenHeader icon="store" title="Forge Shop" subtitle="Spend gold on upgrades & boosters" accent="#ffd166" />
+      <ScreenHeader icon="store" iconFamily="mci" title="Forge Shop" subtitle="Spend gold on upgrades & boosters" accent="#ffd166" />
 
       <SystemWindow label="Boosters" accent={colors.gold} glow>
         {BOOSTERS.map(b => {

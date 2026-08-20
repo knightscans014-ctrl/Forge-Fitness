@@ -1,7 +1,7 @@
 // Boss battle state machine (active, turn-based combat).
 
 import { GameState, BossDef, BossBattleState } from './types';
-import { computePower, critChance, damageResist } from './levels';
+import { computePower, critChance, damageResist, effectiveMaxHP } from './levels';
 import { addXP, addGold, dropLoot } from './rewards';
 import { dayKey } from './state';
 
@@ -86,7 +86,7 @@ export function bossStrike(s: GameState): StrikeResult | null {
   }
   if (s.hp <= 0) {
     res.playerDefeated = true;
-    s.hp = Math.max(10, Math.round((s.maxHP + s.stats.vit * 2) * 0.2));
+    s.hp = Math.max(10, Math.round(effectiveMaxHP(s) * 0.2));
     s.bossBattle = null;
     return res;
   }
@@ -97,7 +97,7 @@ export function bossHeal(s: GameState): boolean {
   if (!s.bossBattle) return false;
   if (s.gold < 20) return false;
   s.gold -= 20;
-  s.hp = Math.min(s.maxHP + s.stats.vit * 2, s.hp + 25);
+  s.hp = Math.min(effectiveMaxHP(s), s.hp + 25);
   return true;
 }
 export function retreatBoss(s: GameState): void {

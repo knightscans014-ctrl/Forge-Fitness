@@ -14,6 +14,19 @@ Licensed under [AGPL-3.0](#license).
 
 ---
 
+## Screens
+
+<p align="center">
+  <img src="docs/img/home.png" alt="Home screen: hunter status card with XP and HP bars, quick actions, daily reward track" width="24%">
+  <img src="docs/img/quests.png" alt="Missions screen: today's slate of six daily quests with XP and gold rewards" width="24%">
+  <img src="docs/img/battle.png" alt="Battle screen: boss ladder with seven milestone bosses and unlock conditions" width="24%">
+  <img src="docs/img/character.png" alt="Hunter Status screen: A-Rank card and the full rank ladder" width="24%">
+</p>
+
+<p align="center"><em>Home · Missions · Battle · Hunter Status</em></p>
+
+---
+
 ## Setup
 
 ```bash
@@ -86,6 +99,7 @@ src/screens/     UI
 src/context/     the Zustand game store
 src/components/  shared UI primitives
 src/theme/       colors and icons
+tools/           dev scripts (README screenshots) — not part of the app
 ```
 
 ---
@@ -95,6 +109,9 @@ src/theme/       colors and icons
 Issues and pull requests are welcome. Keep `npx tsc --noEmit` and `npx jest`
 green, and prefer putting logic in `src/engine/` with a test over putting it in
 a screen.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow, including how the
+screenshots above are regenerated.
 
 ---
 

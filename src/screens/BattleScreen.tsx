@@ -4,7 +4,7 @@ import { useGame } from '../context/GameContext';
 import { Screen, Pill, Btn, SystemWindow, SystemBar, CornerBrackets, ScanLines } from '../components/ui';
 import { ScreenHeader } from '../components/Header';
 import { colors } from '../theme/colors';
-import { ENGINE, BOSSES, currentBoss, bossUnlocked, computePower, critChance, damageResist } from '../engine';
+import { ENGINE, BOSSES, currentBoss, bossUnlocked, computePower, critChance, damageResist, effectiveMaxHP } from '../engine';
 
 export default function BattleScreen() {
   const state = useGame(s => s.state)!;
@@ -15,7 +15,7 @@ export default function BattleScreen() {
 
   return (
     <Screen>
-      <ScreenHeader icon="sword" title="Battle" subtitle="Slay personal milestone bosses for big rewards + loot" accent="#ff5d73" />
+      <ScreenHeader icon="sword" iconFamily="mci" title="Battle" subtitle="Slay personal milestone bosses for big rewards + loot" accent="#ff5d73" />
 
       {boss ? (
         <SystemWindow label={unlocked ? 'Target Acquired' : 'Target Locked'} accent={unlocked ? colors.crimson : colors.mut2} glow={unlocked}>
@@ -80,8 +80,8 @@ export default function BattleScreen() {
               <SystemBar pct={(battle.bossHp / battle.bossMaxHp) * 100} color={colors.crimson} height={12}
                 label={`ENEMY HP  ${battle.bossHp}/${battle.bossMaxHp}`} />
               <View style={{ height: 10 }} />
-              <SystemBar pct={(state.hp / (state.maxHP + state.stats.vit * 2)) * 100} color={colors.xpa} height={12}
-                label={`YOUR HP  ${state.hp}`} />
+              <SystemBar pct={(state.hp / effectiveMaxHP(state)) * 100} color={colors.xpa} height={12}
+                label={`YOUR HP  ${state.hp}/${effectiveMaxHP(state)}`} />
               <Text style={s.readout}>PWR {computePower(state)}   ·   EN {state.energy}   ·   STRIKE COST 4</Text>
               <View style={s.log}>
                 {battle.log.slice(-5).map((l, i) => (

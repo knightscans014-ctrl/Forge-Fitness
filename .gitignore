@@ -43,3 +43,6 @@ Thumbs.db
 coverage/
 .jest-cache/
 *.tsbuildinfo
+
+# Tooling scratch (compiled engine used by tools/, rebuilt on demand)
+tools/.engine-build/

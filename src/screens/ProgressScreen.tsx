@@ -16,7 +16,7 @@ export default function ProgressScreen() {
 
   return (
     <DetailScreen title="Progress">
-      <ScreenHeader icon="chart-box" title="Progress" subtitle="Your growth, streaks & stacks" accent="#7cffb2" />
+      <ScreenHeader icon="chart-box" iconFamily="mci" title="Progress" subtitle="Your growth, streaks & stacks" accent="#7cffb2" />
 
       <Card>
         <View style={s.rowBetween}><Text style={s.cardTitle}>📊 Workout Trend</Text>

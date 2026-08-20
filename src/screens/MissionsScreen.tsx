@@ -70,7 +70,7 @@ export default function MissionsScreen() {
       </Card>
 
       <Card border={colors.mana}>
-        <Text style={s.cardTitle}><Icon name="book-open" size={16} color={colors.mana} /> Story Arcs</Text>
+        <Text style={s.cardTitle}><Icon name="book-open" size={16} color={colors.mana} family="mci" /> Story Arcs</Text>
         {STORY_MISSIONS.map(arc => {
           const doneSteps = state.story[arc.id]?.length || 0;
           return (

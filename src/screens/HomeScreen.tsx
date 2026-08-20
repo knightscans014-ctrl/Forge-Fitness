@@ -156,7 +156,7 @@ export default function HomeScreen() {
           accessibilityLabel={`Quests. ${done} of ${quests.length} done.`}
         >
           <View style={[styles.gridIcon, { backgroundColor: colors.mana + '22' }]}>
-            <Icon name="list-circle" size={24} color={colors.mana} family="mci" />
+            <Icon name="list-circle" size={24} color={colors.mana} />
           </View>
           <Text style={styles.gridLabel}>Quests</Text>
           <Text style={styles.gridSub}>{done}/{quests.length} done</Text>
@@ -216,7 +216,7 @@ export default function HomeScreen() {
           accessibilityLabel="Progress. Analytics."
         >
           <View style={[styles.gridIcon, { backgroundColor: colors.xpa + '22' }]}>
-            <Icon name="chart-box" size={24} color={colors.xpa} />
+            <Icon name="chart-box" size={24} color={colors.xpa} family="mci" />
           </View>
           <Text style={styles.gridLabel}>Progress</Text>
           <Text style={styles.gridSub}>Analytics</Text>

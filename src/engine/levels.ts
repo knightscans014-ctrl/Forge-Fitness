@@ -99,12 +99,15 @@ export function statLevels(s: GameState) {
   for (const st of STATS) out[st.id] = Math.min(10, 1 + Math.floor(s.stats[st.id] / 4));
   return out;
 }
+// Rounded: stats.vit accrues in fractions (0.12/min), so an unrounded result
+// leaks decimals into the HP bar ("117/142.2") and into session combat math,
+// where hp is otherwise an integer.
 export function effectiveMaxHP(s: GameState): number {
   let h = s.maxHP + s.stats.vit * 2;
   if (s.cls === 'paladin') h += 15;
   const { totalAffixes } = require('./loot');
   h += totalAffixes(s).hpBonus || 0;
-  return h;
+  return Math.round(h);
 }
 import { gearPower as inventoryGearPower } from './inventory';
 export function computePower(s: GameState): number {

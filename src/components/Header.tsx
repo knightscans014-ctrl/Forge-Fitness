@@ -4,10 +4,11 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Icon } from '../theme/icons';
+import type { IconFamily } from '../theme/iconNames';
 import { colors } from '../theme/colors';
 
-export function ScreenHeader({ icon, title, subtitle, accent }: {
-  icon: string; title: string; subtitle?: string; accent?: string;
+export function ScreenHeader({ icon, iconFamily, title, subtitle, accent }: {
+  icon: string; iconFamily?: IconFamily; title: string; subtitle?: string; accent?: string;
 }) {
   const c = accent || colors.sys;
   return (
@@ -15,7 +16,7 @@ export function ScreenHeader({ icon, title, subtitle, accent }: {
       <Text style={[styles.kicker, { color: c }]}>System</Text>
       <View style={styles.row}>
         <View style={[styles.iconWrap, { borderColor: `${c}66`, backgroundColor: `${c}12` }]}>
-          <Icon name={icon} size={20} color={c} />
+          <Icon name={icon} size={20} color={c} family={iconFamily} />
           {/* corner ticks */}
           <View style={[styles.tick, { top: -1, left: -1, borderTopWidth: 2, borderLeftWidth: 2, borderColor: c }]} />
           <View style={[styles.tick, { bottom: -1, right: -1, borderBottomWidth: 2, borderRightWidth: 2, borderColor: c }]} />

@@ -103,6 +103,7 @@ export function SaveModal({ visible, onClose }: { visible: boolean; onClose: () 
                   editable={false}
                   selectTextOnFocus
                   scrollEnabled
+                  accessibilityLabel="Your backup code. Select all and copy it."
                 />
                 <Text style={s.hint}>{blob.length.toLocaleString()} characters</Text>
                 <View style={{ height: 12 }} />
@@ -122,6 +123,10 @@ export function SaveModal({ visible, onClose }: { visible: boolean; onClose: () 
                 <TextInput
                   style={[s.blob, s.blobEditable, error ? { borderColor: colors.hp } : null]}
                   value={paste}
+                  accessibilityLabel="Paste your backup code here"
+                  // The error is rendered below as text; without this the field
+                  // itself gives a screen reader no hint that it was rejected.
+                  accessibilityHint={error ?? undefined}
                   onChangeText={t => { setPaste(t); setError(null); setPending(null); }}
                   multiline
                   placeholder='{ "app": "FORGE", ... }'

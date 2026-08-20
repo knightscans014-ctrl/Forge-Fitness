@@ -10,7 +10,12 @@ export function DetailScreen({ children, title }: { children: React.ReactNode; t
   return (
     <View style={styles.screen}>
       <View style={styles.bar}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.back}>
+        <Pressable
+          onPress={() => navigation.goBack()}
+          style={styles.back}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
           <Icon name="chevron-back" size={24} color={colors.ink} />
         </Pressable>
         <Text style={styles.title}>{title}</Text>

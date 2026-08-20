@@ -50,14 +50,24 @@ export default function OnboardingScreen() {
               ))}
             </View>
 
-            <Pressable style={styles.primaryBtn} onPress={() => setStep(1)}>
+            <Pressable
+              style={styles.primaryBtn}
+              onPress={() => setStep(1)}
+              accessibilityRole="button"
+              accessibilityLabel="Get started"
+            >
               <Text style={styles.primaryBtnText}>Get Started</Text>
             </Pressable>
           </>
         ) : (
           <>
             <View style={styles.stepHeader}>
-              <Pressable onPress={() => setStep(0)} style={styles.backBtn}>
+              <Pressable
+                onPress={() => setStep(0)}
+                style={styles.backBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Go back"
+              >
                 <Icon name="chevron-back" size={22} color={colors.ink} />
               </Pressable>
               <Text style={styles.stepTitle}>Choose Your Class</Text>
@@ -67,6 +77,7 @@ export default function OnboardingScreen() {
 
             <TextInput
               style={styles.input}
+              accessibilityLabel="Adventurer name"
               placeholder="Adventurer name"
               placeholderTextColor={colors.mut2}
               maxLength={18}
@@ -81,6 +92,9 @@ export default function OnboardingScreen() {
                 <Pressable
                   key={c.id}
                   onPress={() => setCls(c.id)}
+                  accessibilityRole="radio"
+                  accessibilityLabel={`${c.name}. ${c.desc}`}
+                  accessibilityState={{ selected }}
                   style={[styles.classCard, selected && { borderColor: c.color, backgroundColor: c.color + '0d' }]}
                 >
                   <View style={[styles.classIcon, { backgroundColor: c.color + '22' }]}>
@@ -100,6 +114,8 @@ export default function OnboardingScreen() {
             <Pressable
               style={[styles.primaryBtn, { marginTop: 16 }]}
               onPress={() => newGame(name.trim() || 'Adventurer', cls)}
+              accessibilityRole="button"
+              accessibilityLabel="Begin the Forge"
             >
               <Text style={styles.primaryBtnText}>Begin the Forge</Text>
             </Pressable>

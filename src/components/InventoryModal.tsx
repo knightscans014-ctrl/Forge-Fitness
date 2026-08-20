@@ -171,6 +171,9 @@ export function InventoryModal({ visible, onClose }: { visible: boolean; onClose
             <View style={s.filterRow}>
               {(['all', 'weapon', 'armor', 'accessory'] as Filter[]).map(f => (
                 <Pressable key={f} onPress={() => setFilter(f)}
+                  accessibilityRole="radio"
+                  accessibilityLabel={`Show ${f === 'all' ? 'all items' : f + 's'}`}
+                  accessibilityState={{ selected: filter === f }}
                   style={[s.filter, filter === f && s.filterOn]}>
                   <Text style={[s.filterText, filter === f && s.filterTextOn]}>
                     {f.toUpperCase()}

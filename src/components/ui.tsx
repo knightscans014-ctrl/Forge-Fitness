@@ -4,12 +4,15 @@ import { View, Text, StyleSheet, Pressable, ActivityIndicator, ScrollView } from
 import { colors, shadows } from '../theme/colors';
 import { Icon, type IconFamily } from '../theme/icons';
 
-export function Card({ children, style, border, glow, onPress }: { 
+export function Card({ children, style, border, glow, onPress, accessibilityLabel }: { 
   children: React.ReactNode; 
   style?: any; 
   border?: string; 
   glow?: boolean;
   onPress?: () => void;
+  // A tappable Card has no inherent text of its own, so callers that make one
+  // interactive should say what it does.
+  accessibilityLabel?: string;
 }) {
   const cardStyle = [
     styles.card, 
@@ -20,10 +23,15 @@ export function Card({ children, style, border, glow, onPress }: {
   
   if (onPress) {
     return (
-      <Pressable onPress={onPress} style={({ pressed }) => [
-        cardStyle, 
-        pressed && styles.cardPressed
-      ]}>
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
+        style={({ pressed }) => [
+          cardStyle,
+          pressed && styles.cardPressed
+        ]}
+      >
         {children}
       </Pressable>
     );
@@ -75,7 +83,9 @@ export function Btn({
   small, 
   disabled,
   icon,
-  fullWidth
+  fullWidth,
+  accessibilityLabel,
+  accessibilityHint
 }: {
   title: string; 
   onPress: () => void; 
@@ -84,6 +94,10 @@ export function Btn({
   disabled?: boolean;
   icon?: string;
   fullWidth?: boolean;
+  // Defaults to `title`. Override when the visible text is not enough on its
+  // own -- e.g. a bare "Claim" that needs "Claim daily reward".
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }) {
   const bg = kind === 'gold' ? colors.gold
     : kind === 'green' ? colors.success
@@ -107,6 +121,12 @@ export function Btn({
     <Pressable 
       onPress={onPress} 
       disabled={disabled} 
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? title}
+      accessibilityHint={accessibilityHint}
+      // Screen readers announce a dimmed button as unavailable rather than
+      // letting the user activate it and wonder why nothing happened.
+      accessibilityState={{ disabled: !!disabled }}
       style={({ pressed }) => [
         styles.btn,
         { backgroundColor: bg },

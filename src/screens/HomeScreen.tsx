@@ -52,7 +52,12 @@ export default function HomeScreen() {
     <ScrollView style={styles.screen} contentContainerStyle={styles.pad} showsVerticalScrollIndicator={false}>
       {/* A running session must never be losable behind a tab. */}
       {live ? (
-        <Pressable onPress={() => navigation.navigate('SessionLive')} style={styles.liveBanner}>
+        <Pressable
+          onPress={() => navigation.navigate('SessionLive')}
+          style={styles.liveBanner}
+          accessibilityRole="button"
+          accessibilityLabel={`Session in progress: ${live.name} versus ${live.foe.name}. Resume.`}
+        >
           <Text style={styles.liveDot}>●</Text>
           <View style={{ flex: 1 }}>
             <Text style={styles.liveTitle}>SESSION IN PROGRESS</Text>
@@ -144,42 +149,72 @@ export default function HomeScreen() {
 
       {/* ===== Quick actions grid ===== */}
       <View style={styles.grid}>
-        <Pressable style={styles.gridItem} onPress={() => navigation.navigate('Quests')}>
+        <Pressable
+          style={styles.gridItem}
+          onPress={() => navigation.navigate('Quests')}
+          accessibilityRole="button"
+          accessibilityLabel={`Quests. ${done} of ${quests.length} done.`}
+        >
           <View style={[styles.gridIcon, { backgroundColor: colors.mana + '22' }]}>
             <Icon name="list-circle" size={24} color={colors.mana} family="mci" />
           </View>
           <Text style={styles.gridLabel}>Quests</Text>
           <Text style={styles.gridSub}>{done}/{quests.length} done</Text>
         </Pressable>
-        <Pressable style={styles.gridItem} onPress={() => navigation.navigate('Battle')}>
+        <Pressable
+          style={styles.gridItem}
+          onPress={() => navigation.navigate('Battle')}
+          accessibilityRole="button"
+          accessibilityLabel="Battle. Slay bosses."
+        >
           <View style={[styles.gridIcon, { backgroundColor: colors.hp + '22' }]}>
             <Icon name="sword" size={24} color={colors.hp} family="mci" />
           </View>
           <Text style={styles.gridLabel}>Battle</Text>
           <Text style={styles.gridSub}>Slay bosses</Text>
         </Pressable>
-        <Pressable style={styles.gridItem} onPress={() => navigation.navigate('LogDetail')}>
+        <Pressable
+          style={styles.gridItem}
+          onPress={() => navigation.navigate('LogDetail')}
+          accessibilityRole="button"
+          accessibilityLabel="Log. Train now."
+        >
           <View style={[styles.gridIcon, { backgroundColor: colors.en + '22' }]}>
             <Icon name="flash" size={24} color={colors.en} />
           </View>
           <Text style={styles.gridLabel}>Log</Text>
           <Text style={styles.gridSub}>Train now</Text>
         </Pressable>
-        <Pressable style={styles.gridItem} onPress={() => navigation.navigate('Character')}>
+        <Pressable
+          style={styles.gridItem}
+          onPress={() => navigation.navigate('Character')}
+          accessibilityRole="button"
+          accessibilityLabel="Character. Status and gear."
+        >
           <View style={[styles.gridIcon, { backgroundColor: colors.str + '22' }]}>
             <Icon name="shield-checkmark" size={24} color={colors.str} />
           </View>
           <Text style={styles.gridLabel}>Character</Text>
           <Text style={styles.gridSub}>Status & gear</Text>
         </Pressable>
-        <Pressable style={styles.gridItem} onPress={() => navigation.navigate('TrialsDetail')}>
+        <Pressable
+          style={styles.gridItem}
+          onPress={() => navigation.navigate('TrialsDetail')}
+          accessibilityRole="button"
+          accessibilityLabel="Trials. Weekly boss and bouts."
+        >
           <View style={[styles.gridIcon, { backgroundColor: colors.en + '22' }]}>
             <Icon name="sword" size={24} color={colors.en} family="mci" />
           </View>
           <Text style={styles.gridLabel}>Trials</Text>
           <Text style={styles.gridSub}>Weekly boss & bouts</Text>
         </Pressable>
-        <Pressable style={styles.gridItem} onPress={() => navigation.navigate('ProgressDetail')}>
+        <Pressable
+          style={styles.gridItem}
+          onPress={() => navigation.navigate('ProgressDetail')}
+          accessibilityRole="button"
+          accessibilityLabel="Progress. Analytics."
+        >
           <View style={[styles.gridIcon, { backgroundColor: colors.xpa + '22' }]}>
             <Icon name="chart-box" size={24} color={colors.xpa} />
           </View>
@@ -192,7 +227,11 @@ export default function HomeScreen() {
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Daily Reward</Text>
         {canClaim ? (
-          <Pressable style={styles.claimBtn} onPress={() => {
+          <Pressable
+            style={styles.claimBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Claim daily reward"
+            onPress={() => {
             mutate(s => {
               const r = ENGINE.claimDaily(s);
               if (r) useGame.getState().notify(`Day ${r.day} reward! +${r.gold}🪙${r.xp ? ' +' + r.xp + ' XP' : ''}${r.energy ? ' +' + r.energy + '⚡' : ''}`);
@@ -239,12 +278,20 @@ export default function HomeScreen() {
               <Icon name="sparkles" size={13} color={colors.mana} />
               <Text style={styles.sysBadgeText}>THE SYSTEM</Text>
             </View>
-            <Pressable onPress={() => mutate(s => generateSuggestion(s))}>
+            <Pressable
+              onPress={() => mutate(s => generateSuggestion(s))}
+              accessibilityRole="button"
+              accessibilityLabel="Get a different system quest"
+            >
               <Icon name="refresh" size={18} color={colors.mut} />
             </Pressable>
           </View>
           <Text style={styles.sysTitle}>{suggestion.icon} {suggestion.text}</Text>
-          <Pressable style={styles.sysBtn} onPress={() => {
+          <Pressable
+            style={styles.sysBtn}
+            accessibilityRole="button"
+            accessibilityLabel={`Complete system quest: ${suggestion.text}. Plus ${suggestion.xp} XP.`}
+            onPress={() => {
             mutate(s => { ENGINE.completeSuggestion(s); useGame.getState().notify(`System quest +${suggestion.xp} XP`); generateSuggestion(s); });
           }}>
             <Text style={styles.sysBtnText}>Complete · +{suggestion.xp} XP</Text>
@@ -255,7 +302,11 @@ export default function HomeScreen() {
       {/* ===== Today's quests preview (top 2) ===== */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Today&apos;s Quests</Text>
-        <Pressable onPress={() => navigation.navigate('Quests')}>
+        <Pressable
+          onPress={() => navigation.navigate('Quests')}
+          accessibilityRole="button"
+          accessibilityLabel="See all quests"
+        >
           <Text style={styles.seeAll}>See all</Text>
         </Pressable>
       </View>

@@ -61,7 +61,11 @@ export default function LogScreen({ navigation }: any) {
               </View>
               <View style={s.sliderRow}>
                 {[5, 15, 30, 45, 60, 90, 120].map(v => (
-                  <Pressable key={v} onPress={() => setDur(v)} style={[s.durBtn, dur === v && s.durBtnActive]}>
+                  <Pressable key={v} onPress={() => setDur(v)}
+                    accessibilityRole="radio"
+                    accessibilityLabel={`${v} minutes`}
+                    accessibilityState={{ selected: dur === v }}
+                    style={[s.durBtn, dur === v && s.durBtnActive]}>
                     <Text style={{ color: dur === v ? '#231500' : colors.ink, fontWeight: '800' }}>{v}</Text>
                   </Pressable>
                 ))}

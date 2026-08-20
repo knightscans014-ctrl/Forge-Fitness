@@ -49,7 +49,12 @@ export function AuraOverlay({ visible, title, subtitle, big, accent, onClose }: 
 
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
-      <Pressable style={s.auraBg} onPress={onClose}>
+      <Pressable
+        style={s.auraBg}
+        onPress={onClose}
+        accessibilityRole="button"
+        accessibilityLabel="Dismiss"
+      >
         <Image source={AURA_BG[bigType(title)] || AURA_BG.LEVEL} style={StyleSheet.absoluteFill} resizeMode="cover" />
         {/* Scrim: the GIFs are bright, and the headline has to stay readable. */}
         <View style={[StyleSheet.absoluteFill, s.scrim]} />

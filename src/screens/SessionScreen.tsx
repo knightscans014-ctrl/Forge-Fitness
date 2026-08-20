@@ -214,6 +214,9 @@ export default function SessionScreen({ navigation }: any) {
                 key={a.id}
                 disabled={spent}
                 onPress={() => fire(a.id)}
+                accessibilityRole="button"
+                accessibilityLabel={`${a.name}. ${spent ? 'No uses left.' : `${left} of ${a.limit} uses left.`}`}
+                accessibilityState={{ disabled: spent }}
                 style={({ pressed }) => [
                   s.ability,
                   spent && { opacity: 0.35 },

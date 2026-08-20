@@ -4,7 +4,7 @@
 // across the week, so it rewards showing up repeatedly rather than one big
 // session. Nobody else contributes; progress is entirely yours.
 
-import { GameState, WeeklyTrialState } from './types';
+import { GameState } from './types';
 import { computePower } from './levels';
 import { addXP, addGold } from './rewards';
 import { dayKey } from './state';

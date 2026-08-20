@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Modal, Pressable } from 'react-native';
 import { useGame } from '../context/GameContext';
-import { Card, Screen, Pill, Btn, StatRow } from '../components/ui';
+import { Card, Pill, Btn, StatRow } from '../components/ui';
 import { ScreenHeader } from '../components/Header';
 import { DetailScreen } from '../components/DetailScreen';
 import { colors } from '../theme/colors';
 import { ENGINE, ACTIVITIES, energyCost, xpMultNow, goldMultNow, startSession } from '../engine';
-import { SystemWindow } from '../components/ui';
+
 
 export default function LogScreen({ navigation }: any) {
   const state = useGame(s => s.state)!;

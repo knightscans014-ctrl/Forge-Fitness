@@ -1,8 +1,8 @@
 // Reward application: XP, gold, level-ups, rank-ups, criticals.
 
 import { GameState, GearItem } from './types';
-import { xpForLevel, levelFromXP, rankForLevel } from './levels';
-import { xpMultNow, goldMultNow, comboMult, critXP, boosterActive } from './state';
+import { levelFromXP, rankForLevel } from './levels';
+import { xpMultNow, goldMultNow, comboMult, critXP } from './state';
 
 export interface RewardEvent {
   xp: number;

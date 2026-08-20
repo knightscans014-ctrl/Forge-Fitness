@@ -14,13 +14,10 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated, Easing, AppState } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useGame } from '../context/GameContext';
-import { Btn, SystemWindow, SystemBar, CornerBrackets, ScanLines } from '../components/ui';
+import { Btn, SystemWindow, SystemBar } from '../components/ui';
 import { DetailScreen } from '../components/DetailScreen';
 import { colors } from '../theme/colors';
-import {
-  ENGINE, ABILITIES, tickSession, useAbility, sessionMinutes,
-  type LiveSession,
-} from '../engine';
+import { ENGINE, ABILITIES, tickSession, useAbility, sessionMinutes, type LiveSession } from '../engine';
 
 function mmss(ms: number) {
   const t = Math.max(0, Math.floor(ms / 1000));
@@ -127,6 +124,9 @@ export default function SessionScreen({ navigation }: any) {
     mutate(st => {
       if (!st.liveSession) return;
       tickSession(st, st.liveSession, Date.now());
+      // Not a React hook -- useAbility is an engine function that happens to
+      // start with "use". The rule matches on the name alone.
+      // eslint-disable-next-line react-hooks/rules-of-hooks
       res = useAbility(st, st.liveSession, abId, Date.now());
     });
     force(n => n + 1);

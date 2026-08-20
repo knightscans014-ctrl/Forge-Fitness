@@ -8,11 +8,10 @@ import { SkillTreeModal } from '../components/modals';
 import { InventoryModal } from '../components/InventoryModal';
 import { SaveModal } from '../components/SaveModal';
 import { colors } from '../theme/colors';
-import { ENGINE, STATS, RANKS, rankForLevel, nextRank, rankProgressPct, statLevels, gearById, equippedCount } from '../engine';
+import { ENGINE, STATS, RANKS, rankForLevel, nextRank, rankProgressPct, statLevels, gearById } from '../engine';
 
 export default function CharacterScreen() {
   const state = useGame(s => s.state)!;
-  const { mutate } = useGame();
   const [skillOpen, setSkillOpen] = useState(false);
   const [invOpen, setInvOpen] = useState(false);
   const [saveOpen, setSaveOpen] = useState(false);

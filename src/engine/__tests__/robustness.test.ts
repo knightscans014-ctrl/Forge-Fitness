@@ -4,11 +4,7 @@
 // account. The pre-existing 104 tests all passed while these bugs were live,
 // because they only exercised happy paths.
 
-import {
-  ENGINE, defaultState, normalize, dayKey, weekKey, padDayKey, dayChallengeSeed,
-  computePower, DAILY_CHALLENGES, MAX_ACTIVITY_MIN, MAX_INVENTORY,
-  forgeGear, autoEquipBest, totalAffixes, currentSeason, addSeasonXP,
-} from '../index';
+import { ENGINE, defaultState, normalize, dayKey, weekKey, padDayKey, dayChallengeSeed, computePower, DAILY_CHALLENGES, MAX_ACTIVITY_MIN, MAX_INVENTORY, forgeGear, autoEquipBest, totalAffixes, currentSeason, addSeasonXP } from '../index';
 import { importSave, exportSave } from '../../services/saveFile';
 import { GameState } from '../types';
 
@@ -156,7 +152,7 @@ describe('normalize is non-destructive', () => {
   test('oversized collections are capped', () => {
     const s = normalize({
       name: 'H', cls: 'warrior',
-      inventory: Array.from({ length: MAX_INVENTORY + 5000 }, (_, i) => forgeGear('weapon', 'common', 1)),
+      inventory: Array.from({ length: MAX_INVENTORY + 5000 }, () => forgeGear('weapon', 'common', 1)),
     } as unknown as GameState);
     expect(s.inventory.length).toBeLessThanOrEqual(MAX_INVENTORY);
   });

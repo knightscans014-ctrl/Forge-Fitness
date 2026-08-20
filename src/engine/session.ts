@@ -235,7 +235,7 @@ export function tickSession(s: GameState, sess: LiveSession, now: number): LiveS
     const newMins = mins - sess.lastDmgMin;
     // Per-minute damage scales with power and how hard you said you'd go.
     const per = Math.max(1, Math.round(power * 0.55 * sess.intensity));
-    let dmg = per * newMins;
+    const dmg = per * newMins;
     sess.foe.hp = Math.max(0, sess.foe.hp - dmg);
     sess.dealt += dmg;
     sess.lastDmgMin = mins;

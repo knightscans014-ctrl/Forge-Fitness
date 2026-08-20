@@ -7,7 +7,6 @@ import { useGame } from '../context/GameContext';
 
 export function ToastHost() {
   const notifications = useGame(s => s.notifications);
-  const clear = useGame(s => s.notify);
   const [msg, setMsg] = useState<string | null>(null);
   const opacity = new Animated.Value(0);
 

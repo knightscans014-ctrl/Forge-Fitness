@@ -48,7 +48,7 @@ export function completeSuggestion(s: GameState): boolean {
   if (s.energy < 6) return false;
   s.energy -= 6;
   s.suggestionDone = true;
-  const xp = addXP(s, q.xp).xp;
+  addXP(s, q.xp);
   addGold(s, q.gold);
   s.stats[q.stat as keyof typeof s.stats] += 0.5;
   return true;

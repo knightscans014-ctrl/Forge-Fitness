@@ -2,14 +2,9 @@
 // Pure logic, no rendering. Testable and portable to web/native.
 
 import { GameState } from './types';
-import {
-  dayKey, yesterdayKey, weekKey, dayChallenge, defaultState, normalize, isPremium, tierValue,
-  premiumXPBoost, premiumGoldBoost, boosterActive, boosterDef, xpMultNow, goldMultNow,
-  comboNow, comboMult, critXP, energyCost, refillEnergy, SAVE_KEY,
-  MAX_ACTIVITY_MIN, MAX_INTENSITY,
-} from './state';
+import { dayKey, yesterdayKey, weekKey, dayChallenge, defaultState, normalize, isPremium, tierValue, premiumXPBoost, premiumGoldBoost, boosterActive, boosterDef, xpMultNow, goldMultNow, comboNow, comboMult, critXP, energyCost, SAVE_KEY, MAX_ACTIVITY_MIN, MAX_INTENSITY } from './state';
 import { addXP, addGold, dropLoot } from './rewards';
-import { runAllChecks, trackWeekly, bumpStreak, dayReset, questsToday, dailyQuests, checkDailyChallenge, checkWeekly, checkStory, checkTiered, checkMilestones, weeklyVal, tieredVal } from './missions';
+import { runAllChecks, trackWeekly, bumpStreak, dayReset, questsToday, dailyQuests, checkDailyChallenge, weeklyVal, tieredVal } from './missions';
 import { startBossBattle, bossStrike, bossHeal, retreatBoss, currentBoss, bossUnlocked } from './bosses';
 import { checkAchievements } from './achievements';
 import { buySkill, statGainMult } from './skills';

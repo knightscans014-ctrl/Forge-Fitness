@@ -19,9 +19,6 @@ export function currentBoss(s: GameState): BossDef | null {
   return BOSSES.find(b => !s.bosses.includes(b.id)) || null;
 }
 export function bossUnlocked(s: GameState, b: BossDef): boolean {
-  const need: Record<string, boolean> = {
-    b1: s.bosses.length + 1 >= 0, // always available as first
-  };
   const n = {
     b1: () => questsDoneToday(s) >= 3,
     b2: () => s.streak >= 7,

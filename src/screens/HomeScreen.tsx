@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useGame } from '../context/GameContext';
 import { Icon } from '../theme/icons';
 import { colors, rankAura } from '../theme/colors';
-import { DAILY_REWARDS, rankForLevel, nextRank, rankProgressPct, xpForLevel, effectiveMaxHP, computePower, comboMult, boosterActive, boosterDef, dayChallenge, generateSuggestion } from '../engine';
+import { DAILY_REWARDS, rankForLevel, xpForLevel, effectiveMaxHP, computePower, boosterActive, generateSuggestion } from '../engine';
 
 // The art pack ships four usable portraits for six classes, so they are
 // shared deliberately rather than left all-warrior: the two heavy//melee
@@ -31,8 +31,6 @@ export default function HomeScreen() {
   }, []);
   const rk = rankForLevel(state.level);
   const aura = rankAura[rk.id] || colors.sys;
-  const nr = nextRank(state.level);
-  const rkPct = rankProgressPct(state.level);
   const xpN = xpForLevel(state.level);
   const xpP = xpForLevel(state.level + 1);
   const prog = state.totalXP - xpN;
@@ -44,8 +42,6 @@ export default function HomeScreen() {
   const canClaim = ENGINE.dailyClaimAvailable(state);
   const quests = ENGINE.dailyQuests(state);
   const done = quests.filter(q => state.questsDone.includes(q.id)).length;
-  const dc = dayChallenge(state);
-  const cmb = Math.round((comboMult(state) - 1) * 100);
   const suggestion = state.suggestion;
   // Stamped once by normalize() when a pre-retune save is repriced.
   const prevCurveLevel = (state as unknown as { prevCurveLevel?: number }).prevCurveLevel;
@@ -224,7 +220,6 @@ export default function HomeScreen() {
       {(['b_xp', 'b_gold', 'b_combo'].some(id => boosterActive(state, id)) ? (
         <View style={styles.boosterRow}>
           {['b_xp', 'b_gold', 'b_combo'].filter(id => boosterActive(state, id)).map(id => {
-            const d = boosterDef(id)!;
             const a = boosterActive(state, id)!;
             return (
               <View key={id} style={styles.boosterChip}>
@@ -259,7 +254,7 @@ export default function HomeScreen() {
 
       {/* ===== Today's quests preview (top 2) ===== */}
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Today's Quests</Text>
+        <Text style={styles.sectionTitle}>Today&apos;s Quests</Text>
         <Pressable onPress={() => navigation.navigate('Quests')}>
           <Text style={styles.seeAll}>See all</Text>
         </Pressable>

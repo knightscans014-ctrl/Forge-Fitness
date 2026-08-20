@@ -11,7 +11,7 @@
  * still means what it meant, so old saves keep working untouched. New fields
  * are optional and `normalize()` backfills them.
  */
-import type { GameState, GearItem, StatId } from './types';
+import type { GameState, GearItem } from './types';
 // boosterActive lives in state.ts, which imports this module for affix maths.
 // Required lazily at the call site to keep that cycle from forming at import
 // time.

@@ -1,6 +1,6 @@
 // Premium reusable UI primitives with modern design
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, ActivityIndicator, ScrollView, Animated } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ActivityIndicator, ScrollView } from 'react-native';
 import { colors, shadows } from '../theme/colors';
 import { Icon, type IconFamily } from '../theme/icons';
 
@@ -32,10 +32,9 @@ export function Card({ children, style, border, glow, onPress }: {
   return <View style={cardStyle}>{children}</View>;
 }
 
-export function Screen({ children, scroll = true, gradient }: { 
+export function Screen({ children, scroll = true }: { 
   children: React.ReactNode; 
   scroll?: boolean;
-  gradient?: boolean;
 }) {
   const content = <View style={styles.pad}>{children}</View>;
   if (!scroll) return <View style={styles.screen}>{content}</View>;
@@ -165,25 +164,6 @@ export function Bar({ pct, color, height = 8 }: {
         { 
           width: `${Math.max(0, Math.min(100, pct))}%`, 
           backgroundColor: color || colors.gold,
-          borderRadius: height / 2
-        }
-      ]} />
-    </View>
-  );
-}
-
-export function GradientBar({ pct, colors: gradientColors, height = 8 }: { 
-  pct: number; 
-  colors: string[];
-  height?: number;
-}) {
-  return (
-    <View style={[styles.barTrack, { height, borderRadius: height / 2, backgroundColor: colors.card3 }]}>
-      <View style={[
-        styles.barFillGradient, 
-        { 
-          width: `${Math.max(0, Math.min(100, pct))}%`,
-          height: '100%',
           borderRadius: height / 2
         }
       ]} />
@@ -462,10 +442,6 @@ const styles = StyleSheet.create({
   },
   barFill: { 
     height: '100%',
-  },
-  barFillGradient: {
-    // Note: For actual gradients, use react-native-linear-gradient
-    backgroundColor: colors.gold,
   },
   sectionHeader: { 
     flexDirection: 'row', 

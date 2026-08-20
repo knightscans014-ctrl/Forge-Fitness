@@ -9,13 +9,7 @@ import { View, Text, StyleSheet, Modal, ScrollView, Pressable } from 'react-nati
 import { useGame } from '../context/GameContext';
 import { Btn, SystemWindow, SystemLabel } from './ui';
 import { colors } from '../theme/colors';
-import {
-  SLOTS, equipGear, unequipSlot,
-  RARITIES, Rarity, GearItem,
-  affixLabel, gearScore, isUpgrade, autoEquipBest,
-  salvage, salvageJunk, activeSetBonuses, setCounts, setById,
-  totalAffixes, AFFIXES, AffixKind, equippedItems,
-} from '../engine';
+import { SLOTS, equipGear, unequipSlot, RARITIES, Rarity, GearItem, affixLabel, gearScore, isUpgrade, autoEquipBest, salvage, salvageJunk, activeSetBonuses, setCounts, setById, totalAffixes, AffixKind, equippedItems } from '../engine';
 
 const rarityColor = (r: string): string =>
   (RARITIES[r as Rarity]?.color) || colors.common;

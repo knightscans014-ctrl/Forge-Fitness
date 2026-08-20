@@ -4,10 +4,7 @@ import { useGame } from '../context/GameContext';
 import { Screen, Pill, Btn, SystemWindow, SystemBar, CornerBrackets, ScanLines } from '../components/ui';
 import { ScreenHeader } from '../components/Header';
 import { colors } from '../theme/colors';
-import {
-  ENGINE, BOSSES, currentBoss, bossUnlocked, startBossBattle, computePower,
-  critChance, damageResist,
-} from '../engine';
+import { ENGINE, BOSSES, currentBoss, bossUnlocked, computePower, critChance, damageResist } from '../engine';
 
 export default function BattleScreen() {
   const state = useGame(s => s.state)!;

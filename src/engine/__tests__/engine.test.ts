@@ -1,10 +1,4 @@
-import {
-  ENGINE, levelFromXP, rankForLevel, energyCost, addXP,
-  defaultState, xpMultNow, goldMultNow, xpForLevel, computePower,
-  startBossBattle, bossStrike, bossUnlocked, checkAchievements, buySkill, equipGear,
-  generateSuggestion, completeSuggestion, bout, nextOpponent, startTrial, trialStrike,
-  recordStackActivity, dropLoot, SKILLS,
-} from '../index';
+import { ENGINE, rankForLevel, energyCost, addXP, defaultState, xpMultNow, xpForLevel, computePower, startBossBattle, bossStrike, bossUnlocked, checkAchievements, buySkill, equipGear, generateSuggestion, completeSuggestion, bout, nextOpponent, startTrial, trialStrike, recordStackActivity, dropLoot, SKILLS } from '../index';
 
 describe('FORGE engine', () => {
   test('level curve is monotonic', () => {

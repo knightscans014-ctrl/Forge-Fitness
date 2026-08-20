@@ -1,13 +1,11 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useGame } from '../context/GameContext';
-import { Card, Screen, Pill, Bar, StatRow, SystemWindow, TierBadge, SystemBar } from '../components/ui';
+import { Card, Screen, Pill, Bar, SystemWindow, TierBadge, SystemBar } from '../components/ui';
 import { ScreenHeader } from '../components/Header';
 import { Icon } from '../theme/icons';
 import { colors } from '../theme/colors';
-import {
-  ENGINE, WEEKLY_QUESTS, STORY_MISSIONS, TIERED_MISSIONS, MILESTONE_MISSIONS,
-} from '../engine';
+import { ENGINE, WEEKLY_QUESTS, STORY_MISSIONS, TIERED_MISSIONS, MILESTONE_MISSIONS } from '../engine';
 
 export default function MissionsScreen() {
   const state = useGame(s => s.state)!;
@@ -25,7 +23,7 @@ export default function MissionsScreen() {
 
       <SystemWindow label="Daily Quests" accent={colors.sys} glow>
         <View style={s.rowBetween}>
-          <Text style={s.cardTitle}>Today's Slate</Text>
+          <Text style={s.cardTitle}>Today&apos;s Slate</Text>
           <Pill color={colors.sys}>{done}/{quests.length}</Pill>
         </View>
         <View style={{ height: 10 }} />

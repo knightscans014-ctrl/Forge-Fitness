@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useGame } from '../context/GameContext';
-import { Card, Screen, Pill, Bar } from '../components/ui';
+import { Card, Pill, Bar } from '../components/ui';
 import { ScreenHeader } from '../components/Header';
 import { DetailScreen } from '../components/DetailScreen';
 import { colors } from '../theme/colors';
-import { ENGINE, last7Days, trend, STACKS, stackProgress, ACHIEVEMENTS } from '../engine';
+import { last7Days, trend, STACKS, stackProgress, ACHIEVEMENTS } from '../engine';
 
 export default function ProgressScreen() {
   const state = useGame(s => s.state)!;

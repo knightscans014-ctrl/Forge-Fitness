@@ -16,7 +16,7 @@ import { startTrial, trialStrike, trialStatus, trialProgress } from './trials';
 import { currentSeason, addSeasonXP, seasonTier } from './seasons';
 import { bout, nextOpponent } from './bouts';
 import { bmr, tdee, macroTargets, bmi, bmiBand, defaultProfile, sanitizeProfile, logWeight, weightTrend, currentWeight, goalProgress } from './body';
-import { foods, foodById, searchFoods, macrosFor, logMeal, removeMeal, mealsOn, dayTotals, adherence, proteinHit, calorieHit, nutritionQuestMet } from './foods';
+import { foods, foodById, searchFoods, macrosFor, logMeal, removeMeal, mealsOn, dayTotals, adherence, proteinHit, calorieHit, nutritionQuestMet, addCustomFood, removeCustomFood, customFoods, CUSTOM_ID_BASE } from './foods';
 import { RATE_BAND, weeklyRate, rateVerdict, rateAdvice, weeksOnTrack, daysLogged, proteinDays, calorieDays, overloadDays, weeklyReview, weightSeries, volumeSeries } from './goals';
 import { EXERCISES, TEMPLATES } from './exercises';
 import { exerciseById, e1rm, setVolume, logSet, removeSet, setsOn, setsFor, personalBest, allPersonalBests, overloadToday, volumeOn, volumeFor, recentExercises, searchExercises, trainingQuestMet } from './training';
@@ -338,6 +338,10 @@ export const ENGINE = {
   proteinHit,
   calorieHit,
   nutritionQuestMet,
+  addCustomFood,
+  removeCustomFood,
+  customFoods,
+  CUSTOM_ID_BASE,
   EXERCISES,
   TEMPLATES,
   exerciseById,

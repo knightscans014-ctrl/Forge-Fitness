@@ -63,6 +63,25 @@ export interface FoodSearchResult {
 
 /** One logged food. Macros are stored, not recomputed, so edits to the
  *  database never rewrite history. */
+/**
+ * A food the player entered themselves.
+ *
+ * Ids start at CUSTOM_ID_BASE so they can never collide with database ids,
+ * which are array indices into foods.json. That matters because logged meals
+ * store a foodId: if the two ranges overlapped, adding rows to the database
+ * would silently repoint old meals at different foods.
+ */
+export interface CustomFood {
+  id: number;
+  name: string;
+  kcal: number;
+  protein: number;
+  carb: number;
+  fat: number;
+  portionG: number;
+  portionLabel: string;
+}
+
 export interface MealEntry {
   id: string;
   date: string;
@@ -140,6 +159,8 @@ export interface GameState {
   body: BodyProfile | null;
   /** Weigh-in history, oldest first, one entry per day, capped at 365. */
   weightLog: WeightEntry[];
+  /** Foods the player added by hand, for anything the database lacks. */
+  customFoods: CustomFood[];
   /** Logged meals across all days, capped at 2000 entries. */
   meals: MealEntry[];
   sets: SetEntry[];

@@ -13,6 +13,7 @@ import { Card, Pill, Btn, Bar, SystemLabel } from './ui';
 import { colors } from '../theme/colors';
 import {
   searchFoods, macrosFor, logMeal, removeMeal, mealsOn, dayTotals, adherence,
+  addCustomFood,
 } from '../engine';
 import type { Food, MacroTargets } from '../engine';
 
@@ -45,6 +46,8 @@ export default function NutritionPanel({ targets }: { targets: MacroTargets | nu
   const [query, setQuery] = useState('');
   const [picked, setPicked] = useState<Food | null>(null);
   const [grams, setGrams] = useState(100);
+  const [adding, setAdding] = useState(false);
+  const [draft, setDraft] = useState({ name: '', kcal: '', protein: '', carb: '', fat: '' });
 
   const today = mealsOn(state);
   const totals = dayTotals(state);
@@ -52,7 +55,10 @@ export default function NutritionPanel({ targets }: { targets: MacroTargets | nu
 
   // Debouncing is unnecessary here: the search is a synchronous pass over
   // 7,500 rows in memory, which is well under a frame.
-  const results = useMemo(() => (query.trim() ? searchFoods(query, 30) : []), [query]);
+  const results = useMemo(
+    () => (query.trim() ? searchFoods(query, 30, state) : []),
+    [query, state],
+  );
 
   const openFood = useCallback((f: Food) => {
     setPicked(f);
@@ -68,6 +74,31 @@ export default function NutritionPanel({ targets }: { targets: MacroTargets | nu
     setQuery('');
     setSearching(false);
   }, [picked, grams, mutate]);
+
+  const saveCustom = useCallback(() => {
+    const input = {
+      name: draft.name,
+      kcal: Number(draft.kcal),
+      protein: Number(draft.protein),
+      carb: Number(draft.carb),
+      fat: Number(draft.fat),
+      portionG: 100,
+      portionLabel: '100 g',
+    };
+    let made: Food | null = null;
+    mutate(st => {
+      const c = addCustomFood(st, input);
+      if (c) made = { ...c, cat: 'My foods' };
+    });
+    if (made) {
+      setAdding(false);
+      setDraft({ name: '', kcal: '', protein: '', carb: '', fat: '' });
+      openFood(made);
+    }
+  }, [draft, mutate, openFood]);
+
+  const draftValid = draft.name.trim() !== '' && draft.kcal.trim() !== '' &&
+    [draft.kcal, draft.protein, draft.carb, draft.fat].every(v => v === '' || isFinite(Number(v)));
 
   const preview = picked ? macrosFor(picked, grams) : null;
   const kcalLeft = targets ? Math.round(targets.kcal - totals.kcal) : 0;
@@ -169,10 +200,18 @@ export default function NutritionPanel({ targets }: { targets: MacroTargets | nu
                 7,500 foods, stored on your phone. Works in aeroplane mode.
               </Text>
             ) : results.length === 0 ? (
-              <Text style={s.searchHint}>
-                Nothing matched &quot;{query.trim()}&quot;. Try a simpler word — &quot;rice&quot;
-                rather than a brand name.
-              </Text>
+              <View>
+                <Text style={s.searchHint}>
+                  Nothing matched &quot;{query.trim()}&quot;. Try a simpler word — &quot;rice&quot;
+                  rather than a brand name.
+                </Text>
+                <Btn
+                  small
+                  kind="ghost"
+                  title={`Add "${query.trim().slice(0, 24)}" myself`}
+                  onPress={() => { setDraft(d => ({ ...d, name: query.trim() })); setAdding(true); }}
+                />
+              </View>
             ) : (
               <FlatList
                 data={results}
@@ -193,6 +232,60 @@ export default function NutritionPanel({ targets }: { targets: MacroTargets | nu
                 )}
               />
             )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* ---- Add your own food ---- */}
+      <Modal visible={adding} animationType="fade" transparent onRequestClose={() => setAdding(false)}>
+        <View style={s.modalWrap}>
+          <View style={s.searchCard}>
+            <View style={s.rowBetween}>
+              <Text style={s.modalTitle}>Add a food</Text>
+              <Pressable onPress={() => setAdding(false)} hitSlop={12}>
+                <Text style={s.close}>×</Text>
+              </Pressable>
+            </View>
+            <Text style={s.searchHint}>
+              Per 100 g, from the label or your own recipe. It stays on your phone
+              and shows up in search from now on.
+            </Text>
+
+            <TextInput
+              style={s.searchInput}
+              value={draft.name}
+              onChangeText={v => setDraft(d => ({ ...d, name: v }))}
+              placeholder="Name"
+              placeholderTextColor={colors.mut3}
+              accessibilityLabel="Food name"
+            />
+            <View style={s.macroGrid}>
+              {([
+                ['kcal', 'Calories'],
+                ['protein', 'Protein g'],
+                ['carb', 'Carbs g'],
+                ['fat', 'Fat g'],
+              ] as const).map(([key, label]) => (
+                <View key={key} style={s.macroField}>
+                  <Text style={s.macroFieldLabel}>{label}</Text>
+                  <TextInput
+                    style={s.macroInput}
+                    value={draft[key]}
+                    onChangeText={v => setDraft(d => ({ ...d, [key]: v.replace(/[^0-9.]/g, '') }))}
+                    keyboardType="decimal-pad"
+                    placeholder="0"
+                    placeholderTextColor={colors.mut3}
+                    accessibilityLabel={label}
+                  />
+                </View>
+              ))}
+            </View>
+
+            <Btn
+              title="Save and log it"
+              kind={draftValid ? 'primary' : 'ghost'}
+              onPress={draftValid ? saveCustom : () => {}}
+            />
           </View>
         </View>
       </Modal>
@@ -313,6 +406,13 @@ const s = StyleSheet.create({
     backgroundColor: colors.bg, borderRadius: 10, height: 46, paddingHorizontal: 14,
     color: colors.ink, fontSize: 15, fontWeight: '600', borderWidth: 1, borderColor: colors.sysFaint,
     marginBottom: 12,
+  },
+  macroGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 4, marginBottom: 10 },
+  macroField: { width: '50%', paddingRight: 8, paddingBottom: 8 },
+  macroFieldLabel: { color: colors.mut, fontSize: 11, marginBottom: 4 },
+  macroInput: {
+    backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line,
+    borderRadius: 8, color: colors.ink, paddingHorizontal: 10, paddingVertical: 8, fontSize: 15,
   },
   searchHint: { color: colors.mut2, fontSize: 12, lineHeight: 18, textAlign: 'center', marginTop: 24, paddingHorizontal: 16 },
   resultList: { flex: 1 },

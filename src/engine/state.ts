@@ -123,6 +123,7 @@ export function defaultState(name: string, clsId: string): GameState {
     body: null,
     weightLog: [],
     meals: [],
+    customFoods: [],
     sets: [],
     skillPoints: 1,
     skills: {},
@@ -213,6 +214,8 @@ export function normalize(s: GameState): GameState {
   // Body profile is optional, so an absent one is valid state, not corruption.
   // A present one is clamped: imported saves can carry a 900kg typo.
   s.body = s.body ? sanitizeProfile(s.body) : null;
+  if (!Array.isArray(s.customFoods)) s.customFoods = [];
+  else s.customFoods = s.customFoods.filter(f => f && typeof f.name === 'string' && typeof f.kcal === 'number' && isFinite(f.kcal)).slice(0, 500);
   if (!Array.isArray(s.meals)) s.meals = [];
   else s.meals = s.meals.filter(m => m && typeof m.date === 'string' && typeof m.kcal === 'number' && isFinite(m.kcal)).slice(-2000);
   if (!Array.isArray(s.sets)) s.sets = [];

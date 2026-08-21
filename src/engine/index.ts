@@ -15,6 +15,7 @@ import { recordStackActivity } from './stacking';
 import { startTrial, trialStrike, trialStatus, trialProgress } from './trials';
 import { currentSeason, addSeasonXP, seasonTier } from './seasons';
 import { bout, nextOpponent } from './bouts';
+import { bmr, tdee, macroTargets, bmi, bmiBand, defaultProfile, sanitizeProfile, logWeight, weightTrend, currentWeight, goalProgress } from './body';
 import { recordDay } from './analytics';
 import { endSession, type LiveSession } from './session';
 import { computePower, rankForLevel } from './levels';
@@ -28,6 +29,7 @@ export * from './state';
 export * from './rewards';
 export * from './missions';
 export * from './questTimer';
+export * from './body';
 export * from './bosses';
 export * from './achievements';
 export * from './skills';
@@ -291,4 +293,16 @@ export const ENGINE = {
   // training bouts
   bout,
   nextOpponent,
+  // body & nutrition targets
+  bmr,
+  tdee,
+  macroTargets,
+  bmi,
+  bmiBand,
+  defaultProfile,
+  sanitizeProfile,
+  logWeight,
+  weightTrend,
+  currentWeight,
+  goalProgress,
 };

@@ -4,6 +4,43 @@ import type { QuestTimer } from './questTimer';
 
 export type StatId = 'str' | 'vig' | 'vit' | 'flx' | 'foc';
 
+export type Sex = 'male' | 'female' | 'other';
+export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'athlete';
+export type BodyGoal = 'cut' | 'recomp' | 'bulk';
+
+/**
+ * What the player tells us about their body. Optional throughout the app: the
+ * game is fully playable without it, and every consumer treats null as
+ * "targets unavailable" rather than erroring.
+ */
+export interface BodyProfile {
+  heightCm: number;
+  weightKg: number;
+  age: number;
+  sex: Sex;
+  activity: ActivityLevel;
+  goal: BodyGoal;
+  /** Optional goal weight. null means "no target set". */
+  targetWeightKg: number | null;
+  /** Day key of the last edit. */
+  updatedAt: string;
+}
+
+/** Computed daily intake targets. Derived, never stored. */
+export interface MacroTargets {
+  kcal: number;
+  protein: number;
+  carb: number;
+  fat: number;
+  waterL: number;
+}
+
+/** One weigh-in. At most one per day; see logWeight. */
+export interface WeightEntry {
+  date: string;
+  kg: number;
+}
+
 export interface PlayerStats {
   str: number;
   vig: number;
@@ -41,6 +78,13 @@ export interface GameState {
   energyRegenAt: string;
 
   stats: PlayerStats;
+  /**
+   * Body profile, or null when the player skipped/hasn't filled it in.
+   * Nullable on purpose: onboarding lets you skip it and the game still works.
+   */
+  body: BodyProfile | null;
+  /** Weigh-in history, oldest first, one entry per day, capped at 365. */
+  weightLog: WeightEntry[];
   skillPoints: number;
   skills: Record<string, number>;
 

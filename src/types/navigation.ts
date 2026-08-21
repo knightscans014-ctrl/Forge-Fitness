@@ -18,12 +18,13 @@ export type RootStackParamList = {
   ProgressDetail: undefined;
 };
 
-/** The five tabs. Keys must match the `name` values in App.tsx's TABS. */
+/** The six tabs. Keys must match the `name` values in App.tsx's TABS. */
 export type MainTabParamList = {
   Home: undefined;
   Quests: undefined;
   Battle: undefined;
   Character: undefined;
+  Plan: undefined;
   Shop: undefined;
 };
 

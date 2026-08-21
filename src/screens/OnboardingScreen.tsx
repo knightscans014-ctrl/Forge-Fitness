@@ -3,7 +3,12 @@ import { View, Text, StyleSheet, TextInput, Pressable, ScrollView } from 'react-
 import { useGame } from '../context/GameContext';
 import { Icon } from '../theme/icons';
 import { colors } from '../theme/colors';
-import { CLASSES } from '../engine';
+import { CLASSES, ENGINE, macroTargets, defaultProfile, ACTIVITY_LABEL, GOAL_LABEL } from '../engine';
+import type { BodyProfile, ActivityLevel, BodyGoal, Sex } from '../engine';
+
+const SEXES: Sex[] = ['male', 'female', 'other'];
+const ACTS: ActivityLevel[] = ['sedentary', 'light', 'moderate', 'active', 'athlete'];
+const GOALS: BodyGoal[] = ['cut', 'recomp', 'bulk'];
 
 // Class icon mapping (vector, not emoji)
 const CLASS_ICON: Record<string, { name: string; family: 'ion' | 'mci' }> = {
@@ -17,9 +22,28 @@ const CLASS_ICON: Record<string, { name: string; family: 'ion' | 'mci' }> = {
 
 export default function OnboardingScreen() {
   const newGame = useGame(s => s.newGame);
-  const [step, setStep] = useState(0); // 0 = welcome, 1 = class select
+  const mutate = useGame(s => s.mutate);
+  const [step, setStep] = useState(0); // 0 = welcome, 1 = class select, 2 = body
   const [name, setName] = useState('');
   const [cls, setCls] = useState('warrior');
+  const [body, setBody] = useState<BodyProfile>(defaultProfile());
+
+  /**
+   * Create the save, optionally with a body profile.
+   *
+   * The profile step is skippable, and skipping has to leave a genuinely
+   * playable game -- so `withBody: false` just creates the character and the
+   * whole nutrition pillar stays dormant until they fill it in from Plan.
+   */
+  function finish(withBody: boolean) {
+    newGame(name.trim() || 'Adventurer', cls);
+    if (withBody) {
+      mutate(st => {
+        st.body = ENGINE.sanitizeProfile({ ...body, updatedAt: ENGINE.dayKey() });
+        if (st.body) ENGINE.logWeight(st, st.body.weightKg);
+      });
+    }
+  }
 
   return (
     <View style={styles.screen}>
@@ -62,7 +86,7 @@ export default function OnboardingScreen() {
               <Text style={styles.primaryBtnText}>Get Started</Text>
             </Pressable>
           </>
-        ) : (
+        ) : step === 1 ? (
           <>
             <View style={styles.stepHeader}>
               <Pressable
@@ -116,11 +140,153 @@ export default function OnboardingScreen() {
 
             <Pressable
               style={[styles.primaryBtn, { marginTop: 16 }]}
-              onPress={() => newGame(name.trim() || 'Adventurer', cls)}
+              onPress={() => setStep(2)}
+              accessibilityRole="button"
+              accessibilityLabel="Continue to body profile"
+            >
+              <Text style={styles.primaryBtnText}>Continue</Text>
+            </Pressable>
+          </>
+        ) : (
+          <>
+            <View style={styles.stepHeader}>
+              <Pressable
+                onPress={() => setStep(1)}
+                style={styles.backBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Go back"
+              >
+                <Icon name="chevron-back" size={22} color={colors.ink} />
+              </Pressable>
+              <Text style={styles.stepTitle}>Your Body</Text>
+              <View style={styles.stepSpacer} />
+            </View>
+            <Text style={styles.stepSub}>
+              So FORGE can work out how much you should eat. Stays on this device.
+              You can skip this and set it later.
+            </Text>
+
+            <View style={styles.bodyRow}>
+              <View style={styles.bodyField}>
+                <Text style={styles.bodyLabel}>Height (cm)</Text>
+                <TextInput
+                  style={styles.bodyInput}
+                  keyboardType="numeric"
+                  accessibilityLabel="Height in centimetres"
+                  value={String(body.heightCm)}
+                  onChangeText={t => {
+                    const n = parseInt(t.replace(/[^0-9]/g, ''), 10);
+                    setBody(b => ({ ...b, heightCm: isNaN(n) ? 0 : n }));
+                  }}
+                />
+              </View>
+              <View style={styles.bodyField}>
+                <Text style={styles.bodyLabel}>Weight (kg)</Text>
+                <TextInput
+                  style={styles.bodyInput}
+                  keyboardType="numeric"
+                  accessibilityLabel="Weight in kilograms"
+                  value={String(body.weightKg)}
+                  onChangeText={t => {
+                    const n = parseFloat(t.replace(/[^0-9.]/g, ''));
+                    setBody(b => ({ ...b, weightKg: isNaN(n) ? 0 : n }));
+                  }}
+                />
+              </View>
+              <View style={styles.bodyField}>
+                <Text style={styles.bodyLabel}>Age</Text>
+                <TextInput
+                  style={styles.bodyInput}
+                  keyboardType="numeric"
+                  accessibilityLabel="Age in years"
+                  value={String(body.age)}
+                  onChangeText={t => {
+                    const n = parseInt(t.replace(/[^0-9]/g, ''), 10);
+                    setBody(b => ({ ...b, age: isNaN(n) ? 0 : n }));
+                  }}
+                />
+              </View>
+            </View>
+
+            <Text style={styles.bodyLabel}>Sex</Text>
+            <View style={styles.chipWrap}>
+              {SEXES.map(v => (
+                <Pressable
+                  key={v}
+                  onPress={() => setBody(b => ({ ...b, sex: v }))}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: body.sex === v }}
+                  accessibilityLabel={v}
+                  style={[styles.chip, body.sex === v && styles.chipOn]}
+                >
+                  <Text style={[styles.chipTxt, body.sex === v && styles.chipTxtOn]}>
+                    {v[0].toUpperCase() + v.slice(1)}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+            <Text style={styles.bodyNote}>Used only by the calorie formula.</Text>
+
+            <Text style={styles.bodyLabel}>Activity level</Text>
+            <View style={styles.chipWrap}>
+              {ACTS.map(v => (
+                <Pressable
+                  key={v}
+                  onPress={() => setBody(b => ({ ...b, activity: v }))}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: body.activity === v }}
+                  accessibilityLabel={ACTIVITY_LABEL[v]}
+                  style={[styles.chip, body.activity === v && styles.chipOn]}
+                >
+                  <Text style={[styles.chipTxt, body.activity === v && styles.chipTxtOn]}>
+                    {v[0].toUpperCase() + v.slice(1)}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+            <Text style={styles.bodyNote}>{ACTIVITY_LABEL[body.activity]}</Text>
+
+            <Text style={styles.bodyLabel}>Goal</Text>
+            <View style={styles.chipWrap}>
+              {GOALS.map(v => (
+                <Pressable
+                  key={v}
+                  onPress={() => setBody(b => ({ ...b, goal: v }))}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: body.goal === v }}
+                  accessibilityLabel={GOAL_LABEL[v]}
+                  style={[styles.chip, body.goal === v && styles.chipOn]}
+                >
+                  <Text style={[styles.chipTxt, body.goal === v && styles.chipTxtOn]}>
+                    {GOAL_LABEL[v]}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            <View style={styles.previewBox}>
+              <Text style={styles.previewLabel}>Your daily target</Text>
+              <Text style={styles.previewVal}>
+                {macroTargets(body)?.kcal ?? '—'} kcal · {macroTargets(body)?.protein ?? '—'}g protein
+              </Text>
+            </View>
+
+            <Pressable
+              style={[styles.primaryBtn, { marginTop: 4 }]}
+              onPress={() => finish(true)}
               accessibilityRole="button"
               accessibilityLabel="Begin the Forge"
             >
               <Text style={styles.primaryBtnText}>Begin the Forge</Text>
+            </Pressable>
+
+            <Pressable
+              style={styles.skipBtn}
+              onPress={() => finish(false)}
+              accessibilityRole="button"
+              accessibilityLabel="Skip body profile and begin"
+            >
+              <Text style={styles.skipTxt}>Skip for now</Text>
             </Pressable>
           </>
         )}
@@ -147,6 +313,21 @@ const styles = StyleSheet.create({
   stepTitle: { color: colors.ink, fontWeight: '900', fontSize: 20 },
   stepSpacer: { width: 36 },
   stepSub: { color: colors.mut, fontSize: 13, marginBottom: 14 },
+  bodyRow: { flexDirection: 'row', gap: 10, marginBottom: 14 },
+  bodyField: { flex: 1 },
+  bodyLabel: { color: colors.mut, fontSize: 11, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6 },
+  bodyInput: { backgroundColor: colors.bg2, borderRadius: 10, paddingVertical: 11, paddingHorizontal: 12, color: colors.ink, fontSize: 17, fontWeight: '800', borderWidth: 1, borderColor: colors.sysFaint },
+  bodyNote: { color: colors.mut3, fontSize: 10.5, lineHeight: 15, marginTop: 6, marginBottom: 14 },
+  chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
+  chip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.mut3 },
+  chipOn: { backgroundColor: colors.sysDeep, borderColor: colors.sys },
+  chipTxt: { color: colors.mut, fontSize: 11.5, fontWeight: '700' },
+  chipTxtOn: { color: colors.sys },
+  previewBox: { backgroundColor: colors.bg2, borderRadius: 10, padding: 12, alignItems: 'center', marginTop: 18, marginBottom: 14, borderWidth: 1, borderColor: colors.sysFaint },
+  previewLabel: { color: colors.mut2, fontSize: 10, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' },
+  previewVal: { color: colors.sys, fontSize: 15, fontWeight: '900', marginTop: 4 },
+  skipBtn: { alignItems: 'center', paddingVertical: 14 },
+  skipTxt: { color: colors.mut2, fontSize: 13, fontWeight: '700' },
   input: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line, borderRadius: 13, padding: 13, color: colors.ink, marginBottom: 14 },
   classCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line, borderRadius: 16, padding: 14, marginBottom: 10 },
   classIcon: { width: 50, height: 50, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },

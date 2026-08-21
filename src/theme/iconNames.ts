@@ -16,6 +16,7 @@ export const TAB_ICONS: Record<string, { active: string; inactive: string; famil
   Quests: { active: 'list-circle', inactive: 'list-circle-outline' },
   Battle: { active: 'sword', inactive: 'sword', family: 'mci' },
   Character: { active: 'shield-checkmark', inactive: 'shield-checkmark-outline' },
+  Plan: { active: 'clipboard', inactive: 'clipboard-outline' },
   Log: { active: 'flash', inactive: 'flash-outline' },
   Trials: { active: 'sword', inactive: 'sword' , family: 'mci' },
   Progress: { active: 'chart-box', inactive: 'chart-box-outline', family: 'mci' },

@@ -3,8 +3,12 @@
 import { GameState } from './types';
 import type { QuestTimer } from './questTimer';
 import { CLASSES, DAILY_CHALLENGES, BOOSTERS, PREMIUM_TIERS } from './content';
+import { sanitizeProfile } from './body';
 
-export const SAVE_KEY = 'forge_save_v4';
+// Bumped to v5 when the body profile and weight log were added. Older saves
+// still load: normalize() fills the new fields with null/[] so a v4 save just
+// arrives with no profile set, exactly like a player who skipped that step.
+export const SAVE_KEY = 'forge_save_v5';
 
 const pad2 = (n: number) => (n < 10 ? '0' : '') + n;
 
@@ -116,6 +120,8 @@ export function defaultState(name: string, clsId: string): GameState {
       flx: 5 + (b.flx || 0),
       foc: 5 + (b.foc || 0),
     },
+    body: null,
+    weightLog: [],
     skillPoints: 1,
     skills: {},
     questsDone: [],
@@ -202,6 +208,17 @@ export function normalize(s: GameState): GameState {
     if (typeof s.stats[k] !== 'number' || !isFinite(s.stats[k])) s.stats[k] = base.stats[k];
   }
   if (!Array.isArray(s.questsDone)) s.questsDone = [];
+  // Body profile is optional, so an absent one is valid state, not corruption.
+  // A present one is clamped: imported saves can carry a 900kg typo.
+  s.body = s.body ? sanitizeProfile(s.body) : null;
+  if (!Array.isArray(s.weightLog)) s.weightLog = [];
+  else {
+    s.weightLog = s.weightLog
+      .filter(e => e && typeof e.date === 'string' && typeof e.kg === 'number'
+        && isFinite(e.kg) && e.kg >= 25 && e.kg <= 300)
+      .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
+      .slice(-365);
+  }
   if (!Array.isArray(s.bosses)) s.bosses = [];
   if (!s.skills || typeof s.skills !== 'object') s.skills = {};
   const num = (v: unknown, d: number) => (typeof v === 'number' && isFinite(v) ? v : d);

@@ -6,7 +6,7 @@ import type { AppNavigation } from '../types/navigation';
 import { useGame } from '../context/GameContext';
 import { Icon, icon } from '../theme/icons';
 import { colors, rankAura } from '../theme/colors';
-import { ENGINE, DAILY_REWARDS, rankForLevel, xpForLevel, effectiveMaxHP, computePower, boosterActive, generateSuggestion, migrationFields } from '../engine';
+import { ENGINE, DAILY_REWARDS, rankForLevel, xpForLevel, effectiveMaxHP, computePower, boosterActive, generateSuggestion, migrationFields, macroTargets, currentWeight, weightTrend } from '../engine';
 
 // The art pack ships four usable portraits for six classes, so they are
 // shared deliberately rather than left all-warrior: the two heavy//melee
@@ -33,6 +33,10 @@ export default function HomeScreen() {
   }, [mutate]); // stable Zustand action -- still runs once
   const rk = rankForLevel(state.level);
   const aura = rankAura[rk.id] || colors.sys;
+  // Null until the player fills in a body profile; the card hides itself.
+  const targets = macroTargets(state.body);
+  const bodyWeight = currentWeight(state);
+  const bodyTrend = weightTrend(state, 30);
   const xpN = xpForLevel(state.level);
   const xpP = xpForLevel(state.level + 1);
   const prog = state.totalXP - xpN;
@@ -272,6 +276,38 @@ export default function HomeScreen() {
         </View>
       ) : null)}
 
+      {/* ===== Daily intake targets (only once a body profile exists) ===== */}
+      {targets ? (
+        <Pressable
+          style={[styles.sysCard, { borderColor: colors.sysFaint }]}
+          onPress={() => navigation.navigate('Plan')}
+          accessibilityRole="button"
+          accessibilityLabel={`Today's targets: ${targets.kcal} calories, ${targets.protein} grams protein. Open Plan.`}
+        >
+          <View style={styles.sysHeader}>
+            <View style={styles.sysBadge}>
+              <Icon name="clipboard-outline" size={13} color={colors.sys} />
+              <Text style={[styles.sysBadgeText, { color: colors.sys }]}>TODAY&apos;S TARGETS</Text>
+            </View>
+            <Icon name="chevron-forward" size={16} color={colors.mut} />
+          </View>
+          <View style={styles.targetRow}>
+            <View style={styles.targetCell}>
+              <Text style={styles.targetVal}>{targets.kcal}</Text>
+              <Text style={styles.targetKey}>kcal</Text>
+            </View>
+            <View style={styles.targetCell}>
+              <Text style={styles.targetVal}>{targets.protein}g</Text>
+              <Text style={styles.targetKey}>protein</Text>
+            </View>
+            <View style={styles.targetCell}>
+              <Text style={styles.targetVal}>{bodyWeight || '—'}</Text>
+              <Text style={styles.targetKey}>kg{bodyTrend != null && bodyTrend !== 0 ? ` (${bodyTrend > 0 ? '+' : ''}${bodyTrend})` : ''}</Text>
+            </View>
+          </View>
+        </Pressable>
+      ) : null}
+
       {/* ===== The System suggestion ===== */}
       {suggestion && !state.suggestionDone ? (
         <View style={[styles.sysCard, { borderColor: colors.mana }]}>
@@ -405,6 +441,10 @@ const styles = StyleSheet.create({
   boosterChip: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.card2, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999 },
   boosterText: { color: colors.gold, fontWeight: '800', fontSize: 13 },
   sysCard: { borderWidth: 1, borderRadius: 18, padding: 16, marginTop: 16, backgroundColor: colors.card },
+  targetRow: { flexDirection: 'row', gap: 8, marginTop: 4 },
+  targetCell: { flex: 1, alignItems: 'center' },
+  targetVal: { color: colors.sys, fontSize: 22, fontWeight: '900' },
+  targetKey: { color: colors.mut2, fontSize: 10, fontWeight: '700', marginTop: 2 },
   sysHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sysBadge: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   sysBadgeText: { color: colors.mana, fontWeight: '800', fontSize: 11, letterSpacing: 1 },

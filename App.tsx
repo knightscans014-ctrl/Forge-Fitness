@@ -23,6 +23,7 @@ import SessionScreen from './src/screens/SessionScreen';
 import TrialsScreen from './src/screens/TrialsScreen';
 import ShopScreen from './src/screens/ShopScreen';
 import ProgressScreen from './src/screens/ProgressScreen';
+import PlanScreen from './src/screens/PlanScreen';
 
 import type { RootStackParamList, MainTabParamList } from './src/types/navigation';
 
@@ -31,11 +32,13 @@ export type { RootStackParamList, MainTabParamList } from './src/types/navigatio
 const Tab = createBottomTabNavigator<MainTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-// Consolidated tab set (5 tabs, everything else is a detail screen).
+// Consolidated tab set (6 tabs, everything else is a detail screen).
+// Six is the practical ceiling on a phone -- past that the labels collide.
 const TABS = [
   { name: 'Home', component: HomeScreen, title: 'Home' },
   { name: 'Quests', component: MissionsScreen, title: 'Quests' },
   { name: 'Battle', component: BattleScreen, title: 'Battle' },
+  { name: 'Plan', component: PlanScreen, title: 'Plan' },
   { name: 'Character', component: CharacterScreen, title: 'Character' },
   { name: 'Shop', component: ShopScreen, title: 'Shop' },
 ] as const;

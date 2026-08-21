@@ -1,0 +1,103 @@
+name: Build APK
+
+# Manual only. Building the APK takes ~10-15 minutes, so it does not belong on
+# every push -- the CI workflow already guards correctness on those.
+on:
+  workflow_dispatch:
+    inputs:
+      variant:
+        description: 'Which build to produce'
+        type: choice
+        default: release
+        options: [release, debug]
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # Expo SDK 51 / AGP 8 need JDK 17. The runner ships several; pin it.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # Android SDK is preinstalled on ubuntu-latest, so there is nothing to
+      # download here -- this just puts gradle's caches on the actions cache.
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Install dependencies
+        run: npm ci
+
+      # `android/` is gitignored: this is a managed Expo project, so the native
+      # project is generated from app.json rather than committed. Regenerating
+      # it every run means app.json stays the single source of truth for
+      # version, icons and permissions.
+      - name: Generate the native Android project
+        run: npx expo prebuild --platform android --no-install
+
+      # Without a keystore the release build is signed with Expo's debug key.
+      # That installs fine for sideloading but Play will reject it, and every
+      # machine's debug key differs, so upgrades break. Supplying the three
+      # secrets below switches to a real signing key.
+      - name: Set up the release keystore
+        id: keystore
+        if: github.event.inputs.variant == 'release'
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then
+            echo "::warning::No ANDROID_KEYSTORE_BASE64 secret set - falling back to the debug key. Fine for sideloading, NOT publishable to Play."
+            echo "signed=debug" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "$KEYSTORE_B64" | base64 -d > android/app/release.keystore
+          {
+            echo "FORGE_UPLOAD_STORE_FILE=release.keystore"
+            echo "FORGE_UPLOAD_STORE_PASSWORD=$STORE_PASSWORD"
+            echo "FORGE_UPLOAD_KEY_ALIAS=$KEY_ALIAS"
+            echo "FORGE_UPLOAD_KEY_PASSWORD=$KEY_PASSWORD"
+          } >> android/gradle.properties
+          # Point the release buildType at the real key instead of the debug one.
+          python3 "$GITHUB_WORKSPACE/.github/scripts/sign_release.py"
+          echo "signed=release" >> "$GITHUB_OUTPUT"
+
+      - name: Build the APK
+        working-directory: android
+        run: |
+          if [ "${{ github.event.inputs.variant }}" = "debug" ]; then
+            ./gradlew assembleDebug --no-daemon --stacktrace
+          else
+            ./gradlew assembleRelease --no-daemon --stacktrace
+          fi
+
+      - name: Report what was built
+        run: |
+          echo "### APK built" >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.keystore.outputs.signed }}" = "debug" ]; then
+            echo '⚠️ Signed with the **debug key** - sideload only, not publishable.' >> "$GITHUB_STEP_SUMMARY"
+            echo '' >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo '| file | size |' >> "$GITHUB_STEP_SUMMARY"
+          echo '|---|---|' >> "$GITHUB_STEP_SUMMARY"
+          find android/app/build/outputs/apk -name '*.apk' -printf '| %f | %s bytes |\n' \
+            >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: forge-apk-${{ github.event.inputs.variant }}
+          path: android/app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
+          retention-days: 14

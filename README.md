@@ -55,6 +55,24 @@ Use the `npm run` scripts rather than `npx tsc` / `npx eslint` directly — `npx
 will silently download an unrelated package (`tsc@2.0.4`) or a major version
 the config doesn't match, instead of using the pinned local binary.
 
+### Building an APK
+
+There is no `android/` folder in the repo — this is a managed Expo project, so
+the native project is generated from `app.json`:
+
+```bash
+npx expo prebuild --platform android
+```
+
+Then open the generated **`android/`** folder in Android Studio (not the repo
+root), or run `cd android && ./gradlew assembleRelease`.
+
+You can also build without any local Android tooling: **Actions → Build APK →
+Run workflow**.
+
+Full instructions, including signing keys and troubleshooting, are in
+[BUILDING.md](BUILDING.md).
+
 ---
 
 ## How it works

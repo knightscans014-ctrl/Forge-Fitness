@@ -16,6 +16,7 @@ import { startTrial, trialStrike, trialStatus, trialProgress } from './trials';
 import { currentSeason, addSeasonXP, seasonTier } from './seasons';
 import { bout, nextOpponent } from './bouts';
 import { bmr, tdee, macroTargets, bmi, bmiBand, defaultProfile, sanitizeProfile, logWeight, weightTrend, currentWeight, goalProgress } from './body';
+import { foods, foodById, searchFoods, macrosFor, logMeal, removeMeal, mealsOn, dayTotals, adherence, proteinHit, calorieHit, nutritionQuestMet } from './foods';
 import { recordDay } from './analytics';
 import { endSession, type LiveSession } from './session';
 import { computePower, rankForLevel } from './levels';
@@ -30,6 +31,7 @@ export * from './rewards';
 export * from './missions';
 export * from './questTimer';
 export * from './body';
+export * from './foods';
 export * from './bosses';
 export * from './achievements';
 export * from './skills';
@@ -105,6 +107,13 @@ export const ENGINE = {
       const t = s.questTimer;
       if (!t || t.questId !== qid || !timerDone(t, now)) return false;
     }
+    // Same principle for the nutrition quests the food log can actually
+    // check. "Hit your protein target" stopped being an honour-system tick
+    // the moment meals became real data, so it is now earned by eating, not
+    // by tapping. Quests the log cannot prove -- cooking from scratch, no
+    // sugar -- return null here and keep the instant button.
+    const fed = nutritionQuestMet(s, qid, macroTargets(s.body));
+    if (fed === false) return false;
     if (s.energy < energyCost(10)) return false;
     s.energy -= energyCost(10);
     // Consume the timer so its slot frees up for the next quest.
@@ -305,4 +314,17 @@ export const ENGINE = {
   weightTrend,
   currentWeight,
   goalProgress,
+  // food database & meal log
+  foods,
+  foodById,
+  searchFoods,
+  macrosFor,
+  logMeal,
+  removeMeal,
+  mealsOn,
+  dayTotals,
+  adherence,
+  proteinHit,
+  calorieHit,
+  nutritionQuestMet,
 };

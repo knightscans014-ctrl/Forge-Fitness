@@ -6,7 +6,7 @@ import type { AppNavigation } from '../types/navigation';
 import { useGame } from '../context/GameContext';
 import { Icon, icon } from '../theme/icons';
 import { colors, rankAura } from '../theme/colors';
-import { ENGINE, DAILY_REWARDS, rankForLevel, xpForLevel, effectiveMaxHP, computePower, boosterActive, generateSuggestion, migrationFields, macroTargets, currentWeight, weightTrend } from '../engine';
+import { ENGINE, DAILY_REWARDS, rankForLevel, xpForLevel, effectiveMaxHP, computePower, boosterActive, generateSuggestion, migrationFields, macroTargets, currentWeight, weightTrend, dayTotals } from '../engine';
 
 // The art pack ships four usable portraits for six classes, so they are
 // shared deliberately rather than left all-warrior: the two heavy//melee
@@ -35,6 +35,9 @@ export default function HomeScreen() {
   const aura = rankAura[rk.id] || colors.sys;
   // Null until the player fills in a body profile; the card hides itself.
   const targets = macroTargets(state.body);
+  // What has actually gone in today, so the card reports progress rather than
+  // just restating the target back at you.
+  const eaten = dayTotals(state);
   const bodyWeight = currentWeight(state);
   const bodyTrend = weightTrend(state, 30);
   const xpN = xpForLevel(state.level);
@@ -282,28 +285,40 @@ export default function HomeScreen() {
           style={[styles.sysCard, { borderColor: colors.sysFaint }]}
           onPress={() => navigation.navigate('Plan')}
           accessibilityRole="button"
-          accessibilityLabel={`Today's targets: ${targets.kcal} calories, ${targets.protein} grams protein. Open Plan.`}
+          accessibilityLabel={`Today: ${eaten.kcal} of ${targets.kcal} calories, ${Math.round(eaten.protein)} of ${targets.protein} grams protein. Open Plan.`}
         >
           <View style={styles.sysHeader}>
             <View style={styles.sysBadge}>
               <Icon name="clipboard-outline" size={13} color={colors.sys} />
-              <Text style={[styles.sysBadgeText, { color: colors.sys }]}>TODAY&apos;S TARGETS</Text>
+              <Text style={[styles.sysBadgeText, { color: colors.sys }]}>TODAY&apos;S INTAKE</Text>
             </View>
             <Icon name="chevron-forward" size={16} color={colors.mut} />
           </View>
           <View style={styles.targetRow}>
             <View style={styles.targetCell}>
-              <Text style={styles.targetVal}>{targets.kcal}</Text>
+              <Text style={styles.targetVal}>
+                {eaten.kcal}
+                <Text style={styles.targetOf}> / {targets.kcal}</Text>
+              </Text>
               <Text style={styles.targetKey}>kcal</Text>
             </View>
             <View style={styles.targetCell}>
-              <Text style={styles.targetVal}>{targets.protein}g</Text>
+              <Text style={styles.targetVal}>
+                {Math.round(eaten.protein)}
+                <Text style={styles.targetOf}> / {targets.protein}g</Text>
+              </Text>
               <Text style={styles.targetKey}>protein</Text>
             </View>
             <View style={styles.targetCell}>
               <Text style={styles.targetVal}>{bodyWeight || '—'}</Text>
               <Text style={styles.targetKey}>kg{bodyTrend != null && bodyTrend !== 0 ? ` (${bodyTrend > 0 ? '+' : ''}${bodyTrend})` : ''}</Text>
             </View>
+          </View>
+          <View style={styles.intakeBarTrack}>
+            <View style={[styles.intakeBarFill, {
+              width: `${Math.min(100, targets.kcal > 0 ? (eaten.kcal / targets.kcal) * 100 : 0)}%`,
+              backgroundColor: eaten.kcal > targets.kcal * 1.1 ? colors.warning : colors.sys,
+            }]} />
           </View>
         </Pressable>
       ) : null}
@@ -445,6 +460,9 @@ const styles = StyleSheet.create({
   targetCell: { flex: 1, alignItems: 'center' },
   targetVal: { color: colors.sys, fontSize: 22, fontWeight: '900' },
   targetKey: { color: colors.mut2, fontSize: 10, fontWeight: '700', marginTop: 2 },
+  targetOf: { color: colors.mut2, fontSize: 12, fontWeight: '700' },
+  intakeBarTrack: { height: 5, borderRadius: 3, backgroundColor: colors.bg2, overflow: 'hidden', marginTop: 10 },
+  intakeBarFill: { height: 5, borderRadius: 3 },
   sysHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sysBadge: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   sysBadgeText: { color: colors.mana, fontWeight: '800', fontSize: 11, letterSpacing: 1 },

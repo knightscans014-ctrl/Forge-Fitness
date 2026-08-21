@@ -41,6 +41,40 @@ export interface WeightEntry {
   kg: number;
 }
 
+/** One food in the offline database. */
+export interface Food {
+  id: number;
+  name: string;
+  cat: string;
+  /** Per 100g. */
+  kcal: number;
+  protein: number;
+  carb: number;
+  fat: number;
+  /** Household portion in grams, 0 when the source had none. */
+  portionG: number;
+  portionLabel: string;
+}
+
+export interface FoodSearchResult {
+  food: Food;
+  score: number;
+}
+
+/** One logged food. Macros are stored, not recomputed, so edits to the
+ *  database never rewrite history. */
+export interface MealEntry {
+  id: string;
+  date: string;
+  foodId: number;
+  name: string;
+  grams: number;
+  kcal: number;
+  protein: number;
+  carb: number;
+  fat: number;
+}
+
 export interface PlayerStats {
   str: number;
   vig: number;
@@ -85,6 +119,8 @@ export interface GameState {
   body: BodyProfile | null;
   /** Weigh-in history, oldest first, one entry per day, capped at 365. */
   weightLog: WeightEntry[];
+  /** Logged meals across all days, capped at 2000 entries. */
+  meals: MealEntry[];
   skillPoints: number;
   skills: Record<string, number>;
 

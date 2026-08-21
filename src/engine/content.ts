@@ -134,6 +134,7 @@ export const DAILY_POOL: Quest[] = [
   { id: 'q_nu05', icon: '🥣', title: 'Real Breakfast', stat: 'vit', type: 'nutrition', min: 1, desc: 'Eat a real breakfast with protein', xp: 50, gold: 16, tier: 'light' },
   { id: 'q_nu06', icon: '🌃', title: 'Kitchen Closed', stat: 'vit', type: 'nutrition', min: 1, desc: 'Nothing after 9pm', xp: 85, gold: 27, tier: 'core' },
   { id: 'q_nu07', icon: '🍎', title: 'Whole Foods Day', stat: 'vit', type: 'nutrition', min: 1, desc: 'Nothing from a packet all day', xp: 150, gold: 47, tier: 'elite' },
+  { id: 'q_nu08', icon: '🎯', title: 'Calorie Target', stat: 'vit', type: 'nutrition', min: 1, desc: 'Land within 10% of your calorie target', xp: 110, gold: 34, tier: 'core' },
 
   // ---- sleep & recovery ----
   { id: 'q_sl01', icon: '🕚', title: 'Early Lights', stat: 'vit', type: 'sleep', min: 1, desc: 'In bed before 11pm', xp: 90, gold: 28, tier: 'core' },

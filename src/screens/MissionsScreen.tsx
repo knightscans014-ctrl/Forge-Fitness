@@ -5,7 +5,7 @@ import { Card, Screen, Pill, Bar, SystemWindow, TierBadge, SystemBar } from '../
 import { ScreenHeader } from '../components/Header';
 import { Icon } from '../theme/icons';
 import { colors } from '../theme/colors';
-import { ENGINE, WEEKLY_QUESTS, STORY_MISSIONS, TIERED_MISSIONS, MILESTONE_MISSIONS, milestoneStats, timedQuest } from '../engine';
+import { ENGINE, WEEKLY_QUESTS, STORY_MISSIONS, TIERED_MISSIONS, MILESTONE_MISSIONS, milestoneStats, timedQuest, nutritionQuestMet, macroTargets } from '../engine';
 import QuestTimerRow from '../components/QuestTimer';
 
 export default function MissionsScreen() {
@@ -17,6 +17,11 @@ export default function MissionsScreen() {
   useEffect(() => { mutateFn(() => {}); }, [mutateFn]); // stable Zustand action
   const quests = ENGINE.dailyQuests(state);
   const done = quests.filter(q => state.questsDone.includes(q.id)).length;
+
+  // Which nutrition quests the meal log has actually earned today.
+  // null means the quest is not something the log can verify.
+  const bodyTargets = macroTargets(state.body);
+  const fedCheck = (qid: string) => nutritionQuestMet(state, qid, bodyTargets);
 
   return (
     <Screen>
@@ -49,7 +54,12 @@ export default function MissionsScreen() {
                   // one is to let its clock finish. Counters and flags keep the
                   // plain button -- no clock could verify those anyway.
                   ? <QuestTimerRow quest={q} timer={state.questTimer} />
-                  : <Btn small title="Complete" onPress={() => useGame.getState().mutate(s => ENGINE.completeQuest(s, q.id))} />}
+                  // Nutrition quests the food log can prove are earned by
+                  // eating, not by tapping. Showing the button greyed out with
+                  // the reason beats a button that silently does nothing.
+                  : fedCheck(q.id) === false
+                    ? <Text style={s.locked}>Log your food</Text>
+                    : <Btn small title="Complete" onPress={() => useGame.getState().mutate(st => ENGINE.completeQuest(st, q.id))} />}
             </View>
           );
         })}
@@ -170,6 +180,7 @@ const s = StyleSheet.create({
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
   reward: { color: colors.gold, fontSize: 11, fontWeight: '700', marginTop: 3, letterSpacing: 0.4 },
   hint: { color: colors.mut2, fontSize: 11, marginTop: 6, marginBottom: 2 },
+  locked: { color: colors.mut2, fontSize: 10.5, fontWeight: '800', letterSpacing: 0.5, textAlign: 'right', maxWidth: 76 },
   desc: { color: colors.mut, fontSize: 11.5 },
   reqLine: { color: colors.mut2, fontSize: 10.5, marginTop: 1 },
   tierRow: { flexDirection: 'row', gap: 4 },

@@ -4,7 +4,7 @@ import { GameState } from './types';
 import {
   WEEKLY_QUESTS, STORY_MISSIONS, TIERED_MISSIONS, MILESTONE_MISSIONS, DAILY_POOL, DAILY_CHALLENGES,
 } from './content';
-import { dayKey, yesterdayKey, weekKey } from './state';
+import { dayKey, weekKey } from './state';
 import { addXP, addGold } from './rewards';
 
 /** How many quests of each difficulty make up a day's slate. */
@@ -124,13 +124,56 @@ export function dayReset(s: GameState): void {
     if (s.combo.date !== dayKey()) s.combo = { n: 0, date: dayKey() };
   }
 }
+/**
+ * How many consecutive missed days a streak survives.
+ *
+ * Rest is part of training, not a failure of it. Punishing a rest day teaches
+ * people to train through fatigue to protect a number, which is how injuries
+ * happen -- and a streak that dies on one missed day is a streak most people
+ * abandon entirely by week three. One day of slack keeps the streak honest
+ * (it still requires showing up regularly) without making it a liability.
+ */
+export const STREAK_GRACE_DAYS = 1;
+
+/**
+ * Days between two dayKeys. Parses at local noon so DST transitions, which
+ * shift midnight by an hour, cannot round the difference to the wrong integer.
+ */
+function daysBetween(from: string, to: string): number {
+  const a = new Date(from + 'T12:00:00');
+  const b = new Date(to + 'T12:00:00');
+  if (isNaN(a.getTime()) || isNaN(b.getTime())) return Infinity;
+  return Math.round((b.getTime() - a.getTime()) / 86400000);
+}
+
 export function bumpStreak(s: GameState): void {
   const today = dayKey();
   if (s.lastActiveDay === today) return;
-  if (yesterdayKey() === s.lastActiveDay) s.streak++;
+
+  const gap = s.lastActiveDay ? daysBetween(s.lastActiveDay, today) : Infinity;
+  // gap of 1 is a normal consecutive day; up to 1 + grace is a rest day.
+  if (gap >= 1 && gap <= 1 + STREAK_GRACE_DAYS) s.streak++;
   else s.streak = 1;
+
   s.lastActiveDay = today;
   s.bestStreak = Math.max(s.bestStreak, s.streak);
+}
+
+/**
+ * Whether the streak is still alive without training today.
+ *
+ * Read-only: the UI uses it to warn "train today or lose your streak" rather
+ * than to silently reset it. `null` means there is no streak to lose.
+ */
+export function streakStatus(s: GameState): { alive: boolean; atRisk: boolean; daysIdle: number } | null {
+  if (!s.streak || !s.lastActiveDay) return null;
+  const gap = daysBetween(s.lastActiveDay, dayKey());
+  if (gap <= 0) return { alive: true, atRisk: false, daysIdle: 0 };
+  return {
+    alive: gap <= 1 + STREAK_GRACE_DAYS,
+    atRisk: gap === 1 + STREAK_GRACE_DAYS,
+    daysIdle: gap,
+  };
 }
 
 export interface MissionResult { kind: string; name: string; xp: number; gold: number; }

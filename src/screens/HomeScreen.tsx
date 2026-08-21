@@ -6,7 +6,7 @@ import type { AppNavigation } from '../types/navigation';
 import { useGame } from '../context/GameContext';
 import { Icon, icon } from '../theme/icons';
 import { colors, rankAura } from '../theme/colors';
-import { ENGINE, DAILY_REWARDS, rankForLevel, xpForLevel, effectiveMaxHP, computePower, boosterActive, generateSuggestion, migrationFields, macroTargets, currentWeight, weightTrend, dayTotals } from '../engine';
+import { ENGINE, DAILY_REWARDS, rankForLevel, xpForLevel, effectiveMaxHP, computePower, boosterActive, generateSuggestion, migrationFields, macroTargets, currentWeight, weightTrend, dayTotals, streakStatus } from '../engine';
 
 // The art pack ships four usable portraits for six classes, so they are
 // shared deliberately rather than left all-warrior: the two heavy//melee
@@ -38,6 +38,7 @@ export default function HomeScreen() {
   // What has actually gone in today, so the card reports progress rather than
   // just restating the target back at you.
   const eaten = dayTotals(state);
+  const streak = streakStatus(state);
   const bodyWeight = currentWeight(state);
   const bodyTrend = weightTrend(state, 30);
   const xpN = xpForLevel(state.level);
@@ -59,6 +60,22 @@ export default function HomeScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.pad} showsVerticalScrollIndicator={false}>
+      {/* Warn before the streak dies, rather than resetting it silently.
+          Only shown on the last day it can still be saved. */}
+      {streak && streak.atRisk ? (
+        <View style={styles.streakWarn}>
+          <Text style={styles.streakWarnIcon}>🔥</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.streakWarnTitle}>
+              {state.streak}-day streak at risk
+            </Text>
+            <Text style={styles.streakWarnSub}>
+              Train today to keep it. Rest days are fine — two in a row is not.
+            </Text>
+          </View>
+        </View>
+      ) : null}
+
       {/* A running session must never be losable behind a tab. */}
       {live ? (
         <Pressable
@@ -417,6 +434,15 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 16, elevation: 6,
   },
+  streakWarn: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: 'rgba(255,184,77,0.10)',
+    borderWidth: 1, borderColor: colors.warning,
+    borderRadius: 12, padding: 12, marginBottom: 12,
+  },
+  streakWarnIcon: { fontSize: 22 },
+  streakWarnTitle: { color: colors.warning, fontWeight: '800', fontSize: 14 },
+  streakWarnSub: { color: colors.mut, fontSize: 12, marginTop: 2 },
   liveBanner: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     borderWidth: 1, borderColor: 'rgba(255,45,85,0.55)', borderRadius: 5,

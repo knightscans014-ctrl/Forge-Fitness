@@ -90,7 +90,10 @@ export default function MissionsScreen() {
                 return (
                   <View key={i} style={[s.rowItem, d && { opacity: 0.5 }]}>
                     <Text style={{ fontSize: 18 }}>{st.icon}</Text>
-                    <View style={{ flex: 1 }}><Text style={s.desc}>{d ? '✓ ' : ''}{st.name}</Text></View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={s.desc}>{d ? '✓ ' : ''}{st.name}</Text>
+                      <Text style={s.reqLine}>{st.req}</Text>
+                    </View>
                   </View>
                 );
               })}
@@ -168,6 +171,7 @@ const s = StyleSheet.create({
   reward: { color: colors.gold, fontSize: 11, fontWeight: '700', marginTop: 3, letterSpacing: 0.4 },
   hint: { color: colors.mut2, fontSize: 11, marginTop: 6, marginBottom: 2 },
   desc: { color: colors.mut, fontSize: 11.5 },
+  reqLine: { color: colors.mut2, fontSize: 10.5, marginTop: 1 },
   tierRow: { flexDirection: 'row', gap: 4 },
   tag: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, borderWidth: 1, borderColor: colors.line, color: colors.mut, fontSize: 10 },
 });

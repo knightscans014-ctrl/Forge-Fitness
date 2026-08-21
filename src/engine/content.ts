@@ -70,33 +70,33 @@ export const DAILY_POOL: Quest[] = [
   { id: 'q_f', icon: '🤸', title: 'Mobility Master', stat: 'flx', type: 'mobility', min: 15, desc: '15+ min stretch/yoga', xp: 70, gold: 22, tier: 'core' },
   { id: 'q_v', icon: '🥗', title: 'Fuel Day', stat: 'vit', type: 'nutrition', min: 1, desc: 'Log a clean meal', xp: 55, gold: 18, tier: 'light' },
   { id: 'q_h2', icon: '🚰', title: 'Hydrate Hard', stat: 'vit', type: 'water', min: 3, desc: 'Log 3L of water', xp: 90, gold: 28, tier: 'core' },
-  { id: 'q_w3', icon: '🦾', title: 'Push Power', stat: 'str', type: 'strength', min: 10, desc: 'Heavy compound lift session', xp: 100, gold: 30, tier: 'core' },
+  { id: 'q_w3', icon: '🦾', title: 'Push Power', stat: 'str', type: 'strength', min: 10, desc: 'Squat, deadlift or bench — heavy, 20+ min', xp: 100, gold: 30, tier: 'core' },
 
   // ---- strength ----
   { id: 'q_st01', icon: '🔩', title: 'Iron Warmup', stat: 'str', type: 'strength', min: 10, desc: '10 min of lifting, nothing heroic', xp: 55, gold: 18, tier: 'light' },
-  { id: 'q_st02', icon: '🫸', title: 'Push Day', stat: 'str', type: 'strength', min: 30, desc: 'Chest, shoulders and triceps session', xp: 95, gold: 30, tier: 'core' },
-  { id: 'q_st03', icon: '🫷', title: 'Pull Day', stat: 'str', type: 'strength', min: 30, desc: 'Back and biceps session', xp: 95, gold: 30, tier: 'core' },
-  { id: 'q_st04', icon: '🦵', title: 'Leg Day', stat: 'str', type: 'strength', min: 35, desc: 'Do not skip it', xp: 105, gold: 33, tier: 'core' },
+  { id: 'q_st02', icon: '🫸', title: 'Push Day', stat: 'str', type: 'strength', min: 30, desc: 'Bench, overhead press, dips — 20+ min', xp: 95, gold: 30, tier: 'core' },
+  { id: 'q_st03', icon: '🫷', title: 'Pull Day', stat: 'str', type: 'strength', min: 30, desc: 'Rows, pull-ups, curls — 20+ min', xp: 95, gold: 30, tier: 'core' },
+  { id: 'q_st04', icon: '🦵', title: 'Leg Day', stat: 'str', type: 'strength', min: 35, desc: 'Squats, lunges, leg press — 20+ min', xp: 105, gold: 33, tier: 'core' },
   { id: 'q_st05', icon: '🅿️', title: 'Century Pushups', stat: 'str', type: 'strength', min: 100, desc: '100 pushups across the day', xp: 140, gold: 45, tier: 'elite' },
   { id: 'q_st06', icon: '🪑', title: 'Fifty Squats', stat: 'str', type: 'strength', min: 50, desc: '50 bodyweight squats', xp: 85, gold: 27, tier: 'core' },
   { id: 'q_st07', icon: '🧗', title: 'Dead Hang', stat: 'str', type: 'strength', min: 1, desc: 'Hang from a bar for 60 seconds total', xp: 50, gold: 16, tier: 'light' },
   { id: 'q_st08', icon: '🧱', title: 'Plank Protocol', stat: 'str', type: 'strength', min: 3, desc: 'Hold a plank for 3 minutes total', xp: 60, gold: 20, tier: 'light' },
   { id: 'q_st09', icon: '🪝', title: 'Pull-Up Set', stat: 'str', type: 'strength', min: 25, desc: '25 pull-ups or rows', xp: 100, gold: 32, tier: 'core' },
-  { id: 'q_st10', icon: '⚰️', title: 'Deadlift Trial', stat: 'str', type: 'strength', min: 1, desc: 'A real working deadlift session', xp: 160, gold: 50, tier: 'elite' },
-  { id: 'q_st11', icon: '🛏️', title: 'Bench Trial', stat: 'str', type: 'strength', min: 1, desc: 'A real working bench session', xp: 150, gold: 48, tier: 'elite' },
-  { id: 'q_st12', icon: '🤏', title: 'Grip Forge', stat: 'str', type: 'strength', min: 5, desc: 'Farmer carries or dedicated grip work', xp: 55, gold: 18, tier: 'light' },
+  { id: 'q_st10', icon: '⚰️', title: 'Deadlift Trial', stat: 'str', type: 'strength', min: 1, desc: 'Deadlifts — work up to a heavy set, 20+ min', xp: 160, gold: 50, tier: 'elite' },
+  { id: 'q_st11', icon: '🛏️', title: 'Bench Trial', stat: 'str', type: 'strength', min: 1, desc: 'Bench press — work up to a heavy set, 20+ min', xp: 150, gold: 48, tier: 'elite' },
+  { id: 'q_st12', icon: '🤏', title: 'Grip Forge', stat: 'str', type: 'strength', min: 5, desc: 'Farmer carries or dead hangs — 10+ min', xp: 55, gold: 18, tier: 'light' },
   { id: 'q_st13', icon: '🎯', title: 'Core Circuit', stat: 'str', type: 'strength', min: 10, desc: '10 minutes of dedicated core work', xp: 80, gold: 26, tier: 'core' },
-  { id: 'q_st14', icon: '📈', title: 'Progressive Overload', stat: 'str', type: 'strength', min: 1, desc: 'Beat a previous lift on weight or reps', xp: 175, gold: 55, tier: 'elite' },
+  { id: 'q_st14', icon: '📈', title: 'Progressive Overload', stat: 'str', type: 'strength', min: 1, desc: 'Beat a past lift by 1 rep or 2.5kg', xp: 175, gold: 55, tier: 'elite' },
   { id: 'q_st15', icon: '🔔', title: 'Kettlebell Storm', stat: 'str', type: 'strength', min: 15, desc: '15 min of kettlebell work', xp: 90, gold: 28, tier: 'core' },
   { id: 'q_st16', icon: '💥', title: 'Burpee Gauntlet', stat: 'str', type: 'strength', min: 75, desc: '75 burpees, however long it takes', xp: 155, gold: 48, tier: 'elite' },
   { id: 'q_st17', icon: '🤸', title: 'Calisthenics Flow', stat: 'str', type: 'strength', min: 20, desc: 'Bodyweight circuit for 20 min', xp: 95, gold: 30, tier: 'core' },
-  { id: 'q_st18', icon: '🧰', title: 'Accessory Work', stat: 'str', type: 'strength', min: 12, desc: 'Train the small muscles you keep ignoring', xp: 75, gold: 24, tier: 'light' },
+  { id: 'q_st18', icon: '🧰', title: 'Accessory Work', stat: 'str', type: 'strength', min: 12, desc: 'Calves, rear delts, forearms — 10+ min', xp: 75, gold: 24, tier: 'light' },
 
   // ---- cardio ----
   { id: 'q_cd01', icon: '🚶', title: 'Easy Miles', stat: 'vig', type: 'cardio', min: 10, desc: '10+ min of easy cardio', xp: 50, gold: 16, tier: 'light' },
   { id: 'q_cd02', icon: '⏱️', title: 'Tempo Run', stat: 'vig', type: 'cardio', min: 25, desc: '25 min at a pace you can barely hold', xp: 100, gold: 32, tier: 'core' },
   { id: 'q_cd03', icon: '⚡', title: 'Interval Assault', stat: 'vig', type: 'cardio', min: 8, desc: '8 rounds of hard intervals', xp: 165, gold: 52, tier: 'elite' },
-  { id: 'q_cd04', icon: '⛰️', title: 'Hill Climb', stat: 'vig', type: 'cardio', min: 20, desc: 'Run or walk a route with real elevation', xp: 95, gold: 30, tier: 'core' },
+  { id: 'q_cd04', icon: '⛰️', title: 'Hill Climb', stat: 'vig', type: 'cardio', min: 20, desc: 'Run or walk a hilly route — 20+ min', xp: 95, gold: 30, tier: 'core' },
   { id: 'q_cd05', icon: '🛣️', title: 'The Long Run', stat: 'vig', type: 'cardio', min: 60, desc: '60+ min of continuous cardio', xp: 190, gold: 60, tier: 'elite' },
   { id: 'q_cd06', icon: '🏁', title: 'Sprint Set', stat: 'vig', type: 'cardio', min: 10, desc: '10 all-out sprints', xp: 105, gold: 33, tier: 'core' },
   { id: 'q_cd07', icon: '🚲', title: 'Cycle Circuit', stat: 'vig', type: 'cardio', min: 30, desc: '30 min on the bike', xp: 100, gold: 31, tier: 'core' },
@@ -107,7 +107,7 @@ export const DAILY_POOL: Quest[] = [
   { id: 'q_cd12', icon: '🚣', title: 'Row Trial', stat: 'vig', type: 'cardio', min: 2000, desc: '2,000m on the rower', xp: 110, gold: 34, tier: 'core' },
   { id: 'q_cd13', icon: '🥊', title: 'Shadow Boxing', stat: 'vig', type: 'cardio', min: 8, desc: '8 min of shadow boxing', xp: 60, gold: 20, tier: 'light' },
   { id: 'q_cd14', icon: '🔥', title: 'HIIT Burst', stat: 'vig', type: 'cardio', min: 20, desc: '20 min of high-intensity intervals', xp: 150, gold: 47, tier: 'elite' },
-  { id: 'q_cd15', icon: '🌄', title: 'Sunrise Cardio', stat: 'vig', type: 'cardio', min: 15, desc: 'Cardio before the day starts on you', xp: 85, gold: 27, tier: 'core' },
+  { id: 'q_cd15', icon: '🌄', title: 'Sunrise Cardio', stat: 'vig', type: 'cardio', min: 15, desc: '15+ min cardio before 9am', xp: 85, gold: 27, tier: 'core' },
 
   // ---- steps ----
   { id: 'q_sp01', icon: '🌅', title: 'Morning Walk', stat: 'vig', type: 'steps', min: 3000, desc: '3,000 steps before noon', xp: 50, gold: 16, tier: 'light' },
@@ -115,7 +115,7 @@ export const DAILY_POOL: Quest[] = [
   { id: 'q_sp03', icon: '🍽️', title: 'Lunch Loop', stat: 'vig', type: 'steps', min: 1000, desc: 'Walk after a meal', xp: 45, gold: 15, tier: 'light' },
   { id: 'q_sp04', icon: '🔢', title: 'Twelve Thousand', stat: 'vig', type: 'steps', min: 12000, desc: 'Reach 12,000 steps', xp: 140, gold: 44, tier: 'elite' },
   { id: 'q_sp05', icon: '🏔️', title: 'Fifteen Thousand', stat: 'vig', type: 'steps', min: 15000, desc: 'Reach 15,000 steps', xp: 180, gold: 56, tier: 'elite' },
-  { id: 'q_sp06', icon: '🚫', title: 'No Lifts Today', stat: 'vig', type: 'steps', min: 1, desc: 'Take the stairs every single time', xp: 80, gold: 25, tier: 'core' },
+  { id: 'q_sp06', icon: '🚫', title: 'No Lifts Today', stat: 'vig', type: 'steps', min: 1, desc: 'Stairs only — no lifts or escalators all day', xp: 80, gold: 25, tier: 'core' },
   { id: 'q_sp07', icon: '🌙', title: 'Evening Stroll', stat: 'vig', type: 'steps', min: 20, desc: 'Walk 20 minutes after sunset', xp: 55, gold: 18, tier: 'light' },
   { id: 'q_sp08', icon: '🎒', title: 'Commute on Foot', stat: 'vig', type: 'steps', min: 1, desc: 'Walk part of your commute', xp: 85, gold: 27, tier: 'core' },
   { id: 'q_sp09', icon: '🎧', title: 'Podcast Walk', stat: 'vig', type: 'steps', min: 30, desc: 'One episode, one walk', xp: 70, gold: 22, tier: 'light' },
@@ -131,7 +131,7 @@ export const DAILY_POOL: Quest[] = [
   { id: 'q_nu02', icon: '🥦', title: 'Greens Twice', stat: 'vit', type: 'nutrition', min: 2, desc: 'Vegetables at two separate meals', xp: 55, gold: 18, tier: 'light' },
   { id: 'q_nu03', icon: '🚭', title: 'No Added Sugar', stat: 'vit', type: 'nutrition', min: 1, desc: 'A full day with no added sugar', xp: 145, gold: 45, tier: 'elite' },
   { id: 'q_nu04', icon: '🍳', title: 'Cook It Yourself', stat: 'vit', type: 'nutrition', min: 1, desc: 'Cook one meal from scratch', xp: 90, gold: 28, tier: 'core' },
-  { id: 'q_nu05', icon: '🥣', title: 'Real Breakfast', stat: 'vit', type: 'nutrition', min: 1, desc: 'Eat a breakfast worth the name', xp: 50, gold: 16, tier: 'light' },
+  { id: 'q_nu05', icon: '🥣', title: 'Real Breakfast', stat: 'vit', type: 'nutrition', min: 1, desc: 'Eat a real breakfast with protein', xp: 50, gold: 16, tier: 'light' },
   { id: 'q_nu06', icon: '🌃', title: 'Kitchen Closed', stat: 'vit', type: 'nutrition', min: 1, desc: 'Nothing after 9pm', xp: 85, gold: 27, tier: 'core' },
   { id: 'q_nu07', icon: '🍎', title: 'Whole Foods Day', stat: 'vit', type: 'nutrition', min: 1, desc: 'Nothing from a packet all day', xp: 150, gold: 47, tier: 'elite' },
 
@@ -139,12 +139,12 @@ export const DAILY_POOL: Quest[] = [
   { id: 'q_sl01', icon: '🕚', title: 'Early Lights', stat: 'vit', type: 'sleep', min: 1, desc: 'In bed before 11pm', xp: 90, gold: 28, tier: 'core' },
   { id: 'q_sl02', icon: '🛌', title: 'Eight Hours', stat: 'vit', type: 'sleep', min: 8, desc: 'Get 8h+ of sleep', xp: 140, gold: 44, tier: 'elite' },
   { id: 'q_sl03', icon: '📵', title: 'No Screens', stat: 'vit', type: 'sleep', min: 30, desc: 'No screens for 30 min before bed', xp: 85, gold: 27, tier: 'core' },
-  { id: 'q_sl04', icon: '🏖️', title: 'Rest Day Honoured', stat: 'vit', type: 'sleep', min: 1, desc: 'Take a deliberate, guilt-free rest day', xp: 55, gold: 18, tier: 'light' },
+  { id: 'q_sl04', icon: '🏖️', title: 'Rest Day Honoured', stat: 'vit', type: 'sleep', min: 1, desc: 'Full rest day — no training, on purpose', xp: 55, gold: 18, tier: 'light' },
   { id: 'q_sl05', icon: '💤', title: 'Power Nap', stat: 'vit', type: 'sleep', min: 20, desc: 'A 20 minute nap', xp: 45, gold: 15, tier: 'light' },
-  { id: 'q_rc01', icon: '🚿', title: 'Cold Finish', stat: 'vit', type: 'recovery', min: 1, desc: 'End your shower cold', xp: 80, gold: 25, tier: 'core' },
+  { id: 'q_rc01', icon: '🚿', title: 'Cold Finish', stat: 'vit', type: 'recovery', min: 1, desc: 'Finish your shower with 60s cold', xp: 80, gold: 25, tier: 'core' },
   { id: 'q_rc02', icon: '🧻', title: 'Foam Roll', stat: 'vit', type: 'recovery', min: 10, desc: '10 min on the foam roller', xp: 55, gold: 18, tier: 'light' },
   { id: 'q_rc03', icon: '☀️', title: 'Daylight', stat: 'vit', type: 'recovery', min: 15, desc: '15 min of real daylight', xp: 50, gold: 16, tier: 'light' },
-  { id: 'q_rc04', icon: '🩹', title: 'Tend the Weak Link', stat: 'vit', type: 'recovery', min: 10, desc: 'Rehab whatever is nagging you', xp: 95, gold: 30, tier: 'core' },
+  { id: 'q_rc04', icon: '🩹', title: 'Tend the Weak Link', stat: 'vit', type: 'recovery', min: 10, desc: '10+ min rehab on a nagging joint or muscle', xp: 95, gold: 30, tier: 'core' },
 
   // ---- mobility ----
   { id: 'q_mb01', icon: '🌤️', title: 'Wake-Up Stretch', stat: 'flx', type: 'mobility', min: 5, desc: '5 min of morning stretching', xp: 45, gold: 15, tier: 'light' },
@@ -153,14 +153,14 @@ export const DAILY_POOL: Quest[] = [
   { id: 'q_mb04', icon: '💁', title: 'Shoulder Care', stat: 'flx', type: 'mobility', min: 8, desc: 'Run the shoulder mobility routine', xp: 55, gold: 18, tier: 'light' },
   { id: 'q_mb05', icon: '🕸️', title: 'Deep Stretch', stat: 'flx', type: 'mobility', min: 30, desc: '30 min of deep stretching', xp: 135, gold: 42, tier: 'elite' },
   { id: 'q_mb06', icon: '🪟', title: 'Desk Breaks', stat: 'flx', type: 'mobility', min: 1, desc: 'Stand and stretch every hour', xp: 85, gold: 27, tier: 'core' },
-  { id: 'q_mb07', icon: '🦴', title: 'Joint Prep', stat: 'flx', type: 'mobility', min: 6, desc: 'Ankles and wrists, before they complain', xp: 50, gold: 16, tier: 'light' },
+  { id: 'q_mb07', icon: '🦴', title: 'Joint Prep', stat: 'flx', type: 'mobility', min: 6, desc: 'Ankle and wrist circles — 5+ min', xp: 50, gold: 16, tier: 'light' },
   { id: 'q_mb08', icon: '🩰', title: 'Splits Progress', stat: 'flx', type: 'mobility', min: 20, desc: '20 min working toward the splits', xp: 140, gold: 44, tier: 'elite' },
-  { id: 'q_mb09', icon: '🐈', title: 'Spine Flow', stat: 'flx', type: 'mobility', min: 8, desc: 'Cat-cow and thoracic rotations', xp: 80, gold: 26, tier: 'core' },
+  { id: 'q_mb09', icon: '🐈', title: 'Spine Flow', stat: 'flx', type: 'mobility', min: 8, desc: 'Cat-cow and thoracic rotations — 5+ min', xp: 80, gold: 26, tier: 'core' },
   { id: 'q_mb10', icon: '🧗', title: 'Full Range', stat: 'flx', type: 'mobility', min: 1, desc: 'Take every lift through its full range', xp: 110, gold: 34, tier: 'core' },
 
   // ---- focus & mind ----
   { id: 'q_md01', icon: '🫧', title: 'Two Minutes', stat: 'foc', type: 'meditation', min: 2, desc: 'Meditate for two minutes. That is all', xp: 45, gold: 15, tier: 'light' },
-  { id: 'q_md02', icon: '🌬️', title: 'Breath Ladder', stat: 'foc', type: 'meditation', min: 1, desc: 'Twenty slow, counted breaths', xp: 50, gold: 16, tier: 'light' },
+  { id: 'q_md02', icon: '🌬️', title: 'Breath Ladder', stat: 'foc', type: 'meditation', min: 1, desc: 'Box breathing — 20 slow counted breaths', xp: 50, gold: 16, tier: 'light' },
   { id: 'q_md03', icon: '🗿', title: 'Half Hour Still', stat: 'foc', type: 'meditation', min: 30, desc: 'Meditate for 30 minutes', xp: 160, gold: 50, tier: 'elite' },
   { id: 'q_md04', icon: '📴', title: 'Digital Fast', stat: 'foc', type: 'focus', min: 120, desc: 'Two hours with no phone', xp: 150, gold: 47, tier: 'elite' },
   { id: 'q_md05', icon: '📓', title: 'Journal Entry', stat: 'foc', type: 'focus', min: 1, desc: 'Write down how training actually went', xp: 85, gold: 27, tier: 'core' },
@@ -173,20 +173,20 @@ export const DAILY_POOL: Quest[] = [
   { id: 'q_md12', icon: '🧿', title: 'Body Scan', stat: 'foc', type: 'meditation', min: 12, desc: 'A 12 minute body scan', xp: 90, gold: 28, tier: 'core' },
 
   // ---- mixed discipline ----
-  { id: 'q_mx01', icon: '♻️', title: 'Double Session', stat: 'vig', type: 'mixed', min: 2, desc: 'Train twice in one day', xp: 185, gold: 58, tier: 'elite' },
+  { id: 'q_mx01', icon: '♻️', title: 'Double Session', stat: 'vig', type: 'mixed', min: 2, desc: 'Two separate sessions in one day', xp: 185, gold: 58, tier: 'elite' },
   { id: 'q_mx02', icon: '🧩', title: 'Full Body Sweep', stat: 'foc', type: 'mixed', min: 3, desc: 'Train three different stats today', xp: 170, gold: 53, tier: 'elite' },
   { id: 'q_mx03', icon: '📝', title: 'Log Everything', stat: 'foc', type: 'mixed', min: 1, desc: 'Log every activity, even the bad ones', xp: 50, gold: 16, tier: 'light' },
-  { id: 'q_mx04', icon: '😤', title: 'Zero Excuses', stat: 'str', type: 'mixed', min: 1, desc: 'Train on a day you did not want to', xp: 110, gold: 34, tier: 'core' },
+  { id: 'q_mx04', icon: '😤', title: 'Zero Excuses', stat: 'str', type: 'mixed', min: 1, desc: 'Train anyway — 20+ min on a low-motivation day', xp: 110, gold: 34, tier: 'core' },
   { id: 'q_mx05', icon: '🔄', title: 'Bookends', stat: 'flx', type: 'mixed', min: 1, desc: 'Warm up and cool down properly', xp: 80, gold: 25, tier: 'core' },
-  { id: 'q_mx06', icon: '🌳', title: 'Train Outdoors', stat: 'vig', type: 'mixed', min: 1, desc: 'Take the session outside', xp: 90, gold: 28, tier: 'core' },
-  { id: 'q_mx07', icon: '🤝', title: 'Bring Someone', stat: 'vit', type: 'mixed', min: 1, desc: 'Train with a friend', xp: 95, gold: 30, tier: 'core' },
+  { id: 'q_mx06', icon: '🌳', title: 'Train Outdoors', stat: 'vig', type: 'mixed', min: 1, desc: 'Train outdoors — 20+ min', xp: 90, gold: 28, tier: 'core' },
+  { id: 'q_mx07', icon: '🤝', title: 'Bring Someone', stat: 'vit', type: 'mixed', min: 1, desc: 'Train with a friend — 20+ min', xp: 95, gold: 30, tier: 'core' },
   { id: 'q_mx08', icon: '⏭️', title: 'Beat Yesterday', stat: 'vig', type: 'mixed', min: 1, desc: 'Exceed yesterday total minutes', xp: 150, gold: 47, tier: 'elite' },
   { id: 'q_mx09', icon: '🌞', title: 'Dawn Session', stat: 'str', type: 'mixed', min: 1, desc: 'Finish training before 9am', xp: 100, gold: 31, tier: 'core' },
   { id: 'q_mx10', icon: '⚖️', title: 'Weigh In', stat: 'vit', type: 'mixed', min: 1, desc: 'Record your weight without flinching', xp: 45, gold: 15, tier: 'light' },
   { id: 'q_mx11', icon: '👕', title: 'Kit Ready', stat: 'foc', type: 'mixed', min: 1, desc: 'Lay out tomorrow training kit', xp: 45, gold: 15, tier: 'light' },
   { id: 'q_mx12', icon: '🔟', title: 'Ten Minute Rule', stat: 'str', type: 'mixed', min: 10, desc: 'Start a session even if only for 10 min', xp: 50, gold: 16, tier: 'light' },
   { id: 'q_mx13', icon: '🥇', title: 'Perfect Day', stat: 'vit', type: 'mixed', min: 1, desc: 'Train, hydrate, sleep well. All three', xp: 200, gold: 62, tier: 'elite' },
-  { id: 'q_mx14', icon: '🧭', title: 'New Ground', stat: 'vig', type: 'mixed', min: 1, desc: 'Try a movement you have never done', xp: 120, gold: 38, tier: 'core' },
+  { id: 'q_mx14', icon: '🧭', title: 'New Ground', stat: 'vig', type: 'mixed', min: 1, desc: 'Try one movement you have never done before', xp: 120, gold: 38, tier: 'core' },
 ];
 
 export interface WeeklyQuest {
@@ -217,7 +217,13 @@ export const WEEKLY_QUESTS: WeeklyQuest[] = [
 
 export interface StoryMissionStep {
   icon: string;
+  /** Flavour name, e.g. 'First Blood'. */
   name: string;
+  /**
+   * Plain-language requirement, e.g. 'Log 1 workout'. Always shown next to
+   * `name` so the player can tell what the step actually asks for.
+   */
+  req: string;
   xp: number;
   gold: number;
   check: (s: GameState) => boolean;
@@ -231,109 +237,109 @@ export const STORY_MISSIONS: StoryMission[] = [
   {
     id: 'sm1', icon: '🌅', name: 'The Awakening Arc', color: '#ffd166',
     steps: [
-      { icon: '💪', name: 'First Blood', xp: 60, gold: 20, check: s => s.workouts >= 1 },
-      { icon: '🌟', name: 'Rising Hunter', xp: 100, gold: 30, check: s => s.level >= 3 },
-      { icon: '🐉', name: 'First Slay', xp: 150, gold: 50, check: s => s.bosses.length >= 1 },
-      { icon: '👑', name: 'The Awakening', xp: 250, gold: 100, check: s => s.level >= 6 },
+      { icon: '💪', name: 'First Blood', req: 'Log 1 workout', xp: 60, gold: 20, check: s => s.workouts >= 1 },
+      { icon: '🌟', name: 'Rising Hunter', req: 'Reach level 3', xp: 100, gold: 30, check: s => s.level >= 3 },
+      { icon: '🐉', name: 'First Slay', req: 'Defeat 1 boss', xp: 150, gold: 50, check: s => s.bosses.length >= 1 },
+      { icon: '👑', name: 'The Awakening', req: 'Reach level 6', xp: 250, gold: 100, check: s => s.level >= 6 },
     ],
   },
   {
     id: 'sm2', icon: '🔥', name: 'Habit Flame Arc', color: '#ff8a5c',
     steps: [
-      { icon: '🔥', name: 'Ignition', xp: 80, gold: 25, check: s => s.streak >= 3 },
-      { icon: '⚡', name: 'Unbroken', xp: 150, gold: 50, check: s => s.streak >= 7 },
-      { icon: '🌋', name: 'Blazing', xp: 300, gold: 100, check: s => s.streak >= 14 },
-      { icon: '☄️', name: 'Inextinguishable', xp: 700, gold: 240, check: s => s.bestStreak >= 30 },
+      { icon: '🔥', name: 'Ignition', req: 'Hold a 3-day streak', xp: 80, gold: 25, check: s => s.streak >= 3 },
+      { icon: '⚡', name: 'Unbroken', req: 'Hold a 7-day streak', xp: 150, gold: 50, check: s => s.streak >= 7 },
+      { icon: '🌋', name: 'Blazing', req: 'Hold a 14-day streak', xp: 300, gold: 100, check: s => s.streak >= 14 },
+      { icon: '☄️', name: 'Inextinguishable', req: 'Reach a 30-day best streak', xp: 700, gold: 240, check: s => s.bestStreak >= 30 },
     ],
   },
   {
     id: 'sm3', icon: '⚡', name: 'Volume Arc', color: '#4dc3ff',
     steps: [
-      { icon: '🏋️', name: 'Novice', xp: 80, gold: 25, check: s => s.workouts >= 5 },
-      { icon: '💪', name: 'Consistent', xp: 200, gold: 70, check: s => s.workouts >= 20 },
-      { icon: '🦾', name: 'Machine', xp: 500, gold: 180, check: s => s.workouts >= 50 },
-      { icon: '🗿', name: 'Monument', xp: 1200, gold: 420, check: s => s.workouts >= 150 },
+      { icon: '🏋️', name: 'Novice', req: 'Log 5 workouts', xp: 80, gold: 25, check: s => s.workouts >= 5 },
+      { icon: '💪', name: 'Consistent', req: 'Log 20 workouts', xp: 200, gold: 70, check: s => s.workouts >= 20 },
+      { icon: '🦾', name: 'Machine', req: 'Log 50 workouts', xp: 500, gold: 180, check: s => s.workouts >= 50 },
+      { icon: '🗿', name: 'Monument', req: 'Log 150 workouts', xp: 1200, gold: 420, check: s => s.workouts >= 150 },
     ],
   },
   {
     id: 'sm4', icon: '⛓️', name: 'The Iron Path', color: '#ff8a5c',
     steps: [
-      { icon: '🔩', name: 'Pick Up the Bar', xp: 70, gold: 22, check: s => s.stats.str >= 10 },
-      { icon: '🛠️', name: 'Forged', xp: 180, gold: 60, check: s => s.stats.str >= 25 },
-      { icon: '⚒️', name: 'Tempered', xp: 420, gold: 150, check: s => s.stats.str >= 50 },
-      { icon: '🗡️', name: 'Living Weapon', xp: 900, gold: 320, check: s => s.stats.str >= 100 },
+      { icon: '🔩', name: 'Pick Up the Bar', req: 'Reach 10 Strength', xp: 70, gold: 22, check: s => s.stats.str >= 10 },
+      { icon: '🛠️', name: 'Forged', req: 'Reach 25 Strength', xp: 180, gold: 60, check: s => s.stats.str >= 25 },
+      { icon: '⚒️', name: 'Tempered', req: 'Reach 50 Strength', xp: 420, gold: 150, check: s => s.stats.str >= 50 },
+      { icon: '🗡️', name: 'Living Weapon', req: 'Reach 100 Strength', xp: 900, gold: 320, check: s => s.stats.str >= 100 },
     ],
   },
   {
     id: 'sm5', icon: '🛣️', name: 'The Long Road', color: '#4dc3ff',
     steps: [
-      { icon: '👟', name: 'First Mile', xp: 70, gold: 22, check: s => s.stats.vig >= 10 },
-      { icon: '🏃', name: 'Wind at Your Back', xp: 180, gold: 60, check: s => s.stats.vig >= 25 },
-      { icon: '🌬️', name: 'Endless Lungs', xp: 420, gold: 150, check: s => s.stats.vig >= 50 },
-      { icon: '🦅', name: 'Untiring', xp: 900, gold: 320, check: s => s.stats.vig >= 100 },
+      { icon: '👟', name: 'First Mile', req: 'Reach 10 Vigour', xp: 70, gold: 22, check: s => s.stats.vig >= 10 },
+      { icon: '🏃', name: 'Wind at Your Back', req: 'Reach 25 Vigour', xp: 180, gold: 60, check: s => s.stats.vig >= 25 },
+      { icon: '🌬️', name: 'Endless Lungs', req: 'Reach 50 Vigour', xp: 420, gold: 150, check: s => s.stats.vig >= 50 },
+      { icon: '🦅', name: 'Untiring', req: 'Reach 100 Vigour', xp: 900, gold: 320, check: s => s.stats.vig >= 100 },
     ],
   },
   {
     id: 'sm6', icon: '🕯️', name: 'Stillness Arc', color: '#b18cff',
     steps: [
-      { icon: '🫧', name: 'Sit Down', xp: 70, gold: 22, check: s => s.stats.foc >= 10 },
-      { icon: '🧘', name: 'Quiet Mind', xp: 180, gold: 60, check: s => s.stats.foc >= 25 },
-      { icon: '🌌', name: 'Unshakeable', xp: 420, gold: 150, check: s => s.stats.foc >= 50 },
-      { icon: '🔮', name: 'Clear as Glass', xp: 900, gold: 320, check: s => s.stats.foc >= 100 },
+      { icon: '🫧', name: 'Sit Down', req: 'Reach 10 Focus', xp: 70, gold: 22, check: s => s.stats.foc >= 10 },
+      { icon: '🧘', name: 'Quiet Mind', req: 'Reach 25 Focus', xp: 180, gold: 60, check: s => s.stats.foc >= 25 },
+      { icon: '🌌', name: 'Unshakeable', req: 'Reach 50 Focus', xp: 420, gold: 150, check: s => s.stats.foc >= 50 },
+      { icon: '🔮', name: 'Clear as Glass', req: 'Reach 100 Focus', xp: 900, gold: 320, check: s => s.stats.foc >= 100 },
     ],
   },
   {
     id: 'sm7', icon: '🌿', name: 'The Supple Arc', color: '#7cffb2',
     steps: [
-      { icon: '🤸', name: 'Loosen Up', xp: 70, gold: 22, check: s => s.stats.flx >= 10 },
-      { icon: '🧎', name: 'Range Restored', xp: 180, gold: 60, check: s => s.stats.flx >= 25 },
-      { icon: '🩰', name: 'Water Body', xp: 420, gold: 150, check: s => s.stats.flx >= 50 },
-      { icon: '🌊', name: 'Unbreakable Bend', xp: 900, gold: 320, check: s => s.stats.flx >= 100 },
+      { icon: '🤸', name: 'Loosen Up', req: 'Reach 10 Flexibility', xp: 70, gold: 22, check: s => s.stats.flx >= 10 },
+      { icon: '🧎', name: 'Range Restored', req: 'Reach 25 Flexibility', xp: 180, gold: 60, check: s => s.stats.flx >= 25 },
+      { icon: '🩰', name: 'Water Body', req: 'Reach 50 Flexibility', xp: 420, gold: 150, check: s => s.stats.flx >= 50 },
+      { icon: '🌊', name: 'Unbreakable Bend', req: 'Reach 100 Flexibility', xp: 900, gold: 320, check: s => s.stats.flx >= 100 },
     ],
   },
   {
     id: 'sm8', icon: '❤️‍🔥', name: 'Vitality Arc', color: '#ff5d73',
     steps: [
-      { icon: '💧', name: 'Drink Up', xp: 70, gold: 22, check: s => s.totalWater >= 10 },
-      { icon: '🥗', name: 'Fuelled', xp: 180, gold: 60, check: s => s.stats.vit >= 25 },
-      { icon: '🛌', name: 'Recovered', xp: 420, gold: 150, check: s => s.stats.vit >= 50 },
-      { icon: '🫀', name: 'Fortified', xp: 900, gold: 320, check: s => s.stats.vit >= 100 },
+      { icon: '💧', name: 'Drink Up', req: 'Log 10L of water total', xp: 70, gold: 22, check: s => s.totalWater >= 10 },
+      { icon: '🥗', name: 'Fuelled', req: 'Reach 25 Vitality', xp: 180, gold: 60, check: s => s.stats.vit >= 25 },
+      { icon: '🛌', name: 'Recovered', req: 'Reach 50 Vitality', xp: 420, gold: 150, check: s => s.stats.vit >= 50 },
+      { icon: '🫀', name: 'Fortified', req: 'Reach 100 Vitality', xp: 900, gold: 320, check: s => s.stats.vit >= 100 },
     ],
   },
   {
     id: 'sm9', icon: '🗝️', name: 'Ascension Arc', color: '#ffd166',
     steps: [
-      { icon: '🔟', name: 'Double Digits', xp: 250, gold: 90, check: s => s.level >= 10 },
-      { icon: '🏅', name: 'Seasoned', xp: 600, gold: 220, check: s => s.level >= 20 },
-      { icon: '👑', name: 'Sovereign', xp: 1400, gold: 500, check: s => s.level >= 30 },
-      { icon: '🌠', name: 'Beyond Rank', xp: 3000, gold: 1000, check: s => s.level >= 50 },
+      { icon: '🔟', name: 'Double Digits', req: 'Reach level 10', xp: 250, gold: 90, check: s => s.level >= 10 },
+      { icon: '🏅', name: 'Seasoned', req: 'Reach level 20', xp: 600, gold: 220, check: s => s.level >= 20 },
+      { icon: '👑', name: 'Sovereign', req: 'Reach level 30', xp: 1400, gold: 500, check: s => s.level >= 30 },
+      { icon: '🌠', name: 'Beyond Rank', req: 'Reach level 50', xp: 3000, gold: 1000, check: s => s.level >= 50 },
     ],
   },
   {
     id: 'sm10', icon: '💀', name: 'Hunter of Monsters', color: '#ff2d55',
     steps: [
-      { icon: '🐉', name: 'One Down', xp: 150, gold: 55, check: s => s.bosses.length >= 1 },
-      { icon: '⚔️', name: 'Three Fallen', xp: 500, gold: 180, check: s => s.bosses.length >= 3 },
-      { icon: '☠️', name: 'Five Fallen', xp: 1100, gold: 400, check: s => s.bosses.length >= 5 },
-      { icon: '🏆', name: 'The Board Is Clear', xp: 2500, gold: 900, check: s => s.bosses.length >= 7 },
+      { icon: '🐉', name: 'One Down', req: 'Defeat 1 boss', xp: 150, gold: 55, check: s => s.bosses.length >= 1 },
+      { icon: '⚔️', name: 'Three Fallen', req: 'Defeat 3 bosses', xp: 500, gold: 180, check: s => s.bosses.length >= 3 },
+      { icon: '☠️', name: 'Five Fallen', req: 'Defeat 5 bosses', xp: 1100, gold: 400, check: s => s.bosses.length >= 5 },
+      { icon: '🏆', name: 'The Board Is Clear', req: 'Defeat all 7 bosses', xp: 2500, gold: 900, check: s => s.bosses.length >= 7 },
     ],
   },
   {
     id: 'sm11', icon: '🎖️', name: 'Collector Arc', color: '#b18cff',
     steps: [
-      { icon: '🎁', name: 'First Drop', xp: 80, gold: 25, check: s => s.inventory.length >= 1 },
-      { icon: '🎒', name: 'Kitted Out', xp: 220, gold: 80, check: s => s.inventory.length >= 8 },
-      { icon: '🏵️', name: 'Decorated', xp: 500, gold: 180, check: s => s.achievements.length >= 10 },
-      { icon: '💎', name: 'Hoarder of Legends', xp: 1200, gold: 430, check: s => s.inventory.some(i => i.rarity === 'legendary') },
+      { icon: '🎁', name: 'First Drop', req: 'Collect 1 item', xp: 80, gold: 25, check: s => s.inventory.length >= 1 },
+      { icon: '🎒', name: 'Kitted Out', req: 'Collect 8 items', xp: 220, gold: 80, check: s => s.inventory.length >= 8 },
+      { icon: '🏵️', name: 'Decorated', req: 'Earn 10 achievements', xp: 500, gold: 180, check: s => s.achievements.length >= 10 },
+      { icon: '💎', name: 'Hoarder of Legends', req: 'Collect a legendary item', xp: 1200, gold: 430, check: s => s.inventory.some(i => i.rarity === 'legendary') },
     ],
   },
   {
     id: 'sm12', icon: '⏳', name: 'The Hours Arc', color: '#5ef2ff',
     steps: [
-      { icon: '🕐', name: 'One Hour In', xp: 90, gold: 30, check: s => s.totalWorkoutMin >= 60 },
-      { icon: '🕔', name: 'Five Hours', xp: 260, gold: 95, check: s => s.totalWorkoutMin >= 300 },
-      { icon: '🕛', name: 'Twenty Hours', xp: 700, gold: 250, check: s => s.totalWorkoutMin >= 1200 },
-      { icon: '🌘', name: 'One Hundred Hours', xp: 2500, gold: 900, check: s => s.totalWorkoutMin >= 6000 },
+      { icon: '🕐', name: 'One Hour In', req: 'Log 60 total workout minutes', xp: 90, gold: 30, check: s => s.totalWorkoutMin >= 60 },
+      { icon: '🕔', name: 'Five Hours', req: 'Log 300 total workout minutes', xp: 260, gold: 95, check: s => s.totalWorkoutMin >= 300 },
+      { icon: '🕛', name: 'Twenty Hours', req: 'Log 1,200 total workout minutes', xp: 700, gold: 250, check: s => s.totalWorkoutMin >= 1200 },
+      { icon: '🌘', name: 'One Hundred Hours', req: 'Log 6,000 total workout minutes', xp: 2500, gold: 900, check: s => s.totalWorkoutMin >= 6000 },
     ],
   },
 ];

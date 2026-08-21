@@ -62,7 +62,11 @@ export async function ensureNotificationPermission(): Promise<boolean> {
  * Fire a notification `seconds` from now. Returns the id so it can be pulled
  * back if the player pauses or cancels, or null if scheduling wasn't possible.
  */
-export async function scheduleQuestDone(title: string, seconds: number): Promise<string | null> {
+export async function scheduleQuestDone(
+  title: string,
+  seconds: number,
+  desc?: string,
+): Promise<string | null> {
   if (Platform.OS === 'web') return null;
   if (!(seconds > 0)) return null; // already finished; nothing to schedule
   if (!(await ensureNotificationPermission())) return null;
@@ -71,7 +75,9 @@ export async function scheduleQuestDone(title: string, seconds: number): Promise
     return await Notifications.scheduleNotificationAsync({
       content: {
         title: 'Quest complete',
-        body: `${title} — time's up. Claim your reward.`,
+        body: desc
+          ? `${title} (${desc}) — time's up. Claim your reward.`
+          : `${title} — time's up. Claim your reward.`,
         sound: true,
       },
       trigger: { seconds: Math.ceil(seconds), channelId: 'quest-timer' },

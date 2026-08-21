@@ -51,7 +51,7 @@ export default function QuestTimerRow({ quest, timer }: { quest: Quest; timer: Q
 
   async function reschedule(seconds: number) {
     await cancelScheduled(notifId.current);
-    notifId.current = await scheduleQuestDone(quest.title, seconds);
+    notifId.current = await scheduleQuestDone(quest.title, seconds, quest.desc);
   }
 
   function onStart() {
@@ -104,7 +104,7 @@ export default function QuestTimerRow({ quest, timer }: { quest: Quest; timer: Q
       <View style={st.wrap}>
         <Text style={st.idle}>{quest.min} min</Text>
         <Btn small title="Start" onPress={onStart}
-          accessibilityLabel={`Start ${quest.min} minute timer for ${quest.title}`} />
+          accessibilityLabel={`Start ${quest.min} minute timer for ${quest.title}: ${quest.desc}`} />
       </View>
     );
   }

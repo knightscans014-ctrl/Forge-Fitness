@@ -4,6 +4,9 @@ import { GameState } from './types';
 import type { QuestTimer } from './questTimer';
 import { CLASSES, DAILY_CHALLENGES, BOOSTERS, PREMIUM_TIERS } from './content';
 import { sanitizeProfile } from './body';
+// Cycle: analytics imports dayKey from here. Safe because both sides only
+// reach across at call time, never during module initialisation.
+import { migrateHistory } from './analytics';
 
 // Bumped to v5 when the body profile and weight log were added. Older saves
 // still load: normalize() fills the new fields with null/[] so a v4 save just
@@ -174,6 +177,7 @@ export function defaultState(name: string, clsId: string): GameState {
     bossesDefeated: 0,
     suggestion: null,
     suggestionDone: false,
+    histBase: undefined,
     weeklyTrial: null,
     season: null,
     seasonXP: 0,
@@ -387,6 +391,9 @@ export function normalize(s: GameState): GameState {
   if (s.daily.lastClaim) s.daily.lastClaim = padDayKey(s.daily.lastClaim);
   if (s.combo && s.combo.date) s.combo.date = padDayKey(s.combo.date);
   s.history.forEach(r => { if (r) r.date = padDayKey(r.date); });
+  // Must run after the date padding above: the migration walks history in
+  // order, and unpadded keys sort differently from padded ones.
+  migrateHistory(s);
 
   // Record the repaired progression values as the recovery point for the next
   // normalize(). Written last so it only ever captures a fully-validated state.

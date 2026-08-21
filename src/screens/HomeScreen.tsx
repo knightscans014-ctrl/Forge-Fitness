@@ -345,7 +345,15 @@ export default function HomeScreen() {
             accessibilityRole="button"
             accessibilityLabel={`Complete system quest: ${suggestion.text}. Plus ${suggestion.xp} XP.`}
             onPress={() => {
-            mutate(s => { ENGINE.completeSuggestion(s); useGame.getState().notify(`System quest +${suggestion.xp} XP`); generateSuggestion(s); });
+            mutate(s => {
+              // Deliberately does NOT roll a new suggestion afterwards.
+              // generateSuggestion() clears suggestionDone, which made the card
+              // reappear instantly and pay out again -- 16 taps was level 5 with
+              // no workout logged. The next one arrives tomorrow, via dayReset.
+              if (ENGINE.completeSuggestion(s)) {
+                useGame.getState().notify(`System quest +${suggestion.xp} XP`);
+              }
+            });
           }}>
             <Text style={styles.sysBtnText}>Complete · +{suggestion.xp} XP</Text>
           </Pressable>

@@ -115,6 +115,11 @@ export function dayReset(s: GameState): void {
     // lifetime of a save and was dead thereafter.
     s.tiered = {};
     s.dailyChallengeDone = false;
+    // The System offers one suggestion per day. Clearing both fields here is
+    // what makes tomorrow's card appear: HomeScreen generates a new one when
+    // it sees no suggestion and no completion flag.
+    s.suggestion = null;
+    s.suggestionDone = false;
     if (s.weekKey !== weekKey()) resetWeekly(s);
     if (s.combo.date !== dayKey()) s.combo = { n: 0, date: dayKey() };
   }

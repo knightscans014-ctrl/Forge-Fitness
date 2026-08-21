@@ -236,6 +236,9 @@ export interface GameState {
   season: SeasonInfo | null;
   seasonXP: number;
   history: DailyRecord[]; // capped rolling history for analytics
+  // Lifetime totals as of the start of today, so today's row can be stored as
+  // a delta. Absent on saves written before history became delta-based.
+  histBase?: { xp: number; gold: number; workouts: number; minutes: number };
   stackProgress: Record<string, number>; // stackId -> steps completed today
   // Activity ids performed today (`steps`, `water`, `meditation`, ...).
   // Distinct from statsTrainedToday, which keys on STAT ids (`vig`, `foc`).

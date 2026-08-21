@@ -5,12 +5,15 @@ import { Card, Pill, Bar } from '../components/ui';
 import { ScreenHeader } from '../components/Header';
 import { DetailScreen } from '../components/DetailScreen';
 import { colors } from '../theme/colors';
-import { last7Days, trend, STACKS, stackProgress, ACHIEVEMENTS } from '../engine';
+import { last7Days, trend, workoutsThisWeek, minutesThisWeek, STACKS, stackProgress, ACHIEVEMENTS } from '../engine';
 
 export default function ProgressScreen() {
   const state = useGame(s => s.state)!;
   const t = trend(state);
   const week = last7Days(state);
+  const weekWorkouts = workoutsThisWeek(state);
+  const weekMinutes = minutesThisWeek(state);
+  const peak = Math.max(1, ...week.map(d => d.workouts));
   const ach = state.achievements.length;
   const maxAch = ACHIEVEMENTS.length;
 
@@ -24,7 +27,28 @@ export default function ProgressScreen() {
             {t.direction === 'up' ? '▲' : t.direction === 'down' ? '▼' : '—'} {t.pct}%
           </Pill>
         </View>
-        <Text style={s.desc}>Weekly workouts: {week.length ? week[week.length - 1]?.workouts : state.workouts}</Text>
+        <Text style={s.desc}>
+          This week: {weekWorkouts} {weekWorkouts === 1 ? 'workout' : 'workouts'} · {weekMinutes} min
+        </Text>
+
+        {/* Seven bars, one per calendar day. Days you did not train are drawn
+            as empty rather than skipped, so a gap looks like a gap. */}
+        <View style={s.spark}>
+          {week.map(d => (
+            <View key={d.date} style={s.sparkCol}>
+              <View style={s.sparkTrack}>
+                <View
+                  style={[s.sparkFill, {
+                    height: `${Math.round((d.workouts / peak) * 100)}%`,
+                    backgroundColor: d.workouts > 0 ? colors.xpa : colors.line,
+                  }]}
+                />
+              </View>
+              <Text style={s.sparkLabel}>{'SMTWTFS'[new Date(d.date + 'T12:00:00').getDay()]}</Text>
+            </View>
+          ))}
+        </View>
+
         <Text style={s.desc}>Total workouts: {state.workouts} · Total minutes: {state.totalWorkoutMin}</Text>
       </Card>
 
@@ -67,6 +91,11 @@ export default function ProgressScreen() {
 }
 
 const s = StyleSheet.create({
+  spark: { flexDirection: 'row', alignItems: 'flex-end', height: 56, marginVertical: 10, gap: 6 },
+  sparkCol: { flex: 1, alignItems: 'center' },
+  sparkTrack: { width: '100%', height: 40, backgroundColor: colors.bg2, borderRadius: 4, justifyContent: 'flex-end', overflow: 'hidden' },
+  sparkFill: { width: '100%', borderRadius: 4, minHeight: 2 },
+  sparkLabel: { color: colors.mut, fontSize: 10, marginTop: 4 },
   title: { fontSize: 22, fontWeight: '900', color: colors.ink, marginTop: 10 },
   sub: { color: colors.mut, fontSize: 13, marginBottom: 8 },
   cardTitle: { color: colors.ink, fontWeight: '800', fontSize: 15 },

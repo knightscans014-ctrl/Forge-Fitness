@@ -123,6 +123,7 @@ export function defaultState(name: string, clsId: string): GameState {
     body: null,
     weightLog: [],
     meals: [],
+    sets: [],
     skillPoints: 1,
     skills: {},
     questsDone: [],
@@ -214,6 +215,11 @@ export function normalize(s: GameState): GameState {
   s.body = s.body ? sanitizeProfile(s.body) : null;
   if (!Array.isArray(s.meals)) s.meals = [];
   else s.meals = s.meals.filter(m => m && typeof m.date === 'string' && typeof m.kcal === 'number' && isFinite(m.kcal)).slice(-2000);
+  if (!Array.isArray(s.sets)) s.sets = [];
+  else s.sets = s.sets.filter(e =>
+    e && typeof e.date === 'string' && typeof e.exerciseId === 'string' &&
+    typeof e.weight === 'number' && isFinite(e.weight) && e.weight >= 0 &&
+    typeof e.reps === 'number' && isFinite(e.reps) && e.reps > 0).slice(-4000);
   if (!Array.isArray(s.weightLog)) s.weightLog = [];
   else {
     s.weightLog = s.weightLog

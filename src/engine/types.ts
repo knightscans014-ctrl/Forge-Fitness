@@ -75,6 +75,27 @@ export interface MealEntry {
   fat: number;
 }
 
+export interface SetEntry {
+  id: string;
+  date: string;
+  exerciseId: string;
+  /** Denormalised so the log still reads correctly if the library changes. */
+  name: string;
+  /** kg. Zero is legitimate for bodyweight movements. */
+  weight: number;
+  /** Reps -- or seconds for a plank, or steps for a carry. */
+  reps: number;
+}
+
+export interface PersonalBest {
+  exerciseId: string;
+  name: string;
+  weight: number;
+  reps: number;
+  e1rm: number;
+  date: string;
+}
+
 export interface PlayerStats {
   str: number;
   vig: number;
@@ -121,6 +142,7 @@ export interface GameState {
   weightLog: WeightEntry[];
   /** Logged meals across all days, capped at 2000 entries. */
   meals: MealEntry[];
+  sets: SetEntry[];
   skillPoints: number;
   skills: Record<string, number>;
 

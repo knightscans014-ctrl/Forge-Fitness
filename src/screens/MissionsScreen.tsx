@@ -5,7 +5,7 @@ import { Card, Screen, Pill, Bar, SystemWindow, TierBadge, SystemBar } from '../
 import { ScreenHeader } from '../components/Header';
 import { Icon } from '../theme/icons';
 import { colors } from '../theme/colors';
-import { ENGINE, WEEKLY_QUESTS, STORY_MISSIONS, TIERED_MISSIONS, MILESTONE_MISSIONS, milestoneStats, timedQuest, nutritionQuestMet, macroTargets } from '../engine';
+import { ENGINE, WEEKLY_QUESTS, STORY_MISSIONS, TIERED_MISSIONS, MILESTONE_MISSIONS, milestoneStats, timedQuest, nutritionQuestMet, trainingQuestMet, macroTargets } from '../engine';
 import QuestTimerRow from '../components/QuestTimer';
 
 export default function MissionsScreen() {
@@ -22,6 +22,7 @@ export default function MissionsScreen() {
   // null means the quest is not something the log can verify.
   const bodyTargets = macroTargets(state.body);
   const fedCheck = (qid: string) => nutritionQuestMet(state, qid, bodyTargets);
+  const liftCheck = (qid: string) => trainingQuestMet(state, qid);
 
   return (
     <Screen>
@@ -59,7 +60,11 @@ export default function MissionsScreen() {
                   // the reason beats a button that silently does nothing.
                   : fedCheck(q.id) === false
                     ? <Text style={s.locked}>Log your food</Text>
-                    : <Btn small title="Complete" onPress={() => useGame.getState().mutate(st => ENGINE.completeQuest(st, q.id))} />}
+                    // Same again for progressive overload: the set log knows
+                    // whether you actually beat a past lift.
+                    : liftCheck(q.id) === false
+                      ? <Text style={s.locked}>Beat a past set</Text>
+                      : <Btn small title="Complete" onPress={() => useGame.getState().mutate(st => ENGINE.completeQuest(st, q.id))} />}
             </View>
           );
         })}

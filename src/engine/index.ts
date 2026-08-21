@@ -17,6 +17,8 @@ import { currentSeason, addSeasonXP, seasonTier } from './seasons';
 import { bout, nextOpponent } from './bouts';
 import { bmr, tdee, macroTargets, bmi, bmiBand, defaultProfile, sanitizeProfile, logWeight, weightTrend, currentWeight, goalProgress } from './body';
 import { foods, foodById, searchFoods, macrosFor, logMeal, removeMeal, mealsOn, dayTotals, adherence, proteinHit, calorieHit, nutritionQuestMet } from './foods';
+import { EXERCISES, TEMPLATES } from './exercises';
+import { exerciseById, e1rm, setVolume, logSet, removeSet, setsOn, setsFor, personalBest, allPersonalBests, overloadToday, volumeOn, volumeFor, recentExercises, searchExercises, trainingQuestMet } from './training';
 import { recordDay } from './analytics';
 import { endSession, type LiveSession } from './session';
 import { computePower, rankForLevel } from './levels';
@@ -32,6 +34,8 @@ export * from './missions';
 export * from './questTimer';
 export * from './body';
 export * from './foods';
+export * from './exercises';
+export * from './training';
 export * from './bosses';
 export * from './achievements';
 export * from './skills';
@@ -114,6 +118,11 @@ export const ENGINE = {
     // sugar -- return null here and keep the instant button.
     const fed = nutritionQuestMet(s, qid, macroTargets(s.body));
     if (fed === false) return false;
+    // And the same again for the one strength quest that claims measurable
+    // progress rather than effort. "Beat a past lift" is now checked against
+    // the set log instead of trusted.
+    const lifted = trainingQuestMet(s, qid);
+    if (lifted === false) return false;
     if (s.energy < energyCost(10)) return false;
     s.energy -= energyCost(10);
     // Consume the timer so its slot frees up for the next quest.
@@ -327,4 +336,21 @@ export const ENGINE = {
   proteinHit,
   calorieHit,
   nutritionQuestMet,
+  EXERCISES,
+  TEMPLATES,
+  exerciseById,
+  e1rm,
+  setVolume,
+  logSet,
+  removeSet,
+  setsOn,
+  setsFor,
+  personalBest,
+  allPersonalBests,
+  overloadToday,
+  volumeOn,
+  volumeFor,
+  recentExercises,
+  searchExercises,
+  trainingQuestMet,
 };

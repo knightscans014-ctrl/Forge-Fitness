@@ -2,7 +2,7 @@
 //
 // Body: profile, computed targets, and the weight log.
 // Nutrition: today's intake, the meal log, and offline food search.
-// Training lands here next.
+// Training: exercise library, templates, set logging and personal bests.
 
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Modal, Pressable, TextInput, ScrollView } from 'react-native';
@@ -10,6 +10,7 @@ import { useGame } from '../context/GameContext';
 import { Card, Pill, Btn, Bar, SystemLabel, EmptyState } from '../components/ui';
 import { ScreenHeader } from '../components/Header';
 import NutritionPanel from '../components/NutritionPanel';
+import TrainingPanel from '../components/TrainingPanel';
 import { Screen } from '../components/ui';
 import { colors } from '../theme/colors';
 import {
@@ -265,13 +266,8 @@ export default function PlanScreen() {
       {/* ---- Nutrition ---- */}
       <NutritionPanel targets={targets} />
 
-      {/* ---- Coming next ---- */}
-      <Card>
-        <SystemLabel>Coming next</SystemLabel>
-        <Text style={s.hint}>
-          Training — exercise library, workout templates and set logging.
-        </Text>
-      </Card>
+      {/* ---- Training ---- */}
+      <TrainingPanel />
 
       {/* ---- Profile editor ---- */}
       <Modal visible={editing} animationType="slide" transparent onRequestClose={() => setEditing(false)}>

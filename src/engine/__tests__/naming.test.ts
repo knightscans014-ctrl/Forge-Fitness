@@ -35,7 +35,7 @@ describe('objectives name the real exercise, not just a flavour title', () => {
   });
 
   test('story requirements start with a concrete verb or target', () => {
-    const VERB = /^(log|reach|defeat|collect|earn|hold|complete|train)\b/i;
+    const VERB = /^(log|reach|defeat|collect|earn|hold|complete|train|hit|beat)\b/i;
     for (const arc of STORY_MISSIONS) {
       for (const st of arc.steps) {
         expect({ step: `${arc.id}/${st.name}`, req: st.req }).toEqual({

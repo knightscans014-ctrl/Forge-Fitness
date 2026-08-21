@@ -3,6 +3,7 @@
 // Body: profile, computed targets, and the weight log.
 // Nutrition: today's intake, the meal log, and offline food search.
 // Training: exercise library, templates, set logging and personal bests.
+// Goals: rate coaching, the weekly review, and the trend charts.
 
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Modal, Pressable, TextInput, ScrollView } from 'react-native';
@@ -11,6 +12,7 @@ import { Card, Pill, Btn, Bar, SystemLabel, EmptyState } from '../components/ui'
 import { ScreenHeader } from '../components/Header';
 import NutritionPanel from '../components/NutritionPanel';
 import TrainingPanel from '../components/TrainingPanel';
+import GoalPanel from '../components/GoalPanel';
 import { Screen } from '../components/ui';
 import { colors } from '../theme/colors';
 import {
@@ -262,6 +264,9 @@ export default function PlanScreen() {
           </Card>
         </>
       )}
+
+      {/* ---- Goal progress & weekly review ---- */}
+      <GoalPanel />
 
       {/* ---- Nutrition ---- */}
       <NutritionPanel targets={targets} />

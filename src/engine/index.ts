@@ -17,6 +17,7 @@ import { currentSeason, addSeasonXP, seasonTier } from './seasons';
 import { bout, nextOpponent } from './bouts';
 import { bmr, tdee, macroTargets, bmi, bmiBand, defaultProfile, sanitizeProfile, logWeight, weightTrend, currentWeight, goalProgress } from './body';
 import { foods, foodById, searchFoods, macrosFor, logMeal, removeMeal, mealsOn, dayTotals, adherence, proteinHit, calorieHit, nutritionQuestMet } from './foods';
+import { RATE_BAND, weeklyRate, rateVerdict, rateAdvice, weeksOnTrack, daysLogged, proteinDays, calorieDays, overloadDays, weeklyReview, weightSeries, volumeSeries } from './goals';
 import { EXERCISES, TEMPLATES } from './exercises';
 import { exerciseById, e1rm, setVolume, logSet, removeSet, setsOn, setsFor, personalBest, allPersonalBests, overloadToday, volumeOn, volumeFor, recentExercises, searchExercises, trainingQuestMet } from './training';
 import { recordDay } from './analytics';
@@ -34,6 +35,7 @@ export * from './missions';
 export * from './questTimer';
 export * from './body';
 export * from './foods';
+export * from './goals';
 export * from './exercises';
 export * from './training';
 export * from './bosses';
@@ -353,4 +355,16 @@ export const ENGINE = {
   recentExercises,
   searchExercises,
   trainingQuestMet,
+  RATE_BAND,
+  weeklyRate,
+  rateVerdict,
+  rateAdvice,
+  weeksOnTrack,
+  daysLogged,
+  proteinDays,
+  calorieDays,
+  overloadDays,
+  weeklyReview,
+  weightSeries,
+  volumeSeries,
 };

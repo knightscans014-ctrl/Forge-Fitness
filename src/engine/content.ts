@@ -1,6 +1,11 @@
 // Static content: classes, quest pools, missions, boosters, difficulty paths.
 
 import { ClassDef, BoosterDef, GameState, StatId } from './types';
+// Goal-arc checks live in goals.ts. This is a module cycle (content → goals →
+// state → content) but a safe one: every import here is a hoisted function
+// declaration, and they are only ever called from inside a step's `check`
+// closure, long after all modules have finished evaluating.
+import { weeksOnTrack, daysLogged, proteinDays, calorieDays, overloadDays, rateVerdict } from './goals';
 
 export const CLASSES: ClassDef[] = [
   { id: 'warrior', icon: '🛡️', name: 'Warrior', color: '#ff8a5c', desc: 'Strength & power. +STR growth, +gold from heavy lifts.', bonus: { str: 3, vig: 1 } },
@@ -341,6 +346,51 @@ export const STORY_MISSIONS: StoryMission[] = [
       { icon: '🕔', name: 'Five Hours', req: 'Log 300 total workout minutes', xp: 260, gold: 95, check: s => s.totalWorkoutMin >= 300 },
       { icon: '🕛', name: 'Twenty Hours', req: 'Log 1,200 total workout minutes', xp: 700, gold: 250, check: s => s.totalWorkoutMin >= 1200 },
       { icon: '🌘', name: 'One Hundred Hours', req: 'Log 6,000 total workout minutes', xp: 2500, gold: 900, check: s => s.totalWorkoutMin >= 6000 },
+    ],
+  },
+
+  // ---- Goal arcs -------------------------------------------------------
+  // These are the "lose weight / gain weight / build muscle" journeys, told
+  // as arcs. Note what they reward: weeks of held rate, days logged, protein
+  // hit, lifts beaten. Never total kilograms — an arc that paid out for
+  // "lost 10kg" would reward crash dieting and call it a boss fight.
+  {
+    id: 'sm13', icon: '🔻', name: 'The Cutting Arc', color: '#4dc3ff',
+    steps: [
+      { icon: '📓', name: 'Know the Enemy', req: 'Log food on 7 days', xp: 90, gold: 30, check: s => daysLogged(s) >= 7 },
+      { icon: '🥩', name: 'Hold the Line', req: 'Hit your protein target on 10 days', xp: 200, gold: 70, check: s => proteinDays(s) >= 10 },
+      { icon: '⚖️', name: 'Steady Descent', req: 'Hold a safe rate of loss for 3 weeks', xp: 420, gold: 150, check: s => s.body?.goal === 'cut' && weeksOnTrack(s) >= 3 },
+      { icon: '🛡️', name: 'Nothing Lost but Fat', req: 'Beat a past lift on 8 training days', xp: 700, gold: 250, check: s => s.body?.goal === 'cut' && overloadDays(s) >= 8 },
+      { icon: '🏆', name: 'Cut Complete', req: 'Hold a safe rate of loss for 8 weeks', xp: 1400, gold: 500, check: s => s.body?.goal === 'cut' && weeksOnTrack(s) >= 8 },
+    ],
+  },
+  {
+    id: 'sm14', icon: '🔺', name: 'The Bulking Arc', color: '#ff8a5c',
+    steps: [
+      { icon: '🍚', name: 'Eat to Grow', req: 'Hit your calorie target on 7 days', xp: 90, gold: 30, check: s => calorieDays(s) >= 7 },
+      { icon: '📈', name: 'Upward', req: 'Hold a controlled rate of gain for 3 weeks', xp: 250, gold: 90, check: s => s.body?.goal === 'bulk' && weeksOnTrack(s) >= 3 },
+      { icon: '🏋️', name: 'Earn the Food', req: 'Beat a past lift on 10 training days', xp: 500, gold: 180, check: s => overloadDays(s) >= 10 },
+      { icon: '🧱', name: 'Built, Not Bloated', req: 'Hold a controlled rate of gain for 6 weeks', xp: 800, gold: 280, check: s => s.body?.goal === 'bulk' && weeksOnTrack(s) >= 6 },
+      { icon: '🗿', name: 'Mass Gained', req: 'Reach 60 Strength while bulking', xp: 1400, gold: 500, check: s => s.body?.goal === 'bulk' && s.stats.str >= 60 },
+    ],
+  },
+  {
+    id: 'sm15', icon: '🧬', name: 'The Recomposition Arc', color: '#b18cff',
+    steps: [
+      { icon: '⚖️', name: 'Find the Level', req: 'Hit your calorie target on 10 days', xp: 120, gold: 40, check: s => calorieDays(s) >= 10 },
+      { icon: '🥩', name: 'Protein First', req: 'Hit your protein target on 20 days', xp: 300, gold: 100, check: s => proteinDays(s) >= 20 },
+      { icon: '🪞', name: 'Same Weight, New Shape', req: 'Hold weight steady for 4 weeks', xp: 600, gold: 210, check: s => s.body?.goal === 'recomp' && weeksOnTrack(s) >= 4 },
+      { icon: '📊', name: 'Proof in the Log', req: 'Beat a past lift on 15 training days', xp: 900, gold: 320, check: s => overloadDays(s) >= 15 },
+      { icon: '💎', name: 'Recomposed', req: 'Hold weight steady for 10 weeks', xp: 1600, gold: 560, check: s => s.body?.goal === 'recomp' && weeksOnTrack(s) >= 10 },
+    ],
+  },
+  {
+    id: 'sm16', icon: '🧭', name: 'The Discipline Arc', color: '#7cffb2',
+    steps: [
+      { icon: '📝', name: 'Write It Down', req: 'Log food on 21 days', xp: 200, gold: 70, check: s => daysLogged(s) >= 21 },
+      { icon: '🎯', name: 'On Target', req: 'Hit your calorie target on 30 days', xp: 500, gold: 180, check: s => calorieDays(s) >= 30 },
+      { icon: '🧭', name: 'Course Held', req: 'Hold a safe rate for your goal today', xp: 300, gold: 110, check: s => rateVerdict(s) === 'on-track' },
+      { icon: '♾️', name: 'It Is Just What You Do Now', req: 'Log food on 90 days', xp: 1800, gold: 640, check: s => daysLogged(s) >= 90 },
     ],
   },
 ];

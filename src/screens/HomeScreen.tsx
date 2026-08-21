@@ -6,7 +6,7 @@ import type { AppNavigation } from '../types/navigation';
 import { useGame } from '../context/GameContext';
 import { Icon, icon } from '../theme/icons';
 import { colors, rankAura } from '../theme/colors';
-import { ENGINE, DAILY_REWARDS, rankForLevel, xpForLevel, effectiveMaxHP, computePower, boosterActive, generateSuggestion, migrationFields, macroTargets, currentWeight, weightTrend, dayTotals, streakStatus } from '../engine';
+import { ENGINE, DAILY_REWARDS, rankForLevel, xpForLevel, effectiveMaxHP, computePower, boosterActive, generateSuggestion, migrationFields, macroTargets, currentWeight, weightTrend, dayTotals, streakStatus, rerollsLeft } from '../engine';
 
 // The art pack ships four usable portraits for six classes, so they are
 // shared deliberately rather than left all-warrior: the two heavy//melee
@@ -39,6 +39,7 @@ export default function HomeScreen() {
   // just restating the target back at you.
   const eaten = dayTotals(state);
   const streak = streakStatus(state);
+  const rerolls = rerollsLeft(state);
   const bodyWeight = currentWeight(state);
   const bodyTrend = weightTrend(state, 30);
   const xpN = xpForLevel(state.level);
@@ -349,11 +350,18 @@ export default function HomeScreen() {
               <Text style={styles.sysBadgeText}>THE SYSTEM</Text>
             </View>
             <Pressable
-              onPress={() => mutate(s => generateSuggestion(s))}
+              disabled={rerolls <= 0}
+              onPress={() => mutate(s => {
+                if (!generateSuggestion(s, true)) {
+                  useGame.getState().notify('No rerolls left today');
+                }
+              })}
               accessibilityRole="button"
-              accessibilityLabel="Get a different system quest"
+              accessibilityLabel={`Get a different system quest. ${rerolls} rerolls left today.`}
+              style={styles.rerollBtn}
             >
-              <Icon name="refresh" size={18} color={colors.mut} />
+              <Icon name="refresh" size={18} color={rerolls > 0 ? colors.mut : colors.mut3} />
+              <Text style={[styles.rerollN, rerolls <= 0 && { color: colors.mut3 }]}>{rerolls}</Text>
             </Pressable>
           </View>
           <Text style={styles.sysTitle}>{suggestion.icon} {suggestion.text}</Text>
@@ -434,6 +442,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 16, elevation: 6,
   },
+  rerollBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  rerollN: { color: colors.mut, fontSize: 12, fontWeight: '700' },
   streakWarn: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     backgroundColor: 'rgba(255,184,77,0.10)',

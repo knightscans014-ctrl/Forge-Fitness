@@ -232,6 +232,8 @@ export interface GameState {
   bossesDefeated: number;
   suggestion: { id: string; icon: string; text: string; xp: number; gold: number; stat: string } | null;
   suggestionDone: boolean;
+  /** Rerolls used today. Optional so old saves load; normalize() defaults it. */
+  suggestionRerolls?: number;
   weeklyTrial: WeeklyTrialState | null;
   season: SeasonInfo | null;
   seasonXP: number;

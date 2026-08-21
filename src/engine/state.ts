@@ -177,6 +177,7 @@ export function defaultState(name: string, clsId: string): GameState {
     bossesDefeated: 0,
     suggestion: null,
     suggestionDone: false,
+    suggestionRerolls: 0,
     histBase: undefined,
     weeklyTrial: null,
     season: null,
@@ -219,6 +220,11 @@ export function normalize(s: GameState): GameState {
   // A present one is clamped: imported saves can carry a 900kg typo.
   s.body = s.body ? sanitizeProfile(s.body) : null;
   if (!Array.isArray(s.customFoods)) s.customFoods = [];
+  // Old saves predate the reroll budget; absent means "none used yet". A
+  // hand-edited negative would hand out infinite rerolls, so clamp.
+  if (typeof s.suggestionRerolls !== 'number' || !isFinite(s.suggestionRerolls) || s.suggestionRerolls < 0) {
+    s.suggestionRerolls = 0;
+  }
   else s.customFoods = s.customFoods.filter(f => f && typeof f.name === 'string' && typeof f.kcal === 'number' && isFinite(f.kcal)).slice(0, 500);
   if (!Array.isArray(s.meals)) s.meals = [];
   else s.meals = s.meals.filter(m => m && typeof m.date === 'string' && typeof m.kcal === 'number' && isFinite(m.kcal)).slice(-2000);

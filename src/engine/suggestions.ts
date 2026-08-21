@@ -33,7 +33,35 @@ const TEMPLATES: Record<string, { icon: string; text: string; xp: number; gold: 
   ],
 };
 
-export function generateSuggestion(s: GameState) {
+/**
+ * Rerolls allowed per day.
+ *
+ * The templates for a stat pay out different XP, so a free unlimited reroll is
+ * a "spin until you see the 75" button -- the reward stops tracking the work.
+ * A small budget keeps the escape hatch (you genuinely cannot meditate at
+ * work) without making the dice the optimal strategy.
+ */
+export const MAX_REROLLS_PER_DAY = 2;
+
+/** Rerolls the player has left today. */
+export function rerollsLeft(s: GameState): number {
+  return Math.max(0, MAX_REROLLS_PER_DAY - (s.suggestionRerolls || 0));
+}
+
+/**
+ * Rolls the day's suggestion. `manual` marks a player-initiated reroll, which
+ * is budgeted; the automatic first roll of the day is not.
+ *
+ * Returns null when a manual reroll is refused, so the UI can say why.
+ */
+export function generateSuggestion(s: GameState, manual = false) {
+  if (manual) {
+    // Never spend a reroll re-rolling something already paid out; that is the
+    // faucet dayReset exists to close.
+    if (s.suggestionDone) return null;
+    if (rerollsLeft(s) <= 0) return null;
+    s.suggestionRerolls = (s.suggestionRerolls || 0) + 1;
+  }
   const st = weakestStat(s);
   const arr = TEMPLATES[st] || TEMPLATES.vig;
   const q = arr[Math.floor(Math.random() * arr.length)];

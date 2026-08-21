@@ -119,6 +119,7 @@ export function dayReset(s: GameState): void {
     // what makes tomorrow's card appear: HomeScreen generates a new one when
     // it sees no suggestion and no completion flag.
     s.suggestion = null;
+    s.suggestionRerolls = 0;
     s.suggestionDone = false;
     if (s.weekKey !== weekKey()) resetWeekly(s);
     if (s.combo.date !== dayKey()) s.combo = { n: 0, date: dayKey() };

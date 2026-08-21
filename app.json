@@ -2,11 +2,13 @@
   "expo": {
     "name": "Forge",
     "slug": "forge",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
       "backgroundColor": "#0b0d17"
     },
     "platforms": [
@@ -17,6 +19,7 @@
     "android": {
       "package": "com.forge.fitness",
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0b0d17"
       },
       "versionCode": 1
@@ -28,6 +31,11 @@
     "plugins": [
       "expo-font"
     ],
-    "jsEngine": "hermes"
+    "jsEngine": "hermes",
+    "description": "An offline fitness RPG: quests, nutrition tracking, structured training and progression. No account, no cloud, no ads.",
+    "primaryColor": "#5ef2ff",
+    "web": {
+      "favicon": "./assets/icon.png"
+    }
   }
 }

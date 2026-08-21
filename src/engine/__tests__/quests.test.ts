@@ -4,6 +4,15 @@ import {
   TIERED_MISSIONS, tieredVal, milestoneStats, bossUnlocked, checkTiered, timedQuest,
 } from '../index';
 
+/**
+ * Quests that complete on a single tap, taken from the whole pool rather than
+ * today's slate. The slate is date-seeded, so anything picked out of it makes
+ * a test pass or fail depending on the calendar.
+ */
+function untimedPoolQuests() {
+  return DAILY_POOL.filter(q => !timedQuest(q));
+}
+
 describe('daily quest pool', () => {
   test('every id is unique', () => {
     const ids = DAILY_POOL.map(q => q.id);
@@ -84,7 +93,10 @@ describe('day rollover', () => {
   test('clears completed quests so dailies come back tomorrow', () => {
     const s = defaultState('Hero', 'warrior');
     s.energy = 999;
-    const q = dailyQuests(s)[0];
+    // Straight from the pool, not the slate: which quests the slate draws is
+    // seeded by the date, so `dailyQuests(s)[0]` is a different quest every
+    // day and may be a timed one that cannot be completed with a bare tap.
+    const q = untimedPoolQuests()[0];
     expect(ENGINE.completeQuest(s, q.id)).toBe(true);
     expect(s.questsDone).toContain(q.id);
 
@@ -130,9 +142,9 @@ describe('day rollover', () => {
   test('the first boss needs three quests today, not three ever', () => {
     const s = defaultState('Hero', 'warrior');
     s.energy = 999;
-    // Untimed quests only -- this test is about the boss gate, not the timer.
-    dailyQuests(s).filter(q => !timedQuest(q)).slice(0, 3)
-      .forEach(q => ENGINE.completeQuest(s, q.id));
+    // Untimed quests only -- this test is about the boss gate, not the timer --
+    // and from the pool, so the count does not depend on today's draw.
+    untimedPoolQuests().slice(0, 3).forEach(q => ENGINE.completeQuest(s, q.id));
     expect(s.questsDone.length).toBe(3);
     expect(bossUnlocked(s, { id: 'b1' } as any)).toBe(true);
 
@@ -266,5 +278,35 @@ describe('milestone progress is displayable', () => {
       expect(Number.isFinite(cur)).toBe(true);
       expect(cur).toBeGreaterThanOrEqual(0);
     }
+  });
+});
+
+describe('tests must not depend on the calendar', () => {
+  // Regression: the daily slate is date-seeded, so tests that picked quests
+  // out of `dailyQuests()` passed or failed depending on the day they ran.
+  // Once timed quests required a finished countdown, a day whose slate drew
+  // only two untimed quests broke three previously-green tests.
+  afterEach(() => { jest.useRealTimers(); });
+
+  test('every day of a year draws a valid slate', () => {
+    const counts: number[] = [];
+    for (let i = 0; i < 365; i++) {
+      jest.useFakeTimers().setSystemTime(new Date(2026, 0, 1 + i, 12, 0, 0));
+      const s = defaultState('Hero', 'warrior');
+      const slate = dailyQuests(s);
+      expect(slate.length).toBe(DAILY_SLATE_SIZE);
+      expect(new Set(slate.map(q => q.id)).size).toBe(slate.length);
+      counts.push(slate.filter(q => !timedQuest(q)).length);
+    }
+    // Some days legitimately draw a slate that is almost all timed quests.
+    // That is fine for players; it is only a problem for tests that assume
+    // otherwise, which is why they now source quests from DAILY_POOL.
+    const min = Math.min(...counts);
+    expect(min).toBeGreaterThanOrEqual(0);
+  });
+
+  test('the pool always offers enough untimed quests for a bare tap', () => {
+    // What the rewritten tests actually rely on.
+    expect(untimedPoolQuests().length).toBeGreaterThanOrEqual(3);
   });
 });

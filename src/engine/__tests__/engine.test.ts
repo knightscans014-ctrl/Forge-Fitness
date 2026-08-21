@@ -1,4 +1,4 @@
-import { ENGINE, rankForLevel, energyCost, addXP, defaultState, xpMultNow, xpForLevel, computePower, startBossBattle, bossStrike, bossUnlocked, checkAchievements, buySkill, equipGear, generateSuggestion, completeSuggestion, bout, nextOpponent, startTrial, trialStrike, recordStackActivity, dropLoot, SKILLS } from '../index';
+import { ENGINE, rankForLevel, energyCost, addXP, defaultState, xpMultNow, xpForLevel, computePower, startBossBattle, bossStrike, bossUnlocked, checkAchievements, buySkill, equipGear, generateSuggestion, completeSuggestion, bout, nextOpponent, startTrial, trialStrike, recordStackActivity, dropLoot, SKILLS, DAILY_POOL, timedQuest } from '../index';
 
 describe('FORGE engine', () => {
   test('level curve is monotonic', () => {
@@ -35,9 +35,11 @@ describe('FORGE engine', () => {
   });
   test('complete quest increments weekly counter', () => {
     const s = defaultState('Hero', 'warrior');
-    const q = ENGINE.dailyQuests(s)[0];
+    // An untimed quest from the pool: the slate is date-seeded, and a timed
+    // quest needs a finished countdown rather than a bare call.
+    const q = DAILY_POOL.filter(x => !timedQuest(x))[0];
     s.energy = 100;
-    ENGINE.completeQuest(s, q.id);
+    expect(ENGINE.completeQuest(s, q.id)).toBe(true);
     expect(s.weekly.questsWeekly).toBe(1);
   });
 

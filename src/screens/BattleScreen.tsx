@@ -15,7 +15,7 @@ export default function BattleScreen() {
 
   return (
     <Screen>
-      <ScreenHeader icon="sword" iconFamily="mci" title="Battle" subtitle="Slay personal milestone bosses for big rewards + loot" accent="#ff5d73" />
+      <ScreenHeader icon="sword" iconFamily="mci" title="Battle" subtitle="Slay personal milestone bosses for big rewards + loot" accent={colors.hp} />
 
       {boss ? (
         <SystemWindow label={unlocked ? 'Target Acquired' : 'Target Locked'} accent={unlocked ? colors.crimson : colors.mut2} glow={unlocked}>

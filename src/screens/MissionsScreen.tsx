@@ -26,7 +26,7 @@ export default function MissionsScreen() {
 
   return (
     <Screen>
-      <ScreenHeader icon="list-circle" title="Missions" subtitle="Daily, weekly, story arcs & challenges" accent="#b18cff" />
+      <ScreenHeader icon="list-circle" title="Missions" subtitle="Daily, weekly, story arcs & challenges" accent={colors.mana} />
 
       <SystemWindow label="Daily Quests" accent={colors.sys} glow>
         <View style={s.rowBetween}>

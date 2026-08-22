@@ -1,9 +1,10 @@
 import React from "react";
 import { View, Text, StyleSheet } from 'react-native';
 import { useGame } from '../context/GameContext';
+import { useTheme } from '../context/ThemeContext';
 import { Screen, Pill, Btn, StatRow, SystemWindow } from '../components/ui';
 import { ScreenHeader } from '../components/Header';
-import { colors } from '../theme/colors';
+import { ThemeSelector } from '../components/ThemeSelector';
 import { ENGINE, BOOSTERS, PREMIUM_TIERS } from '../engine';
 
 const UPGRADES = [
@@ -16,12 +17,21 @@ const UPGRADES = [
 export default function ShopScreen() {
   const state = useGame(s => s.state)!;
   const { mutate } = useGame();
+  const { colors } = useTheme();
 
   return (
     <Screen>
-      <ScreenHeader icon="store" iconFamily="mci" title="Forge Shop" subtitle="Spend gold on upgrades & boosters" accent="#ffd166" />
+      <ScreenHeader icon="store" iconFamily="mci" title="Forge Shop" subtitle="Spend gold on upgrades, boosters & themes" accent={colors.gold} />
 
-      <SystemWindow label="Boosters" accent={colors.gold} glow>
+      {/* UI Themes Customization */}
+      <SystemWindow label="System Visual Themes" accent={colors.sys} glow>
+        <Text style={[s.desc, { color: colors.mut }]}>
+          Equip custom HUD interfaces to change the aura, scan lines, system windows, and color palette of the System.
+        </Text>
+        <ThemeSelector />
+      </SystemWindow>
+
+      <SystemWindow label="Boosters" accent={colors.gold}>
         {BOOSTERS.map(b => {
           const active = ENGINE.boosterActive(state, b.id);
           return (
@@ -55,7 +65,7 @@ export default function ShopScreen() {
       </SystemWindow>
 
       <SystemWindow label="Difficulty Path" accent={colors.violet}>
-        <Text style={s.desc}>
+        <Text style={[s.desc, { color: colors.mut }]}>
           Everything in FORGE is unlocked. Pick the path that matches how hard you
           want the grind to feel — it changes your XP and gold rates.
         </Text>
@@ -80,6 +90,6 @@ export default function ShopScreen() {
 }
 
 const s = StyleSheet.create({
-  cardTitle: { color: colors.ink, fontWeight: '800', fontSize: 15 },
-  desc: { color: colors.mut, fontSize: 12 },
+  cardTitle: { fontWeight: '800', fontSize: 15 },
+  desc: { fontSize: 12, lineHeight: 17, marginBottom: 8 },
 });

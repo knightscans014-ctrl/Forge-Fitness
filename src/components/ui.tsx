@@ -1,8 +1,8 @@
-// Premium reusable UI primitives with modern design
+// Premium reusable UI primitives with modern dynamic theming
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, ActivityIndicator, ScrollView } from 'react-native';
 import type { StyleProp, ViewStyle, TextStyle } from 'react-native';
-import { colors, shadows } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 import { Icon, type IconFamily } from '../theme/icons';
 
 export function Card({ children, style, border, glow, onPress, accessibilityLabel }: { 
@@ -11,14 +11,19 @@ export function Card({ children, style, border, glow, onPress, accessibilityLabe
   border?: string; 
   glow?: boolean;
   onPress?: () => void;
-  // A tappable Card has no inherent text of its own, so callers that make one
-  // interactive should say what it does.
   accessibilityLabel?: string;
 }) {
+  const { colors, shadows } = useTheme();
+
   const cardStyle = [
-    styles.card, 
+    styles.card,
+    {
+      backgroundColor: colors.card,
+      borderColor: colors.sysFaint,
+      ...shadows.sm,
+    },
     border ? { borderColor: border } : null, 
-    glow && styles.cardGlow,
+    glow && [styles.cardGlow, { borderColor: colors.gold, shadowColor: colors.gold }],
     style
   ];
   
@@ -45,11 +50,12 @@ export function Screen({ children, scroll = true }: {
   children: React.ReactNode; 
   scroll?: boolean;
 }) {
+  const { colors } = useTheme();
   const content = <View style={styles.pad}>{children}</View>;
-  if (!scroll) return <View style={styles.screen}>{content}</View>;
+  if (!scroll) return <View style={[styles.screen, { backgroundColor: colors.bg }]}>{content}</View>;
   return (
     <ScrollView 
-      style={styles.screen} 
+      style={[styles.screen, { backgroundColor: colors.bg }]} 
       contentContainerStyle={{ paddingBottom: 120 }}
       showsVerticalScrollIndicator={false}
       bounces={false}
@@ -64,15 +70,21 @@ export function Pill({ children, color, filled }: {
   color?: string;
   filled?: boolean;
 }) {
+  const { colors } = useTheme();
+  const c = color || colors.ink;
   return (
     <View style={[
-      styles.pill, 
+      styles.pill,
+      {
+        backgroundColor: colors.card2,
+        borderColor: colors.line,
+      },
       color ? { 
         borderColor: color,
-        backgroundColor: filled ? color + '15' : undefined
+        backgroundColor: filled ? `${color}15` : undefined
       } : null
     ]}>
-      <Text style={[styles.pillText, color ? { color } : null]}>{children}</Text>
+      <Text style={[styles.pillText, { color: c }]}>{children}</Text>
     </View>
   );
 }
@@ -95,11 +107,11 @@ export function Btn({
   disabled?: boolean;
   icon?: string;
   fullWidth?: boolean;
-  // Defaults to `title`. Override when the visible text is not enough on its
-  // own -- e.g. a bare "Claim" that needs "Claim daily reward".
   accessibilityLabel?: string;
   accessibilityHint?: string;
 }) {
+  const { colors } = useTheme();
+
   const bg = kind === 'gold' ? colors.gold
     : kind === 'green' ? colors.success
     : kind === 'danger' ? colors.danger
@@ -113,7 +125,6 @@ export function Btn({
     : kind === 'ghost' ? colors.sys
     : '#04222b';
 
-  // Ghost reads as an empty system frame; solid kinds get a matching glow.
   const extra = kind === 'ghost'
     ? { borderWidth: 1, borderColor: colors.sysDim }
     : { shadowColor: bg, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.45, shadowRadius: 10 };
@@ -125,8 +136,6 @@ export function Btn({
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? title}
       accessibilityHint={accessibilityHint}
-      // Screen readers announce a dimmed button as unavailable rather than
-      // letting the user activate it and wonder why nothing happened.
       accessibilityState={{ disabled: !!disabled }}
       style={({ pressed }) => [
         styles.btn,
@@ -159,14 +168,15 @@ export function StatRow({
   right?: React.ReactNode;
   iconFamily?: IconFamily;
 }) {
+  const { colors } = useTheme();
   return (
-    <View style={styles.statRow}>
+    <View style={[styles.statRow, { borderBottomColor: colors.line }]}>
       <View style={[styles.statIcon, { backgroundColor: iconBg || colors.card3 }]}>
         <Icon name={icon} size={20} color={colors.ink} family={iconFamily} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={styles.statName}>{name}</Text>
-        {desc ? <Text style={styles.statDesc}>{desc}</Text> : null}
+        <Text style={[styles.statName, { color: colors.ink }]}>{name}</Text>
+        {desc ? <Text style={[styles.statDesc, { color: colors.mut }]}>{desc}</Text> : null}
       </View>
       {right}
     </View>
@@ -178,8 +188,9 @@ export function Bar({ pct, color, height = 8 }: {
   color?: string;
   height?: number;
 }) {
+  const { colors } = useTheme();
   return (
-    <View style={[styles.barTrack, { height, borderRadius: height / 2 }]}>
+    <View style={[styles.barTrack, { height, borderRadius: height / 2, backgroundColor: colors.card3 }]}>
       <View style={[
         styles.barFill, 
         { 
@@ -203,13 +214,14 @@ export function SectionHeader({
   action?: React.ReactNode;
   icon?: string;
 }) {
+  const { colors } = useTheme();
   return (
-    <View style={styles.sectionHeader}>
+    <View style={[styles.sectionHeader, { borderBottomColor: colors.line }]}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         {icon && <Icon name={icon} size={18} color={colors.gold} family="ion" />}
         <View>
-          <Text style={styles.sectionTitle}>{title}</Text>
-          {subtitle && <Text style={styles.sectionSubtitle}>{subtitle}</Text>}
+          <Text style={[styles.sectionTitle, { color: colors.ink }]}>{title}</Text>
+          {subtitle && <Text style={[styles.sectionSubtitle, { color: colors.mut }]}>{subtitle}</Text>}
         </View>
       </View>
       {action}
@@ -228,22 +240,24 @@ export function EmptyState({
   message: string;
   action?: React.ReactNode;
 }) {
+  const { colors, shadows } = useTheme();
   return (
     <View style={styles.emptyState}>
-      <View style={styles.emptyIcon}>
+      <View style={[styles.emptyIcon, { backgroundColor: colors.card2, ...shadows.sm }]}>
         <Icon name={icon} size={48} color={colors.mut3} family="ion" />
       </View>
-      <Text style={styles.emptyTitle}>{title}</Text>
-      <Text style={styles.emptyMessage}>{message}</Text>
+      <Text style={[styles.emptyTitle, { color: colors.ink }]}>{title}</Text>
+      <Text style={[styles.emptyMessage, { color: colors.mut }]}>{message}</Text>
       {action && <View style={{ marginTop: 16 }}>{action}</View>}
     </View>
   );
 }
 
 export function Loader() {
+  const { colors, shadows } = useTheme();
   return (
-    <View style={styles.loaderContainer}>
-      <View style={styles.loaderGlow}>
+    <View style={[styles.loaderContainer, { backgroundColor: colors.bg }]}>
+      <View style={[styles.loaderGlow, { backgroundColor: colors.card2, ...shadows.sysGlow }]}>
         <ActivityIndicator size="large" color={colors.sys} />
       </View>
     </View>
@@ -252,18 +266,15 @@ export function Loader() {
 
 // ---------------------------------------------------------------------------
 // Anime "system window" layer
-//
-// The look these build toward is the status panel from a levelling-system
-// anime: a translucent cyan-edged pane with clipped corners, a small tracked
-// label riding on the top edge, and a glow. Everything below is composed from
-// plain Views so there is no gradient/blur/SVG dependency.
 // ---------------------------------------------------------------------------
 
 /** The four clipped corner brackets that frame a system pane. */
-export function CornerBrackets({ color = colors.sys, size = 14, inset = -1 }: {
+export function CornerBrackets({ color, size = 14, inset = -1 }: {
   color?: string; size?: number; inset?: number;
 }) {
-  const base = { position: 'absolute' as const, width: size, height: size, borderColor: color };
+  const { colors } = useTheme();
+  const c = color || colors.sys;
+  const base = { position: 'absolute' as const, width: size, height: size, borderColor: c };
   return (
     <>
       <View pointerEvents="none" style={[base, { top: inset, left: inset, borderTopWidth: 2, borderLeftWidth: 2, borderTopLeftRadius: 4 }]} />
@@ -275,13 +286,15 @@ export function CornerBrackets({ color = colors.sys, size = 14, inset = -1 }: {
 }
 
 /** Faint horizontal scan lines. Purely decorative; never intercepts touches. */
-export function ScanLines({ rows = 9, opacity = 0.05, color = colors.sys }: {
+export function ScanLines({ rows = 9, opacity = 0.05, color }: {
   rows?: number; opacity?: number; color?: string;
 }) {
+  const { colors } = useTheme();
+  const c = color || colors.sys;
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       {Array.from({ length: rows }, (_, i) => (
-        <View key={i} style={{ flex: 1, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: color, opacity }} />
+        <View key={i} style={{ flex: 1, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: c, opacity }} />
       ))}
     </View>
   );
@@ -289,10 +302,8 @@ export function ScanLines({ rows = 9, opacity = 0.05, color = colors.sys }: {
 
 /**
  * A framed panel with a label on its top edge — the signature container.
- * `accent` recolours the whole frame, so a rank aura or a danger red can drive
- * it without a second component.
  */
-export function SystemWindow({ label, accent = colors.sys, children, style, scan = true, glow }: {
+export function SystemWindow({ label, accent, children, style, scan = true, glow }: {
   label?: string;
   accent?: string;
   children: React.ReactNode;
@@ -300,13 +311,24 @@ export function SystemWindow({ label, accent = colors.sys, children, style, scan
   scan?: boolean;
   glow?: boolean;
 }) {
+  const { colors, shadows } = useTheme();
+  const c = accent || colors.sys;
+
   return (
-      <View style={[styles.sysWindow, { borderColor: `${accent}55` }, glow && { ...shadows.sysGlow, shadowColor: accent }, style]}>
-      {scan && <ScanLines color={accent} />}
-      <CornerBrackets color={accent} />
+    <View style={[
+      styles.sysWindow, 
+      { 
+        backgroundColor: colors.glass,
+        borderColor: `${c}55` 
+      }, 
+      glow && { ...shadows.sysGlow, shadowColor: c }, 
+      style
+    ]}>
+      {scan && <ScanLines color={c} />}
+      <CornerBrackets color={c} />
       {label ? (
-        <View style={[styles.sysLabelWrap, { borderColor: `${accent}55` }]}>
-          <Text style={[styles.sysLabel, { color: accent }]}>{label}</Text>
+        <View style={[styles.sysLabelWrap, { backgroundColor: colors.bg2, borderColor: `${c}55` }]}>
+          <Text style={[styles.sysLabel, { color: c }]}>{label}</Text>
         </View>
       ) : null}
       <View style={label ? { marginTop: 6 } : undefined}>{children}</View>
@@ -316,6 +338,7 @@ export function SystemWindow({ label, accent = colors.sys, children, style, scan
 
 /** Difficulty chip for a quest: light / core / elite. */
 export function TierBadge({ tier }: { tier: 'light' | 'core' | 'elite' }) {
+  const { colors } = useTheme();
   const cfg = {
     light: { c: colors.xpa, t: 'LIGHT' },
     core: { c: colors.sys, t: 'CORE' },
@@ -329,22 +352,26 @@ export function TierBadge({ tier }: { tier: 'light' | 'core' | 'elite' }) {
 }
 
 /** Wide-tracked all-caps line used above titles. */
-export function SystemLabel({ children, color = colors.sys, style }: {
+export function SystemLabel({ children, color, style }: {
   children: React.ReactNode; color?: string; style?: StyleProp<TextStyle>;
 }) {
-  return <Text style={[styles.sysLabel, { color }, style]}>{children}</Text>;
+  const { colors } = useTheme();
+  const c = color || colors.sys;
+  return <Text style={[styles.sysLabel, { color: c }, style]}>{children}</Text>;
 }
 
 /** A bar that reads as an energy gauge: notched track, glowing fill, cap tick. */
-export function SystemBar({ pct, color = colors.sys, height = 10, label }: {
+export function SystemBar({ pct, color, height = 10, label }: {
   pct: number; color?: string; height?: number; label?: string;
 }) {
+  const { colors } = useTheme();
+  const c = color || colors.sys;
   const w = Math.max(0, Math.min(100, pct));
   return (
     <View>
-      {label ? <Text style={[styles.sysBarLabel, { color }]}>{label}</Text> : null}
-      <View style={[styles.sysBarTrack, { height, borderColor: `${color}44` }]}>
-        <View style={[styles.sysBarFill, { width: `${w}%`, backgroundColor: color, shadowColor: color }]} />
+      {label ? <Text style={[styles.sysBarLabel, { color: c }]}>{label}</Text> : null}
+      <View style={[styles.sysBarTrack, { backgroundColor: colors.bg, height, borderColor: `${c}44` }]}>
+        <View style={[styles.sysBarFill, { width: `${w}%`, backgroundColor: c, shadowColor: c }]} />
         {/* notches */}
         <View pointerEvents="none" style={styles.sysBarNotches}>
           {Array.from({ length: 9 }, (_, i) => (
@@ -359,24 +386,23 @@ export function SystemBar({ pct, color = colors.sys, height = 10, label }: {
 const styles = StyleSheet.create({
   screen: { 
     flex: 1, 
-    backgroundColor: colors.bg,
   },
   pad: { 
     paddingHorizontal: 16, 
     paddingTop: 12,
   },
   card: { 
-    backgroundColor: colors.card, 
     borderWidth: 1, 
-    borderColor: colors.sysFaint, 
     borderRadius: 6, 
     padding: 16, 
     marginVertical: 8,
-    ...shadows.sm,
   },
   cardGlow: {
-    borderColor: colors.gold,
-    ...shadows.glow,
+    borderWidth: 1,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 0,
   },
   cardPressed: {
     transform: [{ scale: 0.98 }],
@@ -388,12 +414,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, 
     paddingVertical: 6, 
     borderRadius: 999, 
-    backgroundColor: colors.card2, 
     borderWidth: 1, 
-    borderColor: colors.line,
   },
   pillText: { 
-    color: colors.ink, 
     fontSize: 12, 
     fontWeight: '800',
     letterSpacing: 0.3,
@@ -405,14 +428,12 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     justifyContent: 'center',
     flexDirection: 'row',
-    ...shadows.md,
   },
   btnSmall: { 
     paddingVertical: 9, 
     paddingHorizontal: 14, 
     borderRadius: 4, 
     alignSelf: 'flex-start',
-    ...shadows.sm,
   },
   btnFull: {
     width: '100%',
@@ -436,7 +457,6 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     paddingVertical: 14, 
     borderBottomWidth: 1, 
-    borderBottomColor: colors.line, 
     gap: 12,
   },
   statIcon: { 
@@ -445,20 +465,16 @@ const styles = StyleSheet.create({
     borderRadius: 14, 
     alignItems: 'center', 
     justifyContent: 'center',
-    backgroundColor: colors.card3,
   },
   statName: { 
-    color: colors.ink, 
     fontWeight: '800', 
     fontSize: 15,
   },
   statDesc: { 
-    color: colors.mut, 
     fontSize: 12,
     marginTop: 2,
   },
   barTrack: { 
-    backgroundColor: colors.card3, 
     overflow: 'hidden',
   },
   barFill: { 
@@ -472,16 +488,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: colors.line,
   },
   sectionTitle: { 
-    color: colors.ink, 
     fontWeight: '900', 
     fontSize: 17,
     letterSpacing: 0.3,
   },
   sectionSubtitle: {
-    color: colors.mut,
     fontSize: 12,
     marginTop: 2,
   },
@@ -496,21 +509,17 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: colors.card2,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
-    ...shadows.sm,
   },
   emptyTitle: {
-    color: colors.ink,
     fontWeight: '900',
     fontSize: 20,
     textAlign: 'center',
     marginBottom: 8,
   },
   emptyMessage: {
-    color: colors.mut,
     fontSize: 14,
     textAlign: 'center',
     lineHeight: 20,
@@ -519,18 +528,14 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.bg,
   },
   loaderGlow: {
     padding: 24,
     borderRadius: 60,
-    backgroundColor: colors.card2,
-    ...shadows.sysGlow,
   },
 
   // ---- system window layer ----
   sysWindow: {
-    backgroundColor: colors.glass,
     borderWidth: 1,
     borderRadius: 6,
     padding: 14,
@@ -548,7 +553,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
     borderBottomLeftRadius: 6,
     borderBottomRightRadius: 6,
-    backgroundColor: colors.bg2,
   },
   sysLabel: {
     fontSize: 10,
@@ -575,7 +579,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   sysBarTrack: {
-    backgroundColor: colors.bg,
     borderWidth: 1,
     borderRadius: 3,
     overflow: 'hidden',

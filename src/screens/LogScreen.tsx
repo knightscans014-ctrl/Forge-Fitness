@@ -24,7 +24,7 @@ export default function LogScreen({ navigation }: StackScreenProps<'LogDetail'>)
 
   return (
     <DetailScreen title="Log Activity">
-      <ScreenHeader icon="flash" title="Log Activity" subtitle="Earn XP, gold & stat growth from real training" accent="#4dc3ff" />
+      <ScreenHeader icon="flash" title="Log Activity" subtitle="Earn XP, gold & stat growth from real training" accent={colors.en} />
 
       <Card>
         <View style={s.rowBetween}><Text style={s.cardTitle}>Choose activity</Text><Pill color={colors.en}>⚡ {state.energy}</Pill></View>

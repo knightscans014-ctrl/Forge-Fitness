@@ -5,7 +5,8 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigation } from '../types/navigation';
 import { useGame } from '../context/GameContext';
 import { Icon, icon } from '../theme/icons';
-import { colors, rankAura } from '../theme/colors';
+import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 import { ENGINE, DAILY_REWARDS, rankForLevel, xpForLevel, effectiveMaxHP, computePower, boosterActive, generateSuggestion, migrationFields, macroTargets, currentWeight, weightTrend, dayTotals, streakStatus, rerollsLeft } from '../engine';
 
 // The art pack ships four usable portraits for six classes, so they are
@@ -26,6 +27,7 @@ export default function HomeScreen() {
   const state = useGame(s => s.state)!;
   const mutate = useGame(s => s.mutate);
   const navigation = useNavigation<AppNavigation>();
+  const { rankAura } = useTheme();
 
   // Day rollover + first suggestion happen in an effect so render stays pure.
   useEffect(() => {

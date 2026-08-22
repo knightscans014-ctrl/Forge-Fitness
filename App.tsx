@@ -6,12 +6,12 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { View } from 'react-native';
 import { useGame } from './src/context/GameContext';
+import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { Loader } from './src/components/ui';
 import { ToastHost } from './src/components/Toast';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { AuraOverlay } from './src/components/effects';
 import { Icon, TAB_ICONS } from './src/theme/icons';
-import { colors } from './src/theme/colors';
 
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import HomeScreen from './src/screens/HomeScreen';
@@ -33,7 +33,6 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 // Consolidated tab set (6 tabs, everything else is a detail screen).
-// Six is the practical ceiling on a phone -- past that the labels collide.
 const TABS = [
   { name: 'Home', component: HomeScreen, title: 'Home' },
   { name: 'Quests', component: MissionsScreen, title: 'Quests' },
@@ -44,6 +43,8 @@ const TABS = [
 ] as const;
 
 function MainTabs() {
+  const { colors } = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -62,8 +63,6 @@ function MainTabs() {
         tabBarIcon: ({ focused, color }) => {
           const cfg = TAB_ICONS[route.name];
           if (!cfg) {
-            // A missing entry used to render a silent '?' box. Shout in dev so a
-            // renamed route can't quietly lose its icon again.
             if (__DEV__) console.warn(`[icons] no TAB_ICONS entry for route "${route.name}"`);
           }
           const def = cfg || { active: 'help-circle', inactive: 'help-circle', family: 'ion' as const };
@@ -79,6 +78,8 @@ function MainTabs() {
 }
 
 function RootNavigator() {
+  const { colors } = useTheme();
+
   return (
     <Stack.Navigator
       screenOptions={{
@@ -95,36 +96,39 @@ function RootNavigator() {
   );
 }
 
-export default function App() {
+function MainAppContent() {
   const hydrated = useGame(s => s.hydrated);
   const state = useGame(s => s.state);
   const hydrate = useGame(s => s.hydrate);
+  const { colors } = useTheme();
 
-  // `hydrate` is a Zustand action from create(), so its identity is stable for
-  // the store's lifetime -- listing it satisfies the linter without re-running.
   useEffect(() => { hydrate(); }, [hydrate]);
 
-  // Everything lives on this device, so the only thing to wait for is the
-  // local save being read back off disk.
   if (!hydrated) return <Loader />;
 
   return (
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      {state ? (
+        <NavigationContainer>
+          <RootNavigator />
+        </NavigationContainer>
+      ) : (
+        <OnboardingScreen />
+      )}
+      <ToastHost />
+      <CelebrationHost />
+    </View>
+  );
+}
+
+export default function App() {
+  return (
     <SafeAreaProvider>
       <StatusBar style="light" />
-      {/* Wraps the whole tree: a crash in any screen must still leave the
-          player a route to their save data. */}
       <ErrorBoundary>
-        <View style={{ flex: 1 }}>
-          {state ? (
-            <NavigationContainer>
-              <RootNavigator />
-            </NavigationContainer>
-          ) : (
-            <OnboardingScreen />
-          )}
-          <ToastHost />
-          <CelebrationHost />
-        </View>
+        <ThemeProvider>
+          <MainAppContent />
+        </ThemeProvider>
       </ErrorBoundary>
     </SafeAreaProvider>
   );

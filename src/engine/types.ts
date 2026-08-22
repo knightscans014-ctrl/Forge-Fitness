@@ -2,6 +2,8 @@
 
 import type { QuestTimer } from './questTimer';
 
+export type ThemeId = 'solo' | 'berserker' | 'cyberpunk' | 'paladin';
+
 export type StatId = 'str' | 'vig' | 'vit' | 'flx' | 'foc';
 
 export type Sex = 'male' | 'female' | 'other';
@@ -251,6 +253,7 @@ export interface GameState {
   stackClaimed: Record<string, number>;
   bouts: { opponent: string; wins: number }[];
   boutStreak: number;
+  theme?: ThemeId;
 }
 
 export interface WeeklyProgress {

@@ -188,6 +188,7 @@ export function defaultState(name: string, clsId: string): GameState {
     stackClaimed: {},
     bouts: [],
     boutStreak: 0,
+    theme: 'solo',
   };
 }
 
@@ -381,9 +382,12 @@ export function normalize(s: GameState): GameState {
   if (!s.stackProgress || typeof s.stackProgress !== 'object') s.stackProgress = {};
   if (!s.activitiesToday || typeof s.activitiesToday !== 'object') s.activitiesToday = {};
   if (!s.stackClaimed || typeof s.stackClaimed !== 'object') s.stackClaimed = {};
-  if (!Array.isArray(s.bouts)) s.bouts = [];
+  if (!s.bouts || !Array.isArray(s.bouts)) s.bouts = [];
   if (s.boutStreak === undefined) s.boutStreak = 0;
   if (!s.suggestion || typeof s.suggestion !== 'object') s.suggestion = null;
+  if (!s.theme || !['solo', 'berserker', 'cyberpunk', 'paladin'].includes(s.theme)) {
+    s.theme = 'solo';
+  }
 
   // Migrate day stamps written before dayKey() was zero-padded. These are all
   // compared with ===, so leaving a legacy "2026-8-9" next to a new
